@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warp Connect Manager</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Aplikacija za Korisničke Postavke i Poslove</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body {
@@ -36,7 +35,7 @@
             max-width: 800px;
         }
 
-        .subcategory-sidebar {
+        .job-sidebar {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -65,10 +64,10 @@
             box-sizing: border-box;
         }
 
-        /* Onemogući uređivanje tekstualnih polja za potkategorije */
-        #subcategory-name[readonly],
-        #subcategory-short-desc[readonly],
-        #subcategory-long-desc[readonly] {
+        /* Onemogući uređivanje tekstualnih polja za poslove */
+        #job-title[readonly],
+        #job-short-desc[readonly],
+        #job-long-desc[readonly] {
             background-color: #e9ecef; /* Svetlosiva pozadina za readonly polja */
             cursor: not-allowed;
         }
@@ -94,7 +93,7 @@
             background-color: #0056b3;
         }
 
-        #message, #subcategory-message {
+        #message, #job-message {
             margin-top: 20px;
             color: #333;
             min-height: 20px;
@@ -118,7 +117,7 @@
             margin: 30px 0;
         }
 
-        .subcategory-list {
+        .job-list {
             list-style: none;
             padding: 0;
             margin: 0;
@@ -130,7 +129,7 @@
             flex-grow: 1;
         }
 
-        .subcategory-list-item {
+        .job-list-item {
             padding: 10px 15px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
@@ -141,15 +140,15 @@
             align-items: center;
         }
 
-        .subcategory-list-item:last-child {
+        .job-list-item:last-child {
             border-bottom: none;
         }
 
-        .subcategory-list-item:hover {
+        .job-list-item:hover {
             background-color: #f0f0f0;
         }
 
-        .subcategory-list-item.selected {
+        .job-list-item.selected {
             background-color: #e0f2ff;
             border-left: 3px solid #007bff;
             font-weight: bold;
@@ -168,18 +167,18 @@
             transform: scale(1.2);
         }
 
-        .subcategory-buttons {
+        .job-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 10px;
         }
-        .subcategory-buttons button {
+        .job-buttons button {
             flex-grow: 1;
             min-width: 120px;
         }
 
-        #subcategory-form {
+        #job-form {
             text-align: left;
         }
 
@@ -196,23 +195,21 @@
 </head>
 <body>
     <div class="main-wrapper">
-        <!-- Subcategory Sidebar -->
-        <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
+        <!-- Job Sidebar -->
+        <div class="job-sidebar" id="job-sidebar" style="display: none;">
             <div class="sidebar-header">
-                <h2>Lista Poslova</h2>
-                <!-- Uklonjeno dugme za kreiranje nove potkategorije -->
+                <h2>Poslovi</h2>
             </div>
-            <ul id="subcategory-list" class="subcategory-list">
-                <!-- Potkategorije će biti dinamički dodate ovde -->
+            <ul id="job-list" class="job-list">
+                <!-- Poslovi će biti dinamički dodati ovde -->
             </ul>
-            <div class="subcategory-buttons">
-                <button id="load-subcategories-button">Učitaj Listu</button>
-                <!-- Uklonjeno dugme za brisanje potkategorije -->
+            <div class="job-buttons">
+                <button id="load-jobs-button">Učitaj Listu Poslova</button>
             </div>
         </div>
 
         <div class="container">
-            <h1>Warp Connect Manager</h1>
+            <h1>Aplikacija za Korisničke Postavke i Poslove</h1>
 
             <!-- Google One Tap / Sign In Button -->
             <div id="g_id_onload"
@@ -235,42 +232,42 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <!-- Subcategory Details Section -->
-                <h2>Detalji posla (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
-                <div id="subcategory-form" style="display: none; padding-top: 10px;">
-                    <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
-                    <input type="text" id="subcategory-short-desc" placeholder="Kratak opis" readonly>
-                    <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..." readonly></textarea>
+                <!-- Job Details Section -->
+                <h2>Detalji Posla (<span id="current-job-id" style="font-weight: normal;">Nijedan</span>)</h2>
+                <div id="job-form" style="display: none; padding-top: 10px;">
+                    <input type="text" id="job-title" placeholder="Naziv posla" readonly>
+                    <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
+                    <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
                     <div class="checkbox-container">
-                        <input type="checkbox" id="subcategory-checkbox">
-                        <label for="subcategory-checkbox">prijavi se za posao</label>
+                        <input type="checkbox" id="job-checkbox">
+                        <label for="job-checkbox">Aktivan posao</label>
                     </div>
                     
-                    <button id="save-subcategory-button">posalji prijavu</button>
-                    <button id="cancel-subcategory-edit-button">Odustani</button>
+                    <button id="save-job-button">Sačuvaj Promene Posla</button>
+                    <button id="cancel-job-edit-button">Odustani</button>
                 </div>
                 
-                <p id="subcategory-message"></p>
+                <p id="job-message"></p>
 
                 <div class="section-separator"></div>
 
-                <!-- Original Data Section -->
-                <h2>Podesavanja Korisnika</h2>
-                <input type="text" id="input1" placeholder="Ime firme">
-                <input type="text" id="input2" placeholder="Kratak opis firme">
-                <textarea id="large-text-input" placeholder="detaljan opis firme"></textarea>
-                <input type="text" id="input3" placeholder="kontakt email">
-                <input type="text" id="input4" placeholder="web adresa">
-                <input type="text" id="input5" placeholder="dodatne informacije">
-                <select id="dropdown-input">
-                    <option value="">vrsta obrade</option>
-                    <option value="opcija1">strug</option>
-                    <option value="opcija2">glodalica</option>
-                    <option value="opcija3">strug i glodalica</option>
+                <!-- User Settings Section -->
+                <h2>Korisničke Postavke</h2>
+                <input type="text" id="company-name-input" placeholder="Ime firme">
+                <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
+                <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
+                <input type="text" id="contact-email-input" placeholder="Kontakt email">
+                <input type="text" id="website-input" placeholder="Web adresa">
+                <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
+                <select id="user-settings-dropdown">
+                    <option value="">Odaberite opciju</option>
+                    <option value="opcija1">Opcija 1</option>
+                    <option value="opcija2">Opcija 2</option>
+                    <option value="opcija3">Opcija 3</option>
                 </select>
 
-                <button id="save-button">Sačuvaj podesavanja</button>
-                <button id="load-button">Učitaj podesavanja</button>
+                <button id="save-settings-button">Sačuvaj Postavke Korisnika</button>
+                <button id="load-settings-button">Učitaj Postavke Korisnika</button>
                 <p id="message"></p>
 
                 <div class="section-separator"></div>
@@ -285,7 +282,7 @@
 
         let googleIdToken = null;
         let userName = null;
-        let currentSubcategoryId = null;
+        let currentJobId = null;
 
         function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
@@ -305,18 +302,18 @@
                     console.log("Login successful on backend:", data);
                     userName = data.user_name;
                     updateUIForLoggedInUser();
-                    loadSubcategories();
+                    loadJobs();
                 } else {
                     console.error("Backend login failed:", data.message);
-                    alert("Login failed: " + data.message);
+                    alert("Prijava neuspešna: " + data.message);
                     googleIdToken = null;
                     userName = null;
                     updateUIForLoggedOutUser();
                 }
             })
             .catch(error => {
-                console.error("Error during backend login verification:", error);
-                alert("An error occurred during login. Please try again.");
+                console.error("Greška tokom verifikacije prijave na backendu:", error);
+                alert("Došlo je do greške tokom prijave. Molimo pokušajte ponovo.");
                 googleIdToken = null;
                 userName = null;
                 updateUIForLoggedOutUser();
@@ -327,68 +324,68 @@
             document.getElementById('g_id_onload').style.display = 'none';
             document.querySelector('.g_id_signin').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            document.getElementById('subcategory-sidebar').style.display = 'flex';
+            document.getElementById('job-sidebar').style.display = 'flex';
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
-            document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('job-message').textContent = "";
             
-            // Očisti sva polja prilikom prijave (glavni podaci)
-            document.getElementById('input1').value = "";
-            document.getElementById('input2').value = "";
-            document.getElementById('large-text-input').value = "";
-            document.getElementById('input3').value = "";
-            document.getElementById('input4').value = "";
-            document.getElementById('input5').value = "";
-            document.getElementById('dropdown-input').value = "";
+            // Očisti sva polja prilikom prijave (korisničke postavke)
+            document.getElementById('company-name-input').value = "";
+            document.getElementById('company-short-desc-input').value = "";
+            document.getElementById('company-long-desc-input').value = "";
+            document.getElementById('contact-email-input').value = "";
+            document.getElementById('website-input').value = "";
+            document.getElementById('additional-info-input').value = "";
+            document.getElementById('user-settings-dropdown').value = "";
 
-            // Sakrij formu za potkategorije
-            document.getElementById('subcategory-form').style.display = 'none';
-            currentSubcategoryId = null;
-            document.getElementById('current-subcategory-id').textContent = "Nijedna"; // Promenjeno
-            clearSubcategoryForm();
+            // Sakrij formu za poslove
+            document.getElementById('job-form').style.display = 'none';
+            currentJobId = null;
+            document.getElementById('current-job-id').textContent = "Nijedan";
+            clearJobForm();
             // Očisti selekciju u sidebar-u
-            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+            document.querySelectorAll('.job-list-item').forEach(item => item.classList.remove('selected'));
         }
 
         function updateUIForLoggedOutUser() {
             document.getElementById('g_id_onload').style.display = 'block';
             document.querySelector('.g_id_signin').style.display = 'block';
             document.getElementById('app-content').style.display = 'none';
-            document.getElementById('subcategory-sidebar').style.display = 'none';
+            document.getElementById('job-sidebar').style.display = 'none';
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-            document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('job-message').textContent = "";
             googleIdToken = null;
             userName = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategory-list').innerHTML = '';
+            document.getElementById('job-list').innerHTML = '';
         }
 
         window.onload = function() {
             updateUIForLoggedOutUser();
         };
 
-        // --- Glavni podaci (postojeće funkcije) ---
-        document.getElementById('save-button').addEventListener('click', () => {
+        // --- Korisničke postavke funkcije (prepravljene od "Glavni podaci") ---
+        document.getElementById('save-settings-button').addEventListener('click', () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
             }
 
-            const dataToSave = {
-                input1: document.getElementById('input1').value,
-                input2: document.getElementById('input2').value,
-                largeText: document.getElementById('large-text-input').value,
-                input3: document.getElementById('input3').value,
-                input4: document.getElementById('input4').value,
-                input5: document.getElementById('input5').value,
-                dropdown: document.getElementById('dropdown-input').value
+            const settingsToSave = {
+                input1: document.getElementById('company-name-input').value, // Ime firme
+                input2: document.getElementById('company-short-desc-input').value, // Kratko objašnjenje firme
+                largeText: document.getElementById('company-long-desc-input').value, // Detaljno objašnjenje firme
+                input3: document.getElementById('contact-email-input').value, // Kontakt email
+                input4: document.getElementById('website-input').value, // Web adresa
+                input5: document.getElementById('additional-info-input').value, // Dodatno objašnjenje
+                dropdown: document.getElementById('user-settings-dropdown').value
             };
 
             fetch(`${BACKEND_URL}/save-data`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                body: JSON.stringify(dataToSave)
+                body: JSON.stringify(settingsToSave)
             })
             .then(response => {
                 if (!response.ok) {
@@ -398,10 +395,10 @@
                 return response.json();
             })
             .then(data => { document.getElementById('message').textContent = data.message; })
-            .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
+            .catch(error => { console.error("Greška pri čuvanju postavki:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja korisničkih postavki."; });
         });
 
-        document.getElementById('load-button').addEventListener('click', () => {
+        document.getElementById('load-settings-button').addEventListener('click', () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
@@ -419,17 +416,17 @@
                 return response.json();
             })
             .then(data => {
-                document.getElementById('input1').value = data.input1 || '';
-                document.getElementById('input2').value = data.input2 || '';
-                document.getElementById('large-text-input').value = data.largeText || '';
-                document.getElementById('input3').value = data.input3 || '';
-                document.getElementById('input4').value = data.input4 || '';
-                document.getElementById('input5').value = data.input5 || '';
-                document.getElementById('dropdown-input').value = data.dropdown || '';
+                document.getElementById('company-name-input').value = data.input1 || '';
+                document.getElementById('company-short-desc-input').value = data.input2 || '';
+                document.getElementById('company-long-desc-input').value = data.largeText || '';
+                document.getElementById('contact-email-input').value = data.input3 || '';
+                document.getElementById('website-input').value = data.input4 || '';
+                document.getElementById('additional-info-input').value = data.input5 || '';
+                document.getElementById('user-settings-dropdown').value = data.dropdown || '';
                 
                 document.getElementById('message').textContent = data.message;
             })
-            .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
+            .catch(error => { console.error("Greška pri učitavanju postavki:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja korisničkih postavki."; });
         });
 
         document.getElementById('signout-button').addEventListener('click', () => {
@@ -443,69 +440,66 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log("Backend logout response:", data.message);
+                console.log("Odgovor na odjavu sa backenda:", data.message);
                 alert("Uspešno ste se odjavili.");
             })
             .catch(error => {
-                console.error("Error during backend logout:", error);
+                console.error("Greška tokom odjave sa backenda:", error);
                 alert("Došlo je do greške prilikom odjave sa servera.");
             });
         });
 
-        // --- Funkcije za potkategorije ---
+        // --- Funkcije za poslove (prepravljene od "potkategorija") ---
 
-        function clearSubcategoryForm() {
-            document.getElementById('subcategory-name').value = '';
-            document.getElementById('subcategory-short-desc').value = '';
-            document.getElementById('subcategory-long-desc').value = '';
-            document.getElementById('subcategory-checkbox').checked = false;
+        function clearJobForm() {
+            document.getElementById('job-title').value = '';
+            document.getElementById('job-short-desc').value = '';
+            document.getElementById('job-long-desc').value = '';
+            document.getElementById('job-checkbox').checked = false;
         }
 
-        function showSubcategoryForm(subcategory = {}) { // Uklonjen editMode, jer nema kreiranja
-            document.getElementById('subcategory-form').style.display = 'block';
-            currentSubcategoryId = subcategory.id;
-            document.getElementById('current-subcategory-id').textContent = subcategory.id;
-            document.getElementById('subcategory-name').value = subcategory.name || '';
-            document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
-            document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
-            document.getElementById('subcategory-checkbox').checked = subcategory.is_active;
+        function showJobForm(job = {}) { 
+            document.getElementById('job-form').style.display = 'block';
+            currentJobId = job.id;
+            document.getElementById('current-job-id').textContent = job.id;
+            document.getElementById('job-title').value = job.name || '';
+            document.getElementById('job-short-desc').value = job.short_description || '';
+            document.getElementById('job-long-desc').value = job.long_description || '';
+            document.getElementById('job-checkbox').checked = job.is_active;
         }
 
-        // Uklonjen event listener za new-subcategory-button
-
-        document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
-            document.getElementById('subcategory-form').style.display = 'none';
-            clearSubcategoryForm();
-            currentSubcategoryId = null;
-            document.getElementById('current-subcategory-id').textContent = "Nijedna"; // Promenjeno
-            document.getElementById('subcategory-message').textContent = "";
+        document.getElementById('cancel-job-edit-button').addEventListener('click', () => {
+            document.getElementById('job-form').style.display = 'none';
+            clearJobForm();
+            currentJobId = null;
+            document.getElementById('current-job-id').textContent = "Nijedan"; 
+            document.getElementById('job-message').textContent = "";
         });
 
-        document.getElementById('save-subcategory-button').addEventListener('click', () => {
+        document.getElementById('save-job-button').addEventListener('click', () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni.");
                 return;
             }
-            if (!currentSubcategoryId) {
-                alert("Nije odabrana potkategorija za čuvanje.");
+            if (!currentJobId) {
+                alert("Nije odabran posao za čuvanje.");
                 return;
             }
 
-            const subcategoryData = {
-                id: currentSubcategoryId,
-                name: document.getElementById('subcategory-name').value, // Slanje name, short_desc, long_desc iako su readonly
-                short_description: document.getElementById('subcategory-short-desc').value,
-                long_description: document.getElementById('subcategory-long-desc').value,
-                is_active: document.getElementById('subcategory-checkbox').checked
+            const jobData = {
+                id: currentJobId,
+                name: document.getElementById('job-title').value, 
+                short_description: document.getElementById('job-short-desc').value,
+                long_description: document.getElementById('job-long-desc').value,
+                is_active: document.getElementById('job-checkbox').checked
             };
 
-            // Uvek je PUT jer samo ažuriramo postojeće
-            const url = `${BACKEND_URL}/subcategories/${currentSubcategoryId}`;
+            const url = `${BACKEND_URL}/subcategories/${currentJobId}`; // Backend i dalje koristi 'subcategories'
 
             fetch(url, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                body: JSON.stringify(subcategoryData)
+                body: JSON.stringify(jobData)
             })
             .then(response => {
                 if (!response.ok) {
@@ -515,26 +509,24 @@
                 return response.json();
             })
             .then(data => {
-                document.getElementById('subcategory-message').textContent = data.message;
-                // document.getElementById('subcategory-form').style.display = 'none'; // Možda ostaviti formu otvorenu nakon update-a
-                // clearSubcategoryForm(); // Ne čistimo formu, jer su podaci i dalje prikazani
-                loadSubcategories(true); // Ponovo učitaj listu potkategorija i selektuj onu koja je upravo sačuvana
+                document.getElementById('job-message').textContent = data.message;
+                loadJobs(true); // Ponovo učitaj listu poslova i selektuj onaj koji je upravo sačuvan
             })
             .catch(error => { 
-                console.error("Error saving subcategory:", error); 
-                document.getElementById('subcategory-message').textContent = "Greška prilikom čuvanja potkategorije."; 
+                console.error("Greška pri čuvanju posla:", error); 
+                document.getElementById('job-message').textContent = "Greška prilikom čuvanja posla."; 
             });
         });
 
-        document.getElementById('load-subcategories-button').addEventListener('click', () => loadSubcategories());
+        document.getElementById('load-jobs-button').addEventListener('click', () => loadJobs());
 
-        function loadSubcategories(reselect = false) {
+        function loadJobs(reselect = false) {
             if (!googleIdToken) {
                 alert("Niste prijavljeni.");
                 return;
             }
 
-            fetch(`${BACKEND_URL}/subcategories`, {
+            fetch(`${BACKEND_URL}/subcategories`, { // Backend i dalje koristi 'subcategories'
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${googleIdToken}` }
             })
@@ -546,61 +538,61 @@
                 return response.json();
             })
             .then(data => {
-                const subcategoryListElement = document.getElementById('subcategory-list');
-                subcategoryListElement.innerHTML = '';
+                const jobListElement = document.getElementById('job-list');
+                jobListElement.innerHTML = '';
                 
-                let newlySelectedId = currentSubcategoryId;
+                let newlySelectedId = currentJobId;
 
-                if (data.status === 'success' && data.subcategories.length > 0) {
+                if (data.status === 'success' && data.subcategories.length > 0) { // Backend vraća 'subcategories'
                     data.subcategories.forEach(sub => {
                         const listItem = document.createElement('li');
-                        listItem.className = 'subcategory-list-item';
+                        listItem.className = 'job-list-item';
                         listItem.dataset.id = sub.id;
                         listItem.textContent = sub.name;
                         listItem.addEventListener('click', () => {
-                            selectSubcategory(sub.id);
+                            selectJob(sub.id);
                         });
-                        subcategoryListElement.appendChild(listItem);
+                        jobListElement.appendChild(listItem);
                     });
-                    document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
+                    document.getElementById('job-message').textContent = "Poslovi uspešno učitani.";
                 } else {
-                    document.getElementById('subcategory-message').textContent = "Nema sačuvanih potkategorija.";
+                    document.getElementById('job-message').textContent = "Nema sačuvanih poslova.";
                 }
 
                 if (reselect && newlySelectedId) {
-                    selectSubcategory(newlySelectedId);
+                    selectJob(newlySelectedId);
                 } else {
-                    currentSubcategoryId = null;
-                    document.getElementById('current-subcategory-id').textContent = "Nijedna"; // Promenjeno
-                    document.getElementById('subcategory-form').style.display = 'none';
-                    clearSubcategoryForm();
+                    currentJobId = null;
+                    document.getElementById('current-job-id').textContent = "Nijedan"; 
+                    document.getElementById('job-form').style.display = 'none';
+                    clearJobForm();
                 }
             })
             .catch(error => { 
-                console.error("Error loading subcategories:", error); 
-                document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja potkategorija."; 
+                console.error("Greška pri učitavanju poslova:", error); 
+                document.getElementById('job-message').textContent = "Greška prilikom učitavanja poslova."; 
             });
         }
 
-        function selectSubcategory(subcategoryId) {
-            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+        function selectJob(jobId) {
+            document.querySelectorAll('.job-list-item').forEach(item => {
                 item.classList.remove('selected');
             });
 
-            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            const selectedItem = document.querySelector(`.job-list-item[data-id="${jobId}"]`);
             if (selectedItem) {
                 selectedItem.classList.add('selected');
-                loadSubcategoryDetails(subcategoryId);
+                loadJobDetails(jobId);
             }
         }
 
-        function loadSubcategoryDetails(subcategoryId) {
+        function loadJobDetails(jobId) {
             if (!googleIdToken) {
                 alert("Niste prijavljeni.");
                 return;
             }
 
-            fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
+            fetch(`${BACKEND_URL}/subcategories/${jobId}`, { // Backend i dalje koristi 'subcategories'
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${googleIdToken}` }
             })
@@ -612,24 +604,22 @@
                 return response.json();
             })
             .then(data => {
-                if (data.status === 'success' && data.subcategory) {
-                    showSubcategoryForm(data.subcategory); // Prosleđujemo samo subcategory objekat
-                    document.getElementById('subcategory-message').textContent = `Potkategorija "${data.subcategory.name}" učitana.`;
+                if (data.status === 'success' && data.subcategory) { // Backend vraća 'subcategory'
+                    showJobForm(data.subcategory); 
+                    document.getElementById('job-message').textContent = `Posao "${data.subcategory.name}" učitan.`;
                 } else {
-                    document.getElementById('subcategory-message').textContent = "Potkategorija nije pronađena.";
-                    document.getElementById('subcategory-form').style.display = 'none';
-                    clearSubcategoryForm();
-                    currentSubcategoryId = null;
-                    document.getElementById('current-subcategory-id').textContent = "Nijedna"; // Promenjeno
+                    document.getElementById('job-message').textContent = "Posao nije pronađen.";
+                    document.getElementById('job-form').style.display = 'none';
+                    clearJobForm();
+                    currentJobId = null;
+                    document.getElementById('current-job-id').textContent = "Nijedan"; 
                 }
             })
             .catch(error => { 
-                console.error("Error loading subcategory details:", error); 
-                document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja detalja potkategorije."; 
+                console.error("Greška pri učitavanju detalja posla:", error); 
+                document.getElementById('job-message').textContent = "Greška prilikom učitavanja detalja posla."; 
             });
         }
-
-        // Uklonjen event listener za delete-subcategory-button
     </script>
 </body>
 </html>
