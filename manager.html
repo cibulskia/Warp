@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google OAuth App (All in One)</title>
+    <title>Warp Connect Manager</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -199,7 +199,7 @@
         <!-- Subcategory Sidebar -->
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
-                <h2>Potkategorije</h2>
+                <h2>Lista Poslova</h2>
                 <!-- Uklonjeno dugme za kreiranje nove potkategorije -->
             </div>
             <ul id="subcategory-list" class="subcategory-list">
@@ -212,7 +212,7 @@
         </div>
 
         <div class="container">
-            <h1>Moja Aplikacija</h1>
+            <h1>Warp Connect Manager</h1>
 
             <!-- Google One Tap / Sign In Button -->
             <div id="g_id_onload"
@@ -236,7 +236,7 @@
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
                 <!-- Subcategory Details Section -->
-                <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
+                <h2>Detalji posla (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
                 <div id="subcategory-form" style="display: none; padding-top: 10px;">
                     <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
                     <input type="text" id="subcategory-short-desc" placeholder="Kratak opis" readonly>
@@ -255,22 +255,22 @@
                 <div class="section-separator"></div>
 
                 <!-- Original Data Section -->
-                <h2>Glavni Podaci</h2>
-                <input type="text" id="input1" placeholder="Prvo polje za tekst">
-                <input type="text" id="input2" placeholder="Drugo polje za tekst">
-                <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
-                <input type="text" id="input3" placeholder="Treće polje za tekst">
-                <input type="text" id="input4" placeholder="Četvrto polje za tekst">
-                <input type="text" id="input5" placeholder="Peto polje za tekst">
+                <h2>Podesavanja Korisnika</h2>
+                <input type="text" id="input1" placeholder="Ime firme">
+                <input type="text" id="input2" placeholder="Kratak opis firme">
+                <textarea id="large-text-input" placeholder="detaljan opis firme"></textarea>
+                <input type="text" id="input3" placeholder="kontakt email">
+                <input type="text" id="input4" placeholder="web adresa">
+                <input type="text" id="input5" placeholder="dodatne informacije">
                 <select id="dropdown-input">
-                    <option value="">Odaberite opciju</option>
-                    <option value="opcija1">Opcija 1</option>
-                    <option value="opcija2">Opcija 2</option>
-                    <option value="opcija3">Opcija 3</option>
+                    <option value="">vrsta obrade</option>
+                    <option value="opcija1">strug</option>
+                    <option value="opcija2">glodalica</option>
+                    <option value="opcija3">strug i glodalica</option>
                 </select>
 
-                <button id="save-button">Sačuvaj Glavne Podatke</button>
-                <button id="load-button">Učitaj Glavne Podatke</button>
+                <button id="save-button">Sačuvaj podesavanja</button>
+                <button id="load-button">Učitaj podesavanja</button>
                 <p id="message"></p>
 
                 <div class="section-separator"></div>
