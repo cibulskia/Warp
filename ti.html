@@ -6,6 +6,7 @@
     <title>Google OAuth App (All in One)</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
+        /* Sav tvoj CSS ide ovde */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -23,7 +24,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 400px;
-            max-width: 90%; /* Dodato za responzivnost */
         }
 
         h1 {
@@ -31,7 +31,16 @@
             margin-bottom: 20px;
         }
 
-        input[type="text"], input[type="file"] {
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input[type="file"] {
             width: calc(100% - 20px);
             padding: 10px;
             margin-bottom: 15px;
@@ -58,7 +67,6 @@
         #message {
             margin-top: 20px;
             color: #333;
-            min-height: 20px; /* Sprečava pomeranje elemenata kada je poruka prazna */
         }
 
         #user-name {
@@ -74,23 +82,13 @@
             background-color: #c82333;
         }
 
-        #profile-image-display {
+        #profile-picture-display {
             width: 100px;
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            margin-top: 15px;
             margin-bottom: 15px;
-            border: 2px solid #ddd;
-            display: block; /* Da bude centrirana sa margin: auto */
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .profile-section {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            border: 2px solid #007bff;
         }
     </style>
 </head>
@@ -100,7 +98,7 @@
 
         <!-- Google One Tap / Sign In Button -->
         <div id="g_id_onload"
-             data-client_id="252373158568-rel195em0i1shdl4h7v224i7mvh394j9.apps.googleusercontent.com" <!-- Ažuriran Client ID -->
+             data-client_id="252373158568-rel195em0i1shdl4h7v224i7mvh394j9.apps.googleusercontent.com"
              data-auto_select="true"
              data-callback="handleCredentialResponse"
              data-ux_mode="popup"
@@ -119,13 +117,12 @@
         <div id="app-content" style="display: none;">
             <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-            <!-- Profilna slika sekcija -->
-            <div class="profile-section">
-                <img id="profile-image-display" src="" alt="Profilna Slika" style="display: none;">
-                <input type="file" id="profile-image-input" accept="image/*">
-                <button id="upload-image-button">Upload Slike</button>
-            </div>
-            
+            <!-- Profilna slika -->
+            <img id="profile-picture-display" src="" alt="Profilna slika" style="display: none;">
+            <input type="file" id="profile-picture-input" accept="image/*">
+            <button id="upload-profile-picture-button">Upload Slike</button>
+            <br><br>
+
             <input type="text" id="data-input" placeholder="Unesi tekst ovde...">
             <button id="save-button">Sačuvaj Podatke</button>
             <button id="load-button">Učitaj Podatke</button>
@@ -135,10 +132,11 @@
     </div>
 
     <script>
-        const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa ili domen
+        const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
 
         let googleIdToken = null;
         let userName = null;
+        let profilePicFileId = null;
 
         function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
@@ -158,7 +156,8 @@
                     console.log("Login successful on backend:", data);
                     userName = data.user_name;
                     updateUIForLoggedInUser();
-                    loadProfileImage(); // Učitaj profilnu sliku nakon prijave
+                    // Automatski učitaj podatke i profilnu sliku nakon prijave
+                    loadUserDataAndProfilePic(); 
                 } else {
                     console.error("Backend login failed:", data.message);
                     alert("Login failed: " + data.message);
@@ -183,6 +182,7 @@
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
             document.getElementById('data-input').value = "";
+            document.getElementById('profile-picture-input').value = ""; // Clear file input
         }
 
         function updateUIForLoggedOutUser() {
@@ -193,17 +193,55 @@
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             googleIdToken = null;
             userName = null;
+            profilePicFileId = null;
+            document.getElementById('profile-picture-display').style.display = 'none';
+            document.getElementById('profile-picture-display').src = "";
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            // Sakrij profilnu sliku i resetuj njen izvor
-            document.getElementById('profile-image-display').src = "";
-            document.getElementById('profile-image-display').style.display = 'none';
+        }
+
+        async function loadUserDataAndProfilePic() {
+            if (!googleIdToken) {
+                console.warn("Niste prijavljeni. Ne mogu učitati podatke i sliku.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/load-data`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${googleIdToken}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) { 
+                        alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); 
+                        updateUIForLoggedOutUser(); 
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('data-input').value = data.data || '';
+                document.getElementById('message').textContent = data.message;
+                profilePicFileId = data.profile_pic_file_id;
+
+                if (profilePicFileId) {
+                    document.getElementById('profile-picture-display').src = `${BACKEND_URL}/profile-picture/${profilePicFileId}`;
+                    document.getElementById('profile-picture-display').style.display = 'block';
+                } else {
+                    document.getElementById('profile-picture-display').style.display = 'none';
+                    document.getElementById('profile-picture-display').src = "";
+                }
+
+            } catch (error) {
+                console.error("Error loading data and profile picture:", error);
+                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka.";
+            }
         }
 
         window.onload = function() {
             updateUIForLoggedOutUser();
         };
 
-        // --- Event Listeneri za postojeće dugmad ---
         document.getElementById('save-button').addEventListener('click', () => {
             const textData = document.getElementById('data-input').value;
             if (!googleIdToken) {
@@ -227,38 +265,60 @@
             .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
         });
 
-        document.getElementById('load-button').addEventListener('click', () => {
+        document.getElementById('load-button').addEventListener('click', loadUserDataAndProfilePic); // Koristi novu funkciju
+
+        document.getElementById('upload-profile-picture-button').addEventListener('click', async () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
             }
 
-            fetch(`${BACKEND_URL}/load-data`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
+            const fileInput = document.getElementById('profile-picture-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Molimo izaberite sliku za upload.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/upload-profile-picture`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${googleIdToken}` },
+                    body: formData
+                });
+
                 if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    if (response.status === 401) { 
+                        alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); 
+                        updateUIForLoggedOutUser(); 
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('data-input').value = data.data || '';
+
+                const data = await response.json();
                 document.getElementById('message').textContent = data.message;
-            })
-            .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
+
+                if (data.status === 'success' && data.file_id) {
+                    profilePicFileId = data.file_id;
+                    document.getElementById('profile-picture-display').src = `${BACKEND_URL}/profile-picture/${profilePicFileId}`;
+                    document.getElementById('profile-picture-display').style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error("Error uploading profile picture:", error);
+                document.getElementById('message').textContent = "Greška prilikom uploada profilne slike.";
+            }
         });
 
+
         document.getElementById('signout-button').addEventListener('click', () => {
-            // Google One Tap odjava
-            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-                google.accounts.id.disableAutoSelect(); // Sprečava automatsku prijavu odmah posle odjave
-            }
-            
             googleIdToken = null;
             userName = null;
+            profilePicFileId = null;
             updateUIForLoggedOutUser();
 
             fetch(`${BACKEND_URL}/logout`, {
@@ -268,94 +328,13 @@
             .then(response => response.json())
             .then(data => {
                 console.log("Backend logout response:", data.message);
-                document.getElementById('message').textContent = "Uspešno ste se odjavili.";
+                alert("Uspešno ste se odjavili.");
             })
             .catch(error => {
                 console.error("Error during backend logout:", error);
-                document.getElementById('message').textContent = "Došlo je do greške prilikom odjave sa servera.";
+                alert("Došlo je do greške prilikom odjave sa servera.");
             });
         });
-
-        // --- NOVE FUNKCIJE ZA PROFILNU SLIKU ---
-
-        document.getElementById('upload-image-button').addEventListener('click', async () => {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            const fileInput = document.getElementById('profile-image-input');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                document.getElementById('message').textContent = "Molimo izaberite sliku za upload.";
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('profile_image', file);
-
-            document.getElementById('message').textContent = "Upload-ujem sliku...";
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/upload-profile-image`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${googleIdToken}` },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                document.getElementById('message').textContent = data.message;
-                if (data.status === 'success' && data.image_url) {
-                    const profileImage = document.getElementById('profile-image-display');
-                    profileImage.src = data.image_url;
-                    profileImage.style.display = 'block';
-                    fileInput.value = ''; // Resetuj input polje
-                }
-            } catch (error) {
-                console.error("Error uploading profile image:", error);
-                document.getElementById('message').textContent = "Greška pri upload-u profilne slike.";
-            }
-        });
-
-        async function loadProfileImage() {
-            if (!googleIdToken) {
-                // Nema potrebe za upozorenjem, korisnik možda još nije prijavljen
-                return;
-            }
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/get-profile-image`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${googleIdToken}` }
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) { /* Ne mora alert, samo log */ console.warn("Sesija istekla prilikom učitavanja profilne slike."); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const profileImage = document.getElementById('profile-image-display');
-                if (data.status === 'success' && data.image_url) {
-                    profileImage.src = data.image_url;
-                    profileImage.style.display = 'block';
-                    document.getElementById('message').textContent = data.message;
-                } else {
-                    profileImage.src = ""; // Nema slike
-                    profileImage.style.display = 'none';
-                    // document.getElementById('message').textContent = data.message; // Ne prikazuj "Nema sačuvanih podataka" kao glavnu poruku
-                }
-            } catch (error) {
-                console.error("Error loading profile image:", error);
-                document.getElementById('message').textContent = "Greška pri učitavanju profilne slike.";
-            }
-        }
     </script>
 </body>
 </html>
