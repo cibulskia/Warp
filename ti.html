@@ -25,10 +25,10 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%;
-            max-width: 600px;
+            max-width: 600px; /* Povećana širina za dodatnu sekciju */
         }
 
-        h1, h2, h3 {
+        h1, h2 {
             color: #333;
             margin-bottom: 20px;
         }
@@ -77,11 +77,11 @@
             color: #007bff;
         }
 
-        #signout-button, .delete-subcategory-button {
+        #signout-button {
             background-color: #dc3545;
         }
 
-        #signout-button:hover, .delete-subcategory-button:hover {
+        #signout-button:hover {
             background-color: #c82333;
         }
 
@@ -103,6 +103,12 @@
 
         .subcategory-list-item:hover {
             background-color: #eef;
+            cursor: pointer;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #d1e7ff;
+            border-color: #007bff;
         }
 
         .checkbox-container {
@@ -116,12 +122,6 @@
             width: auto;
             margin-right: 10px;
             transform: scale(1.2);
-        }
-
-        .subcategory-actions button {
-            margin-left: 8px;
-            padding: 6px 10px;
-            font-size: 14px;
         }
     </style>
 </head>
@@ -174,12 +174,12 @@
             <!-- Subcategory Section -->
             <h2>Potkategorije</h2>
             
-            <div id="subcategories-display">
-                <!-- Potkategorije će biti dinamički dodate ovde -->
-            </div>
-            
+            <select id="subcategory-list">
+                <option value="">Odaberi potkategoriju</option>
+            </select>
+            <button id="load-subcategories-button">Učitaj Potkategorije</button>
             <button id="new-subcategory-button">Nova Potkategorija</button>
-            <p id="subcategory-message"></p>
+            <button id="delete-subcategory-button" style="background-color: #dc3545;">Obriši Odabranu</button>
 
             <div id="subcategory-form" style="display: none; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
                 <h3>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nova</span>)</h3>
@@ -195,6 +195,8 @@
                 <button id="cancel-subcategory-edit-button">Odustani</button>
             </div>
             
+            <p id="subcategory-message"></p>
+
             <div class="section-separator"></div>
 
             <button id="signout-button">Odjavi se</button>
@@ -278,7 +280,7 @@
             googleIdToken = null;
             userName = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategories-display').innerHTML = ''; // Očisti prikaz potkategorija
+            document.getElementById('subcategory-list').innerHTML = '<option value="">Odaberi potkategoriju</option>';
         }
 
         window.onload = function() {
@@ -392,8 +394,6 @@
                 document.getElementById('current-subcategory-id').textContent = "Nova";
                 clearSubcategoryForm();
             }
-            // Skroluj do forme za uređivanje
-            document.getElementById('subcategory-form').scrollIntoView({ behavior: 'smooth' });
         }
 
         document.getElementById('new-subcategory-button').addEventListener('click', () => {
@@ -411,6 +411,7 @@
             currentSubcategoryId = null;
             document.getElementById('current-subcategory-id').textContent = "Nova";
             document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('subcategory-list').value = ""; // Odselektuj iz padajuće liste
         });
 
         document.getElementById('save-subcategory-button').addEventListener('click', () => {
@@ -456,6 +457,8 @@
             });
         });
 
+        document.getElementById('load-subcategories-button').addEventListener('click', loadSubcategories);
+
         function loadSubcategories() {
             if (!googleIdToken) {
                 alert("Niste prijavljeni.");
@@ -474,41 +477,22 @@
                 return response.json();
             })
             .then(data => {
-                const subcategoriesDisplay = document.getElementById('subcategories-display');
-                subcategoriesDisplay.innerHTML = ''; // Očisti prethodne opcije
-
+                const subcategoryList = document.getElementById('subcategory-list');
+                subcategoryList.innerHTML = '<option value="">Odaberi potkategoriju</option>'; // Očisti prethodne opcije
                 if (data.status === 'success' && data.subcategories.length > 0) {
                     data.subcategories.forEach(sub => {
-                        const listItem = document.createElement('div');
-                        listItem.classList.add('subcategory-list-item');
-                        listItem.innerHTML = `
-                            <span>${sub.name} (ID: ${sub.id})</span>
-                            <div class="subcategory-actions">
-                                <button class="edit-subcategory-button" data-id="${sub.id}">Uredi</button>
-                                <button class="delete-subcategory-button" data-id="${sub.id}">Obriši</button>
-                            </div>
-                        `;
-                        subcategoriesDisplay.appendChild(listItem);
+                        const option = document.createElement('option');
+                        option.value = sub.id;
+                        option.textContent = sub.name;
+                        subcategoryList.appendChild(option);
                     });
                     document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
-
-                    // Dodaj event listenere za nove dugmad
-                    document.querySelectorAll('.edit-subcategory-button').forEach(button => {
-                        button.addEventListener('click', (event) => {
-                            const subcategoryId = event.target.dataset.id;
-                            loadSubcategoryDetails(subcategoryId);
-                        });
-                    });
-
-                    document.querySelectorAll('.delete-subcategory-button').forEach(button => {
-                        button.addEventListener('click', (event) => {
-                            const subcategoryId = event.target.dataset.id;
-                            deleteSubcategory(subcategoryId);
-                        });
-                    });
-
                 } else {
                     document.getElementById('subcategory-message').textContent = "Nema sačuvanih potkategorija.";
+                }
+                // Ako je neka potkategorija bila odabrana, pokušaj da je ponovo selektuješ
+                if (currentSubcategoryId) {
+                    subcategoryList.value = currentSubcategoryId;
                 }
             })
             .catch(error => { 
@@ -516,6 +500,19 @@
                 document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja potkategorija."; 
             });
         }
+
+        document.getElementById('subcategory-list').addEventListener('change', (event) => {
+            const selectedSubcategoryId = event.target.value;
+            if (selectedSubcategoryId) {
+                loadSubcategoryDetails(selectedSubcategoryId);
+            } else {
+                document.getElementById('subcategory-form').style.display = 'none';
+                clearSubcategoryForm();
+                currentSubcategoryId = null;
+                document.getElementById('current-subcategory-id').textContent = "Nova";
+                document.getElementById('subcategory-message').textContent = "";
+            }
+        });
 
         function loadSubcategoryDetails(subcategoryId) {
             if (!googleIdToken) {
@@ -550,17 +547,22 @@
             });
         }
 
-        function deleteSubcategory(subcategoryId) {
+        document.getElementById('delete-subcategory-button').addEventListener('click', () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni.");
                 return;
             }
-            
-            if (!confirm(`Da li ste sigurni da želite da obrišete potkategoriju sa ID: ${subcategoryId}?`)) {
+            const selectedSubcategoryId = document.getElementById('subcategory-list').value;
+            if (!selectedSubcategoryId) {
+                alert("Molimo odaberite potkategoriju za brisanje.");
                 return;
             }
 
-            fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
+            if (!confirm(`Da li ste sigurni da želite da obrišete potkategoriju sa ID: ${selectedSubcategoryId}?`)) {
+                return;
+            }
+
+            fetch(`${BACKEND_URL}/subcategories/${selectedSubcategoryId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${googleIdToken}` }
             })
@@ -583,7 +585,7 @@
                 console.error("Error deleting subcategory:", error);
                 document.getElementById('subcategory-message').textContent = "Greška prilikom brisanja potkategorije.";
             });
-        }
+        });
 
     </script>
 </body>
