@@ -6,7 +6,6 @@
     <title>Google OAuth App (All in One)</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* Sav tvoj CSS ide ovde */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -15,6 +14,8 @@
             min-height: 100vh;
             background-color: #f4f4f4;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .container {
@@ -23,7 +24,8 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-            width: 400px;
+            width: 100%;
+            max-width: 500px;
         }
 
         h1 {
@@ -31,13 +33,21 @@
             margin-bottom: 20px;
         }
 
-        input[type="text"] {
+        input[type="text"],
+        textarea,
+        select {
             width: calc(100% - 20px);
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+            box-sizing: border-box; /* Važno za ispravnu širinu */
+        }
+
+        textarea {
+            resize: vertical; /* Omogućava korisniku da menja visinu */
+            min-height: 100px;
         }
 
         button {
@@ -49,6 +59,7 @@
             cursor: pointer;
             font-size: 16px;
             margin: 5px;
+            transition: background-color 0.3s ease;
         }
 
         button:hover {
@@ -58,6 +69,7 @@
         #message {
             margin-top: 20px;
             color: #333;
+            min-height: 20px; /* Da se ne pomera layout kad se poruka pojavi */
         }
 
         #user-name {
@@ -98,7 +110,23 @@
 
         <div id="app-content" style="display: none;">
             <p>Dobrodošao, <span id="user-name"></span>!</p>
-            <input type="text" id="data-input" placeholder="Unesi tekst ovde...">
+
+            <input type="text" id="input1" placeholder="Prvo polje za tekst">
+            <input type="text" id="input2" placeholder="Drugo polje za tekst">
+
+            <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+
+            <input type="text" id="input3" placeholder="Treće polje za tekst">
+            <input type="text" id="input4" placeholder="Četvrto polje za tekst">
+            <input type="text" id="input5" placeholder="Peto polje za tekst">
+
+            <select id="dropdown-input">
+                <option value="">Odaberite opciju</option>
+                <option value="opcija1">Opcija 1</option>
+                <option value="opcija2">Opcija 2</option>
+                <option value="opcija3">Opcija 3</option>
+            </select>
+
             <button id="save-button">Sačuvaj Podatke</button>
             <button id="load-button">Učitaj Podatke</button>
             <p id="message"></p>
@@ -107,7 +135,6 @@
     </div>
 
     <script>
-        // Sav tvoj JavaScript ide ovde
         const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
 
         let googleIdToken = null;
@@ -154,7 +181,15 @@
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
-            document.getElementById('data-input').value = "";
+            
+            // Očisti sva polja prilikom prijave
+            document.getElementById('input1').value = "";
+            document.getElementById('input2').value = "";
+            document.getElementById('large-text-input').value = "";
+            document.getElementById('input3').value = "";
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = "";
+            document.getElementById('dropdown-input').value = "";
         }
 
         function updateUIForLoggedOutUser() {
@@ -173,16 +208,25 @@
         };
 
         document.getElementById('save-button').addEventListener('click', () => {
-            const textData = document.getElementById('data-input').value;
             if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
             }
 
+            const dataToSave = {
+                input1: document.getElementById('input1').value,
+                input2: document.getElementById('input2').value,
+                largeText: document.getElementById('large-text-input').value,
+                input3: document.getElementById('input3').value,
+                input4: document.getElementById('input4').value,
+                input5: document.getElementById('input5').value,
+                dropdown: document.getElementById('dropdown-input').value
+            };
+
             fetch(`${BACKEND_URL}/save-data`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                body: JSON.stringify({ data: textData })
+                body: JSON.stringify(dataToSave)
             })
             .then(response => {
                 if (!response.ok) {
@@ -213,7 +257,14 @@
                 return response.json();
             })
             .then(data => {
-                document.getElementById('data-input').value = data.data || '';
+                document.getElementById('input1').value = data.input1 || '';
+                document.getElementById('input2').value = data.input2 || '';
+                document.getElementById('large-text-input').value = data.largeText || '';
+                document.getElementById('input3').value = data.input3 || '';
+                document.getElementById('input4').value = data.input4 || '';
+                document.getElementById('input5').value = data.input5 || '';
+                document.getElementById('dropdown-input').value = data.dropdown || '';
+                
                 document.getElementById('message').textContent = data.message;
             })
             .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
