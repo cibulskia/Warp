@@ -3,623 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikacija za Korisničke Postavke i Poslove</title>
+    <title>Warp Connect - Platforma za poslove i postavke</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .main-wrapper {
-            display: flex;
-            gap: 20px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            flex-grow: 1;
-            max-width: 800px;
-        }
-
-        .job-sidebar {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            flex-shrink: 0;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-        }
-
-        h1, h2, h3 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"],
-        textarea,
-        select {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        /* Onemogući uređivanje tekstualnih polja za poslove */
-        #job-title[readonly],
-        #job-short-desc[readonly],
-        #job-long-desc[readonly] {
-            background-color: #e9ecef; /* Svetlosiva pozadina za readonly polja */
-            cursor: not-allowed;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        #message, #job-message {
-            margin-top: 20px;
-            color: #333;
-            min-height: 20px;
-        }
-
-        #user-name {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        #signout-button {
-            background-color: #dc3545;
-        }
-
-        #signout-button:hover {
-            background-color: #c82333;
-        }
-
-        .section-separator {
-            border-top: 1px solid #eee;
-            margin: 30px 0;
-        }
-
-        .job-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            flex-grow: 1;
-        }
-
-        .job-list-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            text-align: left;
-            transition: background-color 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .job-list-item:last-child {
-            border-bottom: none;
-        }
-
-        .job-list-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .job-list-item.selected {
-            background-color: #e0f2ff;
-            border-left: 3px solid #007bff;
-            font-weight: bold;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .checkbox-container input[type="checkbox"] {
-            width: auto;
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-
-        .job-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .job-buttons button {
-            flex-grow: 1;
-            min-width: 120px;
-        }
-
-        #job-form {
-            text-align: left;
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .sidebar-header h2 {
-            margin: 0;
-        }
-    </style>
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> <!-- Povezujemo naš novi CSS fajl -->
 </head>
 <body>
-    <div class="main-wrapper">
-        <!-- Job Sidebar -->
-        <div class="job-sidebar" id="job-sidebar" style="display: none;">
-            <div class="sidebar-header">
-                <h2>Poslovi</h2>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-starship"></i> Warp Connect
             </div>
-            <ul id="job-list" class="job-list">
-                <!-- Poslovi će biti dinamički dodati ovde -->
-            </ul>
-            <div class="job-buttons">
-                <button id="load-jobs-button">Učitaj Listu Poslova</button>
-            </div>
-        </div>
-
-        <div class="container">
-            <h1>Aplikacija za Korisničke Postavke i Poslove</h1>
-
-            <!-- Google One Tap / Sign In Button -->
-            <div id="g_id_onload"
-                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
-                 data-auto_select="true"
-                 data-callback="handleCredentialResponse"
-                 data-ux_mode="popup"
-                 data-cancel_on_tap_outside="false"
-                 data-context="use">
-            </div>
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-size="large"
-                 data-theme="outline"
-                 data-text="sign_in_with"
-                 data-shape="rectangular"
-                 data-logo_alignment="left">
-            </div>
-
-            <div id="app-content" style="display: none;">
-                <p>Dobrodošao, <span id="user-name"></span>!</p>
-
-                <!-- Job Details Section -->
-                <h2>Detalji Posla (<span id="current-job-id" style="font-weight: normal;">Nijedan</span>)</h2>
-                <div id="job-form" style="display: none; padding-top: 10px;">
-                    <input type="text" id="job-title" placeholder="Naziv posla" readonly>
-                    <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
-                    <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="job-checkbox">
-                        <label for="job-checkbox">prijavi se za posao</label>
-                    </div>
-                    
-                    <button id="save-job-button">posalji prijavu</button>
-                    <button id="cancel-job-edit-button">izadji</button>
+            <div id="auth-section">
+                <!-- Google One Tap / Sign In Button -->
+                <div id="g_id_onload"
+                     data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                     data-auto_select="true"
+                     data-callback="handleCredentialResponse"
+                     data-ux_mode="popup"
+                     data-cancel_on_tap_outside="false"
+                     data-context="use">
                 </div>
-                
-                <p id="job-message"></p>
-
-                <div class="section-separator"></div>
-
-                <!-- User Settings Section -->
-                <h2>Korisničke Postavke</h2>
-                <input type="text" id="company-name-input" placeholder="Ime firme">
-                <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
-                <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
-                <input type="text" id="contact-email-input" placeholder="Kontakt email">
-                <input type="text" id="website-input" placeholder="Web adresa">
-                <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
-                <select id="user-settings-dropdown">
-                    <option value="">Odaberite opciju</option>
-                    <option value="opcija1">Opcija 1</option>
-                    <option value="opcija2">Opcija 2</option>
-                    <option value="opcija3">Opcija 3</option>
-                </select>
-
-                <button id="save-settings-button">Sačuvaj Postavke Korisnika</button>
-                <button id="load-settings-button">Učitaj Postavke Korisnika</button>
-                <p id="message"></p>
-
-                <div class="section-separator"></div>
-
-                <button id="signout-button">Odjavi se</button>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+                <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> Odjavi se
+                </button>
             </div>
+        </header>
+
+        <!-- Main Content Wrapper -->
+        <div class="main-content-wrapper">
+            <!-- Sidebar za Poslove -->
+            <aside class="job-sidebar" id="job-sidebar" style="display: none;">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-briefcase"></i> Poslovi</h2>
+                    <button id="load-jobs-button" class="btn btn-primary btn-icon btn-small">
+                        <i class="fas fa-sync-alt"></i> Učitaj
+                    </button>
+                </div>
+                <ul id="job-list" class="job-list">
+                    <!-- Poslovi će biti dinamički dodati ovde -->
+                </ul>
+                <div id="job-list-loading" class="loading-spinner" style="display: none;"></div>
+            </aside>
+
+            <!-- Glavni sadržaj -->
+            <main class="main-content-area">
+                <div id="welcome-message" class="card welcome-card">
+                    <h2>Dobrodošao na Warp Connect!</h2>
+                    <p>Prijavite se putem Google naloga da biste pristupili svojim postavkama i istražili dostupne poslove.</p>
+                </div>
+
+                <div id="app-content" style="display: none;">
+                    <div class="card user-info-card">
+                        <h3><i class="fas fa-user-circle"></i> Dobrodošao, <span id="user-name"></span>!</h3>
+                        <p id="message" class="info-message"></p>
+                    </div>
+
+                    <!-- Detalji Posla Sekcija -->
+                    <div class="card job-details-card">
+                        <h2>
+                            <i class="fas fa-file-invoice"></i> Detalji Posla (<span id="current-job-id" class="job-id">Nijedan</span>)
+                        </h2>
+                        <div id="job-form" style="display: none; padding-top: 10px;">
+                            <div class="form-group">
+                                <label for="job-title"><i class="fas fa-tag"></i> Naziv posla:</label>
+                                <input type="text" id="job-title" placeholder="Naziv posla" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-short-desc"><i class="fas fa-lightbulb"></i> Kratak opis:</label>
+                                <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-long-desc"><i class="fas fa-align-left"></i> Detaljan opis:</label>
+                                <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="job-checkbox">
+                                <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
+                            </div>
+                            
+                            <div class="button-group">
+                                <button id="save-job-button" class="btn btn-primary btn-icon">
+                                    <i class="fas fa-paper-plane"></i> Pošalji prijavu
+                                </button>
+                                <button id="cancel-job-edit-button" class="btn btn-secondary btn-icon">
+                                    <i class="fas fa-times-circle"></i> Izađi
+                                </button>
+                            </div>
+                        </div>
+                        <p id="job-message" class="info-message"></p>
+                        <div id="job-details-loading" class="loading-spinner" style="display: none;"></div>
+                    </div>
+
+                    <!-- Korisničke Postavke Sekcija -->
+                    <div class="card user-settings-card">
+                        <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
+                        <div class="form-group">
+                            <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
+                            <input type="text" id="company-name-input" placeholder="Ime firme">
+                        </div>
+                        <div class="form-group">
+                            <label for="company-short-desc-input"><i class="fas fa-info-circle"></i> Kratko objašnjenje:</label>
+                            <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
+                        </div>
+                        <div class="form-group">
+                            <label for="company-long-desc-input"><i class="fas fa-align-justify"></i> Detaljno objašnjenje:</label>
+                            <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email-input"><i class="fas fa-envelope"></i> Kontakt email:</label>
+                            <input type="text" id="contact-email-input" placeholder="Kontakt email">
+                        </div>
+                        <div class="form-group">
+                            <label for="website-input"><i class="fas fa-globe"></i> Web adresa:</label>
+                            <input type="text" id="website-input" placeholder="Web adresa">
+                        </div>
+                        <div class="form-group">
+                            <label for="additional-info-input"><i class="fas fa-plus-circle"></i> Dodatno objašnjenje:</label>
+                            <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-settings-dropdown"><i class="fas fa-list-alt"></i> Odaberite opciju:</label>
+                            <select id="user-settings-dropdown">
+                                <option value="">Odaberite opciju</option>
+                                <option value="opcija1">Opcija 1</option>
+                                <option value="opcija2">Opcija 2</option>
+                                <option value="opcija3">Opcija 3</option>
+                            </select>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="save-settings-button" class="btn btn-primary btn-icon">
+                                <i class="fas fa-save"></i> Sačuvaj Postavke
+                            </button>
+                            <button id="load-settings-button" class="btn btn-outline btn-icon">
+                                <i class="fas fa-download"></i> Učitaj Postavke
+                            </button>
+                        </div>
+                        <div id="settings-loading" class="loading-spinner" style="display: none;"></div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <script>
-        const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
-
-        let googleIdToken = null;
-        let userName = null;
-        let currentJobId = null;
-
-        function handleCredentialResponse(response) {
-            console.log("Encoded JWT ID token: " + response.credential);
-            googleIdToken = response.credential;
-
-            fetch(`${BACKEND_URL}/verify-google-login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_token: googleIdToken })
-            })
-            .then(response => {
-                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log("Login successful on backend:", data);
-                    userName = data.user_name;
-                    updateUIForLoggedInUser();
-                    loadJobs();
-                } else {
-                    console.error("Backend login failed:", data.message);
-                    alert("Prijava neuspešna: " + data.message);
-                    googleIdToken = null;
-                    userName = null;
-                    updateUIForLoggedOutUser();
-                }
-            })
-            .catch(error => {
-                console.error("Greška tokom verifikacije prijave na backendu:", error);
-                alert("Došlo je do greške tokom prijave. Molimo pokušajte ponovo.");
-                googleIdToken = null;
-                userName = null;
-                updateUIForLoggedOutUser();
-            });
-        }
-
-        function updateUIForLoggedInUser() {
-            document.getElementById('g_id_onload').style.display = 'none';
-            document.querySelector('.g_id_signin').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            document.getElementById('job-sidebar').style.display = 'flex';
-            document.getElementById('user-name').textContent = userName;
-            document.getElementById('message').textContent = "";
-            document.getElementById('job-message').textContent = "";
-            
-            // Očisti sva polja prilikom prijave (korisničke postavke)
-            document.getElementById('company-name-input').value = "";
-            document.getElementById('company-short-desc-input').value = "";
-            document.getElementById('company-long-desc-input').value = "";
-            document.getElementById('contact-email-input').value = "";
-            document.getElementById('website-input').value = "";
-            document.getElementById('additional-info-input').value = "";
-            document.getElementById('user-settings-dropdown').value = "";
-
-            // Sakrij formu za poslove
-            document.getElementById('job-form').style.display = 'none';
-            currentJobId = null;
-            document.getElementById('current-job-id').textContent = "Nijedan";
-            clearJobForm();
-            // Očisti selekciju u sidebar-u
-            document.querySelectorAll('.job-list-item').forEach(item => item.classList.remove('selected'));
-        }
-
-        function updateUIForLoggedOutUser() {
-            document.getElementById('g_id_onload').style.display = 'block';
-            document.querySelector('.g_id_signin').style.display = 'block';
-            document.getElementById('app-content').style.display = 'none';
-            document.getElementById('job-sidebar').style.display = 'none';
-            document.getElementById('user-name').textContent = "";
-            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-            document.getElementById('job-message').textContent = "";
-            googleIdToken = null;
-            userName = null;
-            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('job-list').innerHTML = '';
-        }
-
-        window.onload = function() {
-            updateUIForLoggedOutUser();
-        };
-
-        // --- Korisničke postavke funkcije (prepravljene od "Glavni podaci") ---
-        document.getElementById('save-settings-button').addEventListener('click', () => {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            const settingsToSave = {
-                input1: document.getElementById('company-name-input').value, // Ime firme
-                input2: document.getElementById('company-short-desc-input').value, // Kratko objašnjenje firme
-                largeText: document.getElementById('company-long-desc-input').value, // Detaljno objašnjenje firme
-                input3: document.getElementById('contact-email-input').value, // Kontakt email
-                input4: document.getElementById('website-input').value, // Web adresa
-                input5: document.getElementById('additional-info-input').value, // Dodatno objašnjenje
-                dropdown: document.getElementById('user-settings-dropdown').value
-            };
-
-            fetch(`${BACKEND_URL}/save-data`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                body: JSON.stringify(settingsToSave)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => { document.getElementById('message').textContent = data.message; })
-            .catch(error => { console.error("Greška pri čuvanju postavki:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja korisničkih postavki."; });
-        });
-
-        document.getElementById('load-settings-button').addEventListener('click', () => {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/load-data`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('company-name-input').value = data.input1 || '';
-                document.getElementById('company-short-desc-input').value = data.input2 || '';
-                document.getElementById('company-long-desc-input').value = data.largeText || '';
-                document.getElementById('contact-email-input').value = data.input3 || '';
-                document.getElementById('website-input').value = data.input4 || '';
-                document.getElementById('additional-info-input').value = data.input5 || '';
-                document.getElementById('user-settings-dropdown').value = data.dropdown || '';
-                
-                document.getElementById('message').textContent = data.message;
-            })
-            .catch(error => { console.error("Greška pri učitavanju postavki:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja korisničkih postavki."; });
-        });
-
-        document.getElementById('signout-button').addEventListener('click', () => {
-            googleIdToken = null;
-            userName = null;
-            updateUIForLoggedOutUser();
-
-            fetch(`${BACKEND_URL}/logout`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Odgovor na odjavu sa backenda:", data.message);
-                alert("Uspešno ste se odjavili.");
-            })
-            .catch(error => {
-                console.error("Greška tokom odjave sa backenda:", error);
-                alert("Došlo je do greške prilikom odjave sa servera.");
-            });
-        });
-
-        // --- Funkcije za poslove (prepravljene od "potkategorija") ---
-
-        function clearJobForm() {
-            document.getElementById('job-title').value = '';
-            document.getElementById('job-short-desc').value = '';
-            document.getElementById('job-long-desc').value = '';
-            document.getElementById('job-checkbox').checked = false;
-        }
-
-        function showJobForm(job = {}) { 
-            document.getElementById('job-form').style.display = 'block';
-            currentJobId = job.id;
-            document.getElementById('current-job-id').textContent = job.id;
-            document.getElementById('job-title').value = job.name || '';
-            document.getElementById('job-short-desc').value = job.short_description || '';
-            document.getElementById('job-long-desc').value = job.long_description || '';
-            document.getElementById('job-checkbox').checked = job.is_active;
-        }
-
-        document.getElementById('cancel-job-edit-button').addEventListener('click', () => {
-            document.getElementById('job-form').style.display = 'none';
-            clearJobForm();
-            currentJobId = null;
-            document.getElementById('current-job-id').textContent = "Nijedan"; 
-            document.getElementById('job-message').textContent = "";
-        });
-
-        document.getElementById('save-job-button').addEventListener('click', () => {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni.");
-                return;
-            }
-            if (!currentJobId) {
-                alert("Nije odabran posao za čuvanje.");
-                return;
-            }
-
-            const jobData = {
-                id: currentJobId,
-                name: document.getElementById('job-title').value, 
-                short_description: document.getElementById('job-short-desc').value,
-                long_description: document.getElementById('job-long-desc').value,
-                is_active: document.getElementById('job-checkbox').checked
-            };
-
-            const url = `${BACKEND_URL}/subcategories/${currentJobId}`; // Backend i dalje koristi 'subcategories'
-
-            fetch(url, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                body: JSON.stringify(jobData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('job-message').textContent = data.message;
-                loadJobs(true); // Ponovo učitaj listu poslova i selektuj onaj koji je upravo sačuvan
-            })
-            .catch(error => { 
-                console.error("Greška pri čuvanju posla:", error); 
-                document.getElementById('job-message').textContent = "Greška prilikom čuvanja posla."; 
-            });
-        });
-
-        document.getElementById('load-jobs-button').addEventListener('click', () => loadJobs());
-
-        function loadJobs(reselect = false) {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni.");
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/subcategories`, { // Backend i dalje koristi 'subcategories'
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                const jobListElement = document.getElementById('job-list');
-                jobListElement.innerHTML = '';
-                
-                let newlySelectedId = currentJobId;
-
-                if (data.status === 'success' && data.subcategories.length > 0) { // Backend vraća 'subcategories'
-                    data.subcategories.forEach(sub => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'job-list-item';
-                        listItem.dataset.id = sub.id;
-                        listItem.textContent = sub.name;
-                        listItem.addEventListener('click', () => {
-                            selectJob(sub.id);
-                        });
-                        jobListElement.appendChild(listItem);
-                    });
-                    document.getElementById('job-message').textContent = "Poslovi uspešno učitani.";
-                } else {
-                    document.getElementById('job-message').textContent = "Nema sačuvanih poslova.";
-                }
-
-                if (reselect && newlySelectedId) {
-                    selectJob(newlySelectedId);
-                } else {
-                    currentJobId = null;
-                    document.getElementById('current-job-id').textContent = "Nijedan"; 
-                    document.getElementById('job-form').style.display = 'none';
-                    clearJobForm();
-                }
-            })
-            .catch(error => { 
-                console.error("Greška pri učitavanju poslova:", error); 
-                document.getElementById('job-message').textContent = "Greška prilikom učitavanja poslova."; 
-            });
-        }
-
-        function selectJob(jobId) {
-            document.querySelectorAll('.job-list-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-
-            const selectedItem = document.querySelector(`.job-list-item[data-id="${jobId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
-                loadJobDetails(jobId);
-            }
-        }
-
-        function loadJobDetails(jobId) {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni.");
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/subcategories/${jobId}`, { // Backend i dalje koristi 'subcategories'
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success' && data.subcategory) { // Backend vraća 'subcategory'
-                    showJobForm(data.subcategory); 
-                    document.getElementById('job-message').textContent = `Posao "${data.subcategory.name}" učitan.`;
-                } else {
-                    document.getElementById('job-message').textContent = "Posao nije pronađen.";
-                    document.getElementById('job-form').style.display = 'none';
-                    clearJobForm();
-                    currentJobId = null;
-                    document.getElementById('current-job-id').textContent = "Nijedan"; 
-                }
-            })
-            .catch(error => { 
-                console.error("Greška pri učitavanju detalja posla:", error); 
-                document.getElementById('job-message').textContent = "Greška prilikom učitavanja detalja posla."; 
-            });
-        }
-    </script>
+    <script src="script.js"></script> <!-- Vaš JavaScript fajl -->
 </body>
 </html>
