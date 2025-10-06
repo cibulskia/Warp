@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth App</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Moja Aplikacija</h1>
+
+        <!-- Google One Tap / Sign In Button -->
+        <div id="g_id_onload"
+             data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+             data-auto_select="true"
+             data-callback="handleCredentialResponse"
+             data-ux_mode="popup"
+             data-cancel_on_tap_outside="false"
+             data-context="use">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+
+        <div id="app-content" style="display: none;">
+            <p>Dobrodošao, <span id="user-name"></span>!</p>
+            <input type="text" id="data-input" placeholder="Unesi tekst ovde...">
+            <button id="save-button">Sačuvaj Podatke</button>
+            <button id="load-button">Učitaj Podatke</button>
+            <p id="message"></p>
+            <button id="signout-button">Odjavi se</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
