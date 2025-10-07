@@ -36,7 +36,7 @@ button:hover{background:#0056b3}
 <input type="file" id="image-file" accept="image/*" />
 <div>
 <button id="upload-image-button">Uploaduj sliku na imgbb</button>
-<button id="save-button">Sačuvaj tekst i link slike</button>
+<button id="save-button">Sačuvaj tekst</button>
 <button id="load-button">Učitaj podatke</button>
 </div>
 <div>
@@ -106,6 +106,7 @@ window.onload = function(){
     updateUIForLoggedOutUser();
 };
 
+// upload slike na imgbb i čuvanje linka
 document.getElementById('upload-image-button').addEventListener('click', function(){
     const fileInput = document.getElementById('image-file');
     const file = fileInput.files[0];
@@ -129,8 +130,9 @@ document.getElementById('upload-image-button').addEventListener('click', functio
                 const deleteUrl = resp.data.delete_url;
                 document.getElementById('profile-pic').src = imageUrl;
                 document.getElementById('profile-pic').style.display = 'block';
-                document.getElementById('message').textContent = 'Slika uploadovana. Sada sačuvajte link na server.';
-                saveData({image_link:imageUrl, append_delete_link:deleteUrl});
+                document.getElementById('message').textContent = 'Slika uploadovana. Link sačuvan.';
+                // čuvamo samo link slike
+                saveImageLink(imageUrl, deleteUrl);
             } else {
                 document.getElementById('message').textContent = 'Upload neuspeo.';
             }
@@ -142,15 +144,13 @@ document.getElementById('upload-image-button').addEventListener('click', functio
     reader.readAsDataURL(file);
 });
 
-function saveData({text=null,image_link=null,append_delete_link=null}={}){
+// funkcija koja čuva samo tekst
+function saveText(){
     if(!googleIdToken){
         alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');
         return;
     }
-    const payload = {};
-    if(text===null) payload.data = document.getElementById('data-input').value;
-    else payload.data = text;
-    if(image_link) payload.image_link = image_link;
+    const payload = { data: document.getElementById('data-input').value };
     fetch(`${BACKEND_URL}/save-data`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},
@@ -158,24 +158,45 @@ function saveData({text=null,image_link=null,append_delete_link=null}={}){
     })
     .then(r=>{
         if(!r.ok){
-            if(r.status===401){ updateUIForLoggedOutUser(); alert('Vaša sesija je istekla. Molimo prijavite se ponovo.'); }
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Sesija istekla.'); }
             throw r;
         }
         return r.json();
     })
     .then(resp=>{
-        document.getElementById('message').textContent = resp.message || 'Sačuvano.';
-        if(append_delete_link){
-            addDeleteLink(append_delete_link);
-        } else {
-            loadData();
-        }
+        document.getElementById('message').textContent = resp.message || 'Tekst sačuvan.';
     })
     .catch(err=>{
-        document.getElementById('message').textContent = 'Greška pri čuvanju podataka.';
+        document.getElementById('message').textContent = 'Greška pri čuvanju teksta.';
     });
 }
 
+// funkcija koja čuva samo link slike
+function saveImageLink(image_link, append_delete_link=null){
+    if(!googleIdToken) return;
+    const payload = { image_link };
+    fetch(`${BACKEND_URL}/save-data`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},
+        body:JSON.stringify(payload)
+    })
+    .then(r=>{
+        if(!r.ok){
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Sesija istekla.'); }
+            throw r;
+        }
+        return r.json();
+    })
+    .then(resp=>{
+        document.getElementById('message').textContent = resp.message || 'Slika sačuvana.';
+        if(append_delete_link) addDeleteLink(append_delete_link);
+    })
+    .catch(err=>{
+        document.getElementById('message').textContent = 'Greška pri čuvanju slike.';
+    });
+}
+
+// dodavanje delete linka u istoriju
 function addDeleteLink(delete_link){
     if(!googleIdToken) return;
     fetch(`${BACKEND_URL}/add-delete-link`,{
@@ -185,7 +206,7 @@ function addDeleteLink(delete_link){
     })
     .then(r=>{
         if(!r.ok){
-            if(r.status===401){ updateUIForLoggedOutUser(); alert('Vaša sesija je istekla. Molimo prijavite se ponovo.'); }
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Sesija istekla.'); }
             throw r;
         }
         return r.json();
@@ -199,8 +220,9 @@ function addDeleteLink(delete_link){
     });
 }
 
+// save dugme = samo tekst
 document.getElementById('save-button').addEventListener('click', function(){
-    saveData();
+    saveText();
 });
 
 document.getElementById('load-button').addEventListener('click', function(){
@@ -218,7 +240,7 @@ function loadData(){
     })
     .then(r=>{
         if(!r.ok){
-            if(r.status===401){ updateUIForLoggedOutUser(); alert('Vaša sesija je istekla. Molimo prijavite se ponovo.'); }
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Sesija istekla.'); }
             throw r;
         }
         return r.json();
