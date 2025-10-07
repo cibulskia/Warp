@@ -1,299 +1,154 @@
-# frontend: index.html
-
-```html
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Google OAuth App (All in One)</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background-color:#f4f4f4;margin:0}
-        .container{background-color:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);text-align:center;width:420px}
-        h1{color:#333;margin-bottom:20px}
-        input[type="text"],textarea{width:calc(100% - 20px);padding:10px;margin-bottom:15px;border:1px solid #ddd;border-radius:4px;font-size:16px}
-        button{background-color:#007bff;color:#fff;padding:10px 15px;border:none;border-radius:4px;cursor:pointer;font-size:16px;margin:5px}
-        button:hover{background-color:#0056b3}
-        #message{margin-top:20px;color:#333}
-        #user-name{font-weight:bold;color:#007bff}
-        #signout-button{background-color:#dc3545}
-        #signout-button:hover{background-color:#c82333}
-        .profile-img{width:100px;height:100px;border-radius:50%;object-fit:cover;margin:10px auto;display:block}
-        .small{font-size:13px;color:#666}
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Google OAuth App (All in One)</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background-color:#f4f4f4;margin:0}
+.container{background-color:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);text-align:center;width:420px}
+h1{color:#333;margin-bottom:20px}
+input[type="text"]{width:calc(100% - 22px);padding:10px;margin-bottom:12px;border:1px solid #ddd;border-radius:4px;font-size:16px}
+button{background-color:#007bff;color:white;padding:10px 15px;border:none;border-radius:4px;cursor:pointer;font-size:16px;margin:5px}
+button:hover{background-color:#0056b3}
+#message{margin-top:14px;color:#333}
+#user-name{font-weight:bold;color:#007bff}
+#signout-button{background-color:#dc3545}
+#signout-button:hover{background-color:#c82333}
+.profile-img{width:120px;height:120px;border-radius:999px;object-fit:cover;border:2px solid #eee;margin:10px 0}
+.file-row{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px}
+.small{font-size:14px}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Moja Aplikacija</h1>
-
-        <div id="g_id_onload" data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com" data-auto_select="true" data-callback="handleCredentialResponse" data-ux_mode="popup" data-cancel_on_tap_outside="false" data-context="use"></div>
-        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
-
-        <div id="app-content" style="display:none">
-            <p>Dobrodošao, <span id="user-name"></span>!</p>
-            <img id="profile-img" class="profile-img" src="" alt="Profilna slika" style="display:none">
-            <div>
-                <textarea id="data-input" rows="4" placeholder="Unesi tekst ovde..."></textarea>
-            </div>
-            <div>
-                <input type="file" id="image-file" accept="image/*">
-                <button id="upload-image-button">Otpremi sliku</button>
-            </div>
-            <div>
-                <button id="save-button">Sačuvaj Podatke</button>
-                <button id="load-button">Učitaj Podatke</button>
-            </div>
-            <p id="message"></p>
-            <p class="small">Kada otpremiš sliku, ona se šalje na imgbb i backend čuva linkove.</p>
-            <button id="signout-button">Odjavi se</button>
-        </div>
-    </div>
-
-    <script>
-        const BACKEND_URL = 'https://botanica.ngrok.app';
-        const IMGBB_API_KEY = '2781419b4b4c71b1754552b98b6fe3d0';
-        let googleIdToken = null;
-        let userName = null;
-
-        function handleCredentialResponse(response){
-            googleIdToken = response.credential;
-            fetch(`${BACKEND_URL}/verify-google-login`,{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({id_token:googleIdToken})
-            }).then(r=>{if(!r.ok)throw r;return r.json()}).then(data=>{
-                if(data.status==='success'){
-                    userName = data.user_name;
-                    updateUIForLoggedInUser();
-                    loadProfileData();
-                }else{
-                    googleIdToken = null;userName = null;updateUIForLoggedOutUser();alert('Login failed: '+data.message);
-                }
-            }).catch(e=>{googleIdToken = null;userName = null;updateUIForLoggedOutUser();alert('An error occurred during login.');});
-        }
-
-        function updateUIForLoggedInUser(){
-            document.getElementById('g_id_onload').style.display='none';
-            document.querySelector('.g_id_signin').style.display='none';
-            document.getElementById('app-content').style.display='block';
-            document.getElementById('user-name').textContent=userName||'';
-            document.getElementById('message').textContent='';
-        }
-
-        function updateUIForLoggedOutUser(){
-            document.getElementById('g_id_onload').style.display='block';
-            document.querySelector('.g_id_signin').style.display='block';
-            document.getElementById('app-content').style.display='none';
-            document.getElementById('user-name').textContent='';
-            document.getElementById('message').textContent='Molimo prijavite se putem Google-a.';
-            googleIdToken = null;userName = null;document.cookie = 'session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        }
-
-        window.onload = function(){
-            updateUIForLoggedOutUser();
-        };
-
-        document.getElementById('save-button').addEventListener('click',()=>{
-            const textData = document.getElementById('data-input').value;
-            if(!googleIdToken){alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');return}
-            fetch(`${BACKEND_URL}/save-data`,`
-                {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},body:JSON.stringify({data:textData})}
-            ).then(r=>{if(!r.ok){if(r.status===401){alert('Vaša sesija je istekla. Molimo prijavite se ponovo.');updateUIForLoggedOutUser()}throw r}return r.json()}).then(data=>{document.getElementById('message').textContent=data.message}).catch(e=>{document.getElementById('message').textContent='Greška prilikom čuvanja podataka.'});
-        });
-
-        document.getElementById('load-button').addEventListener('click',()=>{loadProfileData();});
-
-        function loadProfileData(){
-            if(!googleIdToken){alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');return}
-            fetch(`${BACKEND_URL}/load-data`,{method:'GET',headers:{'Authorization':`Bearer ${googleIdToken}`}}).then(r=>{if(!r.ok){if(r.status===401){alert('Vaša sesija je istekla. Molimo prijavite se ponovo.');updateUIForLoggedOutUser()}throw r}return r.json()}).then(data=>{
-                document.getElementById('data-input').value = data.data||'';
-                if(data.image_link){
-                    const img = document.getElementById('profile-img');
-                    img.src = data.image_link;img.style.display = 'block';
-                } else {document.getElementById('profile-img').style.display='none'}
-                document.getElementById('message').textContent = data.message || '';
-            }).catch(e=>{document.getElementById('message').textContent='Greška prilikom učitavanja podataka.'});
-        }
-
-        document.getElementById('upload-image-button').addEventListener('click',()=>{
-            const file = document.getElementById('image-file').files[0];
-            if(!file){alert('Izaberite fajl.');return}
-            const reader = new FileReader();
-            reader.onload = function(){
-                const base64 = reader.result.split(',')[1];
-                const form = new FormData();
-                form.append('key',IMGBB_API_KEY);
-                form.append('image',base64);
-                fetch('https://api.imgbb.com/1/upload',{method:'POST',body:form}).then(r=>{if(!r.ok)throw r;return r.json()}).then(res=>{
-                    const imageLink = res.data.url;
-                    const deleteLink = res.data.delete_url;
-                    fetch(`${BACKEND_URL}/save-data`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},body:JSON.stringify({image_link:imageLink,delete_link:deleteLink})}).then(r=>{if(!r.ok){if(r.status===401){alert('Vaša sesija je istekla. Molimo prijavite se ponovo.');updateUIForLoggedOutUser()}throw r}return r.json()}).then(data=>{document.getElementById('profile-img').src = imageLink;document.getElementById('profile-img').style.display='block';document.getElementById('message').textContent = data.message}).catch(e=>{document.getElementById('message').textContent='Greška pri otpremanju slike.'});
-                }).catch(e=>{document.getElementById('message').textContent='Greška prilikom slanja na imgbb.'});
-            };
-            reader.readAsDataURL(file);
-        });
-
-        document.getElementById('signout-button').addEventListener('click',()=>{
-            googleIdToken = null;userName = null;updateUIForLoggedOutUser();fetch(`${BACKEND_URL}/logout`,{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{alert('Uspešno ste se odjavili.')}).catch(e=>{alert('Došlo je do greške prilikom odjave sa servera.')});
-        });
-    </script>
+<div class="container">
+<h1>Moja Aplikacija</h1>
+<div id="g_id_onload"
+data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+data-auto_select="true"
+data-callback="handleCredentialResponse"
+data-ux_mode="popup"
+data-cancel_on_tap_outside="false"
+data-context="use">
+</div>
+<div class="g_id_signin"
+data-type="standard"
+data-size="large"
+data-theme="outline"
+data-text="sign_in_with"
+data-shape="rectangular"
+data-logo_alignment="left">
+</div>
+<div id="app-content" style="display:none">
+<p>Dobrodošao, <span id="user-name"></span>!</p>
+<img id="profile-image" class="profile-img" src="" alt="Profilna slika" style="display:none"/>
+<div>
+<input type="text" id="data-input" placeholder="Unesi tekst ovde..." />
+</div>
+<div style="margin-top:8px">
+<button id="save-button">Sačuvaj Podatke</button>
+<button id="load-button">Učitaj Podatke</button>
+</div>
+<div class="file-row">
+<input type="file" id="image-file" accept="image/*"/>
+<button id="upload-button">Otpremi Profilnu</button>
+</div>
+<p id="message"></p>
+<button id="signout-button">Odjavi se</button>
+</div>
+</div>
+<script>
+const BACKEND_URL = 'https://botanica.ngrok.app';
+let googleIdToken = null;
+let userName = null;
+function handleCredentialResponse(response){
+googleIdToken = response.credential;
+fetch(`${BACKEND_URL}/verify-google-login`,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id_token:googleIdToken})
+})
+.then(res=>{if(!res.ok)throw res;return res.json()})
+.then(data=>{
+if(data.status==='success'){userName=data.user_name;updateUIForLoggedInUser()}else{googleIdToken=null;userName=null;updateUIForLoggedOutUser();alert('Login failed: '+(data.message||''))}
+})
+.catch(err=>{googleIdToken=null;userName=null;updateUIForLoggedOutUser();alert('Greška pri prijavi')});
+}
+function updateUIForLoggedInUser(){
+document.getElementById('g_id_onload').style.display='none';
+document.querySelector('.g_id_signin').style.display='none';
+document.getElementById('app-content').style.display='block';
+document.getElementById('user-name').textContent=userName||'';
+document.getElementById('message').textContent='';
+document.getElementById('data-input').value='';
+document.getElementById('profile-image').style.display='none';
+document.getElementById('profile-image').src='';
+}
+function updateUIForLoggedOutUser(){
+document.getElementById('g_id_onload').style.display='block';
+document.querySelector('.g_id_signin').style.display='block';
+document.getElementById('app-content').style.display='none';
+document.getElementById('user-name').textContent='';
+document.getElementById('message').textContent='Molimo prijavite se putem Google-a.';
+googleIdToken=null;userName=null;
+document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+window.onload=function(){updateUIForLoggedOutUser()};
+document.getElementById('save-button').addEventListener('click',()=>{
+const textData=document.getElementById('data-input').value;
+if(!googleIdToken){alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');return}
+fetch(`${BACKEND_URL}/save-data`,{
+method:'POST',
+headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},
+body:JSON.stringify({data:textData})
+})
+.then(res=>{if(!res.ok){if(res.status===401){alert('Vaša sesija je istekla. Molimo prijavite se ponovo.');updateUIForLoggedOutUser()}throw res}return res.json()})
+.then(data=>{document.getElementById('message').textContent=data.message})
+.catch(()=>{document.getElementById('message').textContent='Greška prilikom čuvanja podataka.'});
+});
+document.getElementById('load-button').addEventListener('click',()=>{
+if(!googleIdToken){alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');return}
+fetch(`${BACKEND_URL}/load-data`,{
+method:'GET',
+headers:{'Authorization':`Bearer ${googleIdToken}`}
+})
+.then(res=>{if(!res.ok){if(res.status===401){alert('Vaša sesija je istekla. Molimo prijavite se ponovo.');updateUIForLoggedOutUser()}throw res}return res.json()})
+.then(data=>{
+document.getElementById('data-input').value=data.data||'';
+document.getElementById('message').textContent=data.message||'';
+if(data.image_url){document.getElementById('profile-image').src=data.image_url;document.getElementById('profile-image').style.display='block'}else{document.getElementById('profile-image').style.display='none'}
+})
+.catch(()=>{document.getElementById('message').textContent='Greška prilikom učitavanja podataka.'});
+});
+document.getElementById('upload-button').addEventListener('click',()=>{
+const fileInput=document.getElementById('image-file');
+const file=fileInput.files[0];
+if(!file){alert('Izaberite sliku pre otpremanja.');return}
+if(!googleIdToken){alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');return}
+const form=new FormData();
+form.append('image',file);
+fetch(`${BACKEND_URL}/upload-image`,{
+method:'POST',
+headers:{'Authorization':`Bearer ${googleIdToken}`},
+body:form
+})
+.then(res=>{if(!res.ok){if(res.status===401){alert('Vaša sesija je istekla. Molimo prijavite se ponovo.');updateUIForLoggedOutUser()}throw res}return res.json()})
+.then(data=>{
+if(data.status==='success'){
+document.getElementById('profile-image').src=data.image_url;
+document.getElementById('profile-image').style.display='block';
+document.getElementById('message').textContent='Slika uspešno otpremljena i povezana sa profilom.';
+document.getElementById('image-file').value='';
+}else{document.getElementById('message').textContent='Greška pri otpremanju slike.'}
+})
+.catch(()=>{document.getElementById('message').textContent='Greška pri otpremanju slike.'});
+});
+document.getElementById('signout-button').addEventListener('click',()=>{
+googleIdToken=null;userName=null;updateUIForLoggedOutUser();
+fetch(`${BACKEND_URL}/logout`,{method:'POST',headers:{'Content-Type':'application/json'}})
+.then(res=>res.json()).then(()=>{alert('Uspešno ste se odjavili.')}).catch(()=>{alert('Došlo je do greške prilikom odjave sa servera.')});
+});
+</script>
 </body>
 </html>
-```
-
-# backend: app.py
-
-```python
-from flask import Flask, request, jsonify, session
-from flask_session import Session
-from flask_cors import CORS
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
-import os
-import sqlite3
-import json
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'SUPER_SECRET_KEY_ZA_PRODUKCIJU_ZAMENI_OVO')
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './.flask_session/'
-os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
-Session(app)
-CORS(app, supports_credentials=True, resources={r"/*": {"origins": ["https://cibulskia.github.io", "http://localhost:8080"]}})
-CLIENT_ID = "252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
-DATABASE = 'app_data.db'
-
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS user_data (
-            google_id TEXT PRIMARY KEY,
-            category_data TEXT,
-            image_link TEXT,
-            delete_links TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-init_db()
-
-@app.before_request
-def check_authentication():
-    if request.path in ['/verify-google-login', '/logout'] or request.method == 'OPTIONS':
-        return
-    if 'google_id' not in session:
-        auth_header = request.headers.get('Authorization')
-        if auth_header and auth_header.startswith('Bearer '):
-            google_id_token = auth_header.split(' ')[1]
-            try:
-                idinfo = id_token.verify_oauth2_token(google_id_token, google_requests.Request(), CLIENT_ID)
-                google_id = idinfo['sub']
-                user_name = idinfo.get('name', 'User')
-                session['google_id'] = google_id
-                session['user_name'] = user_name
-            except ValueError:
-                return jsonify({"status": "error", "message": "Unauthorized - Invalid token"}), 401
-        else:
-            return jsonify({"status": "error", "message": "Unauthorized"}), 401
-
-@app.route('/verify-google-login', methods=['POST'])
-def verify_google_login():
-    token = request.json.get('id_token')
-    if not token:
-        return jsonify({"status": "error", "message": "No ID token provided"}), 400
-    try:
-        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
-        google_id = idinfo['sub']
-        user_name = idinfo.get('name', 'Google User')
-        user_email = idinfo.get('email', 'N/A')
-        session['google_id'] = google_id
-        session['user_name'] = user_name
-        session['user_email'] = user_email
-        return jsonify({"status": "success", "message": "Login successful", "user_name": user_name}), 200
-    except ValueError as e:
-        return jsonify({"status": "error", "message": f"Invalid token: {e}"}), 401
-    except Exception:
-        return jsonify({"status": "error", "message": "Internal server error"}), 500
-
-@app.route('/save-data', methods=['POST'])
-def save_data():
-    google_id = session.get('google_id')
-    if not google_id:
-        return jsonify({"status": "error", "message": "Unauthorized"}), 401
-    payload = request.json or {}
-    text = payload.get('data')
-    image_link = payload.get('image_link')
-    delete_link = payload.get('delete_link')
-    conn = get_db_connection()
-    try:
-        cursor = conn.execute('SELECT category_data, image_link, delete_links FROM user_data WHERE google_id = ?', (google_id,))
-        row = cursor.fetchone()
-        existing_text = ''
-        existing_image = None
-        existing_delete_links = []
-        if row:
-            existing_text = row['category_data'] or ''
-            existing_image = row['image_link']
-            try:
-                existing_delete_links = json.loads(row['delete_links']) if row['delete_links'] else []
-            except Exception:
-                existing_delete_links = []
-        new_text = existing_text
-        new_image = existing_image
-        new_delete_links = existing_delete_links
-        if text is not None:
-            new_text = text
-        if image_link is not None:
-            new_image = image_link
-        if delete_link is not None:
-            new_delete_links.append(delete_link)
-        conn.execute('INSERT OR REPLACE INTO user_data (google_id, category_data, image_link, delete_links) VALUES (?, ?, ?, ?)', (google_id, new_text, new_image, json.dumps(new_delete_links)))
-        conn.commit()
-        return jsonify({"status": "success", "message": "Podaci uspešno sačuvani!"}), 200
-    except sqlite3.Error:
-        return jsonify({"status": "error", "message": "Greška pri čuvanju podataka u bazu."}), 500
-    finally:
-        conn.close()
-
-@app.route('/load-data', methods=['GET'])
-def load_data():
-    google_id = session.get('google_id')
-    if not google_id:
-        return jsonify({"status": "error", "message": "Unauthorized"}), 401
-    conn = get_db_connection()
-    try:
-        cursor = conn.execute('SELECT category_data, image_link, delete_links FROM user_data WHERE google_id = ?', (google_id,))
-        row = cursor.fetchone()
-        if row:
-            try:
-                delete_links = json.loads(row['delete_links']) if row['delete_links'] else []
-            except Exception:
-                delete_links = []
-            return jsonify({"status": "success", "data": row['category_data'] or '', "image_link": row['image_link'], "delete_links": delete_links, "message": "Podaci uspešno učitani!"}), 200
-        else:
-            return jsonify({"status": "success", "data": '', "image_link": None, "delete_links": [], "message": "Nema sačuvanih podataka za Vas."}), 200
-    except sqlite3.Error:
-        return jsonify({"status": "error", "message": "Greška pri učitavanju podataka iz baze."}), 500
-    finally:
-        conn.close()
-
-@app.route('/logout', methods=['POST'])
-def logout():
-    google_id = session.pop('google_id', None)
-    user_name = session.pop('user_name', None)
-    session.clear()
-    if google_id:
-        return jsonify({"status": "success", "message": "Uspešno ste se odjavili."}), 200
-    else:
-        return jsonify({"status": "success", "message": "Niste bili prijavljeni."}), 200
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
-```
