@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warp Connect - Platforma za poslove i postavke</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> <!-- Povezujemo naš novi CSS fajl -->
+    <style>
+        /* Dodatni stilovi za PDF sekciju */
+        #pdf-section {
+            margin-top: 20px;
+        }
+        #pdf-list button {
+            display: block;
+            margin: 5px 0;
+            padding: 10px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            background: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #pdf-preview {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-starship"></i> Warp Connect
+            </div>
+            <div id="auth-section">
+                <!-- Google One Tap / Sign In Button -->
+                <div id="g_id_onload"
+                     data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                     data-auto_select="true"
+                     data-callback="handleCredentialResponse"
+                     data-ux_mode="popup"
+                     data-cancel_on_tap_outside="false"
+                     data-context="use">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+                <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> Odjavi se
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Wrapper -->
+        <div class="main-content-wrapper">
+            <!-- Sidebar za Poslove -->
+            <aside class="job-sidebar" id="job-sidebar" style="display: none;">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-briefcase"></i> Poslovi</h2>
+                    <button id="load-jobs-button" class="btn btn-primary btn-icon btn-small">
+                        <i class="fas fa-sync-alt"></i> Učitaj
+                    </button>
+                </div>
+                <ul id="job-list" class="job-list">
+                    <!-- Poslovi će biti dinamički dodati ovde -->
+                </ul>
+                <div id="job-list-loading" class="loading-spinner" style="display: none;"></div>
+            </aside>
+
+            <!-- Glavni sadržaj -->
+            <main class="main-content-area">
+                <div id="welcome-message" class="card welcome-card">
+                    <h2>Dobrodošao na Warp Connect!</h2>
+                    <p>Prijavite se putem Google naloga da biste pristupili svojim postavkama i istražili dostupne poslove.</p>
+                </div>
+
+                <div id="app-content" style="display: none;">
+                    <div class="card user-info-card">
+                        <h3><i class="fas fa-user-circle"></i> Dobrodošao, <span id="user-name"></span>!</h3>
+                        <p id="message" class="info-message"></p>
+                    </div>
+
+                    <!-- Detalji Posla Sekcija -->
+                    <div class="card job-details-card">
+                        <h2>
+                            <i class="fas fa-file-invoice"></i> Detalji Posla (<span id="current-job-id" class="job-id">Nijedan</span>)
+                        </h2>
+                        <div id="job-form" style="display: none; padding-top: 10px;">
+                            <div class="form-group">
+                                <label for="job-title"><i class="fas fa-tag"></i> Naziv posla:</label>
+                                <input type="text" id="job-title" placeholder="Naziv posla" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-short-desc"><i class="fas fa-lightbulb"></i> Kratak opis:</label>
+                                <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-long-desc"><i class="fas fa-align-left"></i> Detaljan opis:</label>
+                                <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="job-checkbox">
+                                <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
+                            </div>
+                            
+                            <div class="button-group">
+                                <button id="save-job-button" class="btn btn-primary btn-icon">
+                                    <i class="fas fa-paper-plane"></i> Pošalji prijavu
+                                </button>
+                                <button id="cancel-job-edit-button" class="btn btn-secondary btn-icon">
+                                    <i class="fas fa-times-circle"></i> Izađi
+                                </button>
+                            </div>
+                        </div>
+                        <p id="job-message" class="info-message"></p>
+                        <div id="job-details-loading" class="loading-spinner" style="display: none;"></div>
+                    </div>
+
+                    <!-- Korisničke Postavke Sekcija -->
+                    <div class="card user-settings-card">
+                        <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
+                        <div class="form-group">
+                            <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
+                            <input type="text" id="company-name-input" placeholder="Ime firme">
+                        </div>
+                        <div class="form-group">
+                            <label for="company-short-desc-input"><i class="fas fa-info-circle"></i> Kratko objašnjenje:</label>
+                            <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
+                        </div>
+                        <div class="form-group">
+                            <label for="company-long-desc-input"><i class="fas fa-align-justify"></i> Detaljno objašnjenje:</label>
+                            <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email-input"><i class="fas fa-envelope"></i> Kontakt email:</label>
+                            <input type="text" id="contact-email-input" placeholder="Kontakt email">
+                        </div>
+                        <div class="form-group">
+                            <label for="website-input"><i class="fas fa-globe"></i> Web adresa:</label>
+                            <input type="text" id="website-input" placeholder="Web adresa">
+                        </div>
+                        <div class="form-group">
+                            <label for="additional-info-input"><i class="fas fa-plus-circle"></i> Dodatno objašnjenje:</label>
+                            <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-settings-dropdown"><i class="fas fa-list-alt"></i> Odaberite opciju:</label>
+                            <select id="user-settings-dropdown">
+                                <option value="">Odaberite opciju</option>
+                                <option value="opcija1">Opcija 1</option>
+                                <option value="opcija2">Opcija 2</option>
+                                <option value="opcija3">Opcija 3</option>
+                            </select>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="save-settings-button" class="btn btn-primary btn-icon">
+                                <i class="fas fa-save"></i> Sačuvaj Postavke
+                            </button>
+                            <button id="load-settings-button" class="btn btn-outline btn-icon">
+                                <i class="fas fa-download"></i> Učitaj Postavke
+                            </button>
+                        </div>
+                        <div id="settings-loading" class="loading-spinner" style="display: none;"></div>
+                    </div>
+
+                    <!-- Nova PDF Sekcija -->
+                    <div class="card pdf-section-card" id="pdf-section">
+                        <h2><i class="fas fa-file-pdf"></i> Lista PDF-ova i Preview</h2>
+                        <div id="pdf-list"></div>
+                        <iframe id="pdf-preview" src=""></iframe>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="script.js"></script> <!-- Vaš JavaScript fajl -->
+    <script>
+        // PDF lista skripta - ne remeti postojeće funkcionalnosti
+        fetch('pdfs.json')
+            .then(response => response.json())
+            .then(data => {
+                const listContainer = document.getElementById('pdf-list');
+                
+                data.forEach(pdf => {
+                    const button = document.createElement('button');
+                    button.textContent = pdf.name;
+                    button.addEventListener('click', () => {
+                        const match = pdf.link.match(/\/d\/(.*?)\//);
+                        if(match && match[1]) {
+                            const fileId = match[1];
+                            const previewLink = `https://drive.google.com/file/d/${fileId}/preview`;
+                            document.getElementById('pdf-preview').src = previewLink;
+                        } else {
+                            console.error('Neispravan link PDF-a:', pdf.link);
+                        }
+                    });
+                    listContainer.appendChild(button);
+                });
+            })
+            .catch(err => console.error('Greška pri učitavanju JSON-a:', err));
+    </script>
+</body>
+</html>
