@@ -1,397 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google OAuth App (All in One)</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        /* Sav tvoj CSS ide ovde */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f4f4f4;
-            margin: 0;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 450px; /* Malo prošireno zbog novih polja */
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"], textarea, select {
-            width: calc(100% - 22px); /* Prilagođeno paddingu */
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box; /* Važno za širinu */
-        }
-
-        textarea {
-            resize: vertical; /* Omogućava vertikalnu promenu veličine */
-            min-height: 80px;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        #message {
-            margin-top: 20px;
-            color: #333;
-        }
-
-        #user-name {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        #signout-button {
-            background-color: #dc3545;
-        }
-
-        #signout-button:hover {
-            background-color: #c82333;
-        }
-
-        .profile-picture-container {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #profile-picture {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            margin-bottom: 10px;
-            background-color: #eee;
-        }
-
-        input[type="file"] {
-            margin-top: 5px;
-            margin-bottom: 10px;
-            width: auto; /* Da ne zauzima celu širinu */
-            border: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google OAuth App with Profile</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+body { font-family: Arial,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f4f4f4; margin:0; }
+.container { background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:450px; text-align:center; }
+h1 { color:#333; margin-bottom:20px; }
+input[type="text"], select { width: calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:4px; font-size:16px; }
+button { background:#007bff; color:white; padding:10px 15px; border:none; border-radius:4px; cursor:pointer; font-size:16px; margin:5px; }
+button:hover { background:#0056b3; }
+#signout-button { background:#dc3545; }
+#signout-button:hover { background:#c82333; }
+#message { margin-top:10px; color:#333; }
+#profile-preview { max-width:100px; margin-bottom:10px; border-radius:50%; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Moja Aplikacija</h1>
+<div class="container">
+    <h1>Moja Aplikacija</h1>
 
-        <!-- Google One Tap / Sign In Button -->
-        <div id="g_id_onload"
-             data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
-             data-auto_select="true"
-             data-callback="handleCredentialResponse"
-             data-ux_mode="popup"
-             data-cancel_on_tap_outside="false"
-             data-context="use">
-        </div>
-        <div class="g_id_signin"
-             data-type="standard"
-             data-size="large"
-             data-theme="outline"
-             data-text="sign_in_with"
-             data-shape="rectangular"
-             data-logo_alignment="left">
-        </div>
-
-        <div id="app-content" style="display: none;">
-            <p>Dobrodošao, <span id="user-name"></span>!</p>
-
-            <div class="profile-picture-container">
-                <img id="profile-picture" src="https://via.placeholder.com/120?text=Profil" alt="Profilna slika">
-                <input type="file" id="profile-picture-upload" accept="image/*">
-                <button id="upload-picture-button">Učitaj sliku</button>
-            </div>
-            
-            <input type="text" id="data-input-1" placeholder="Polje za tekst 1...">
-            <input type="text" id="data-input-2" placeholder="Polje za tekst 2...">
-            <input type="text" id="data-input-3" placeholder="Polje za tekst 3...">
-            <input type="text" id="data-input-4" placeholder="Polje za tekst 4...">
-            <textarea id="data-input-5" placeholder="Polje za tekst 5 (duži tekst)..."></textarea>
-            
-            <select id="dropdown-menu">
-                <option value="opcija1">Opcija 1</option>
-                <option value="opcija2">Opcija 2</option>
-                <option value="opcija3">Opcija 3</option>
-            </select>
-
-            <button id="save-button">Sačuvaj Podatke</button>
-            <button id="load-button">Učitaj Podatke</button>
-            <p id="message"></p>
-            <button id="signout-button">Odjavi se</button>
-        </div>
+    <div id="g_id_onload"
+         data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+         data-auto_select="true"
+         data-callback="handleCredentialResponse"
+         data-ux_mode="popup"
+         data-cancel_on_tap_outside="false"
+         data-context="use">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
     </div>
 
-    <script>
-        // Sav tvoj JavaScript ide ovde
-        const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
+    <div id="app-content" style="display:none;">
+        <p>Dobrodošao, <span id="user-name"></span>!</p>
+        <img id="profile-preview" src="" alt="Profilna slika">
+        <input type="file" id="profile-image-input" accept="image/*">
+        <input type="text" id="field1" placeholder="Polje 1">
+        <input type="text" id="field2" placeholder="Polje 2">
+        <input type="text" id="field3" placeholder="Polje 3">
+        <input type="text" id="field4" placeholder="Polje 4">
+        <input type="text" id="field5" placeholder="Polje 5">
+        <select id="dropdown-option">
+            <option value="">Izaberite opciju</option>
+            <option value="Opcija1">Opcija 1</option>
+            <option value="Opcija2">Opcija 2</option>
+            <option value="Opcija3">Opcija 3</option>
+        </select>
+        <br>
+        <button id="save-button">Sačuvaj Podatke</button>
+        <button id="load-button">Učitaj Podatke</button>
+        <p id="message"></p>
+        <button id="signout-button">Odjavi se</button>
+    </div>
+</div>
 
-        let googleIdToken = null;
-        let userName = null;
+<script>
+const BACKEND_URL = 'https://botanica.ngrok.app';
+let googleIdToken = null;
+let userName = null;
+let profileImageBase64 = null;
 
-        function handleCredentialResponse(response) {
-            console.log("Encoded JWT ID token: " + response.credential);
-            googleIdToken = response.credential;
+function handleCredentialResponse(response) {
+    googleIdToken = response.credential;
+    fetch(`${BACKEND_URL}/verify-google-login`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id_token: googleIdToken})
+    }).then(r=>r.json())
+      .then(data=>{
+        if(data.status==='success'){
+            userName = data.user_name;
+            updateUIForLoggedInUser();
+        } else { googleIdToken=null; userName=null; updateUIForLoggedOutUser(); alert(data.message);}
+      });
+}
 
-            fetch(`${BACKEND_URL}/verify-google-login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_token: googleIdToken })
-            })
-            .then(response => {
-                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log("Login successful on backend:", data);
-                    userName = data.user_name;
-                    updateUIForLoggedInUser();
-                    // Automatski učitaj podatke nakon uspešnog logina
-                    loadUserData();
-                } else {
-                    console.error("Backend login failed:", data.message);
-                    alert("Login failed: " + data.message);
-                    googleIdToken = null;
-                    userName = null;
-                    updateUIForLoggedOutUser();
-                }
-            })
-            .catch(error => {
-                console.error("Error during backend login verification:", error);
-                alert("An error occurred during login. Please try again.");
-                googleIdToken = null;
-                userName = null;
-                updateUIForLoggedOutUser();
-            });
-        }
+function updateUIForLoggedInUser(){
+    document.getElementById('g_id_onload').style.display='none';
+    document.querySelector('.g_id_signin').style.display='none';
+    document.getElementById('app-content').style.display='block';
+    document.getElementById('user-name').textContent=userName;
+    document.getElementById('message').textContent='';
+    document.getElementById('profile-preview').src='';
+}
 
-        function updateUIForLoggedInUser() {
-            document.getElementById('g_id_onload').style.display = 'none';
-            document.querySelector('.g_id_signin').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            document.getElementById('user-name').textContent = userName;
-            document.getElementById('message').textContent = "";
-            // Resetuj polja prilikom logina
-            document.getElementById('data-input-1').value = "";
-            document.getElementById('data-input-2').value = "";
-            document.getElementById('data-input-3').value = "";
-            document.getElementById('data-input-4').value = "";
-            document.getElementById('data-input-5').value = "";
-            document.getElementById('dropdown-menu').value = "opcija1";
-            document.getElementById('profile-picture').src = "https://via.placeholder.com/120?text=Profil"; // Default slika
-            document.getElementById('profile-picture-upload').value = null; // Clear file input
-        }
+function updateUIForLoggedOutUser(){
+    document.getElementById('g_id_onload').style.display='block';
+    document.querySelector('.g_id_signin').style.display='block';
+    document.getElementById('app-content').style.display='none';
+    document.getElementById('user-name').textContent='';
+    document.getElementById('message').textContent='Molimo prijavite se putem Google-a.';
+    googleIdToken=null; userName=null; profileImageBase64=null;
+    document.cookie="session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
 
-        function updateUIForLoggedOutUser() {
-            document.getElementById('g_id_onload').style.display = 'block';
-            document.querySelector('.g_id_signin').style.display = 'block';
-            document.getElementById('app-content').style.display = 'none';
-            document.getElementById('user-name').textContent = "";
-            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-            googleIdToken = null;
-            userName = null;
-            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        }
+window.onload = updateUIForLoggedOutUser;
 
-        window.onload = function() {
-            updateUIForLoggedOutUser();
+document.getElementById('profile-image-input').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = function(evt){
+            profileImageBase64 = evt.target.result;
+            document.getElementById('profile-preview').src = profileImageBase64;
         };
+        reader.readAsDataURL(file);
+    }
+});
 
-        async function saveUserData() {
-            const dataToSave = {
-                text1: document.getElementById('data-input-1').value,
-                text2: document.getElementById('data-input-2').value,
-                text3: document.getElementById('data-input-3').value,
-                text4: document.getElementById('data-input-4').value,
-                text5: document.getElementById('data-input-5').value,
-                dropdown: document.getElementById('dropdown-menu').value
-            };
+document.getElementById('save-button').addEventListener('click', ()=>{
+    if(!googleIdToken){ alert("Niste prijavljeni."); return; }
+    const data = {
+        profile_image: profileImageBase64,
+        field1: document.getElementById('field1').value,
+        field2: document.getElementById('field2').value,
+        field3: document.getElementById('field3').value,
+        field4: document.getElementById('field4').value,
+        field5: document.getElementById('field5').value,
+        dropdown_option: document.getElementById('dropdown-option').value
+    };
+    fetch(`${BACKEND_URL}/save-data`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},
+        body: JSON.stringify(data)
+    }).then(r=>r.json())
+      .then(res=>{
+        document.getElementById('message').textContent = res.message;
+      }).catch(err=>{ console.error(err); document.getElementById('message').textContent='Greška prilikom čuvanja podataka.'; });
+});
 
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/save-data`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                    body: JSON.stringify({ data: dataToSave })
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) { 
-                        alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); 
-                        updateUIForLoggedOutUser(); 
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
+document.getElementById('load-button').addEventListener('click', ()=>{
+    if(!googleIdToken){ alert("Niste prijavljeni."); return; }
+    fetch(`${BACKEND_URL}/load-data`, {method:'GET', headers:{'Authorization':`Bearer ${googleIdToken}`}})
+        .then(r=>r.json())
+        .then(res=>{
+            if(res.status==='success' && res.data){
+                const d=res.data;
+                document.getElementById('field1').value=d.field1||'';
+                document.getElementById('field2').value=d.field2||'';
+                document.getElementById('field3').value=d.field3||'';
+                document.getElementById('field4').value=d.field4||'';
+                document.getElementById('field5').value=d.field5||'';
+                document.getElementById('dropdown-option').value=d.dropdown_option||'';
+                if(d.profile_image){
+                    profileImageBase64=d.profile_image;
+                    document.getElementById('profile-preview').src=profileImageBase64;
                 }
-                const data = await response.json();
-                document.getElementById('message').textContent = data.message;
-            } catch (error) { 
-                console.error("Error saving data:", error); 
-                document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; 
-            }
-        }
+                document.getElementById('message').textContent=res.message;
+            } else { document.getElementById('message').textContent=res.message; }
+        }).catch(err=>{ console.error(err); document.getElementById('message').textContent='Greška prilikom učitavanja podataka.'; });
+});
 
-        async function loadUserData() {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/load-data`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${googleIdToken}` }
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) { 
-                        alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); 
-                        updateUIForLoggedOutUser(); 
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                document.getElementById('message').textContent = data.message;
-
-                if (data.status === 'success' && data.data) {
-                    const parsedData = JSON.parse(data.data);
-                    document.getElementById('data-input-1').value = parsedData.text1 || '';
-                    document.getElementById('data-input-2').value = parsedData.text2 || '';
-                    document.getElementById('data-input-3').value = parsedData.text3 || '';
-                    document.getElementById('data-input-4').value = parsedData.text4 || '';
-                    document.getElementById('data-input-5').value = parsedData.text5 || '';
-                    document.getElementById('dropdown-menu').value = parsedData.dropdown || 'opcija1';
-                    if (parsedData.profile_picture_url) {
-                        document.getElementById('profile-picture').src = parsedData.profile_picture_url;
-                    } else {
-                        document.getElementById('profile-picture').src = "https://via.placeholder.com/120?text=Profil";
-                    }
-                } else {
-                    // Reset if no data found
-                    document.getElementById('data-input-1').value = "";
-                    document.getElementById('data-input-2').value = "";
-                    document.getElementById('data-input-3').value = "";
-                    document.getElementById('data-input-4').value = "";
-                    document.getElementById('data-input-5').value = "";
-                    document.getElementById('dropdown-menu').value = "opcija1";
-                    document.getElementById('profile-picture').src = "https://via.placeholder.com/120?text=Profil";
-                }
-            } catch (error) { 
-                console.error("Error loading data:", error); 
-                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; 
-            }
-        }
-
-        document.getElementById('save-button').addEventListener('click', saveUserData);
-        document.getElementById('load-button').addEventListener('click', loadUserData);
-
-        document.getElementById('signout-button').addEventListener('click', () => {
-            googleIdToken = null;
-            userName = null;
-            updateUIForLoggedOutUser();
-
-            fetch(`${BACKEND_URL}/logout`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Backend logout response:", data.message);
-                alert("Uspešno ste se odjavili.");
-            })
-            .catch(error => {
-                console.error("Error during backend logout:", error);
-                alert("Došlo je do greške prilikom odjave sa servera.");
-            });
-        });
-
-        document.getElementById('upload-picture-button').addEventListener('click', async () => {
-            const fileInput = document.getElementById('profile-picture-upload');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Molimo odaberite sliku za upload.");
-                return;
-            }
-
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            document.getElementById('message').textContent = "Učitavam sliku...";
-
-            const formData = new FormData();
-            formData.append('profile_image', file);
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/upload-profile-picture`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${googleIdToken}` }, // Nema Content-Type za FormData
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) { 
-                        alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); 
-                        updateUIForLoggedOutUser(); 
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                if (data.status === 'success') {
-                    document.getElementById('profile-picture').src = data.profile_picture_url;
-                    document.getElementById('message').textContent = data.message;
-                    // Osveži i sačuvaj ostale podatke kako bi se URL slike sačuvao u glavnoj kategoriji
-                    await saveUserData(); 
-                } else {
-                    document.getElementById('message').textContent = data.message;
-                }
-            } catch (error) {
-                console.error("Error uploading picture:", error);
-                document.getElementById('message').textContent = "Greška prilikom učitavanja slike.";
-            } finally {
-                fileInput.value = null; // Resetuj input polje za fajl
-            }
-        });
-
-    </script>
+document.getElementById('signout-button').addEventListener('click', ()=>{
+    googleIdToken=null; userName=null; profileImageBase64=null;
+    updateUIForLoggedOutUser();
+    fetch(`${BACKEND_URL}/logout`,{method:'POST', headers:{'Content-Type':'application/json'}})
+        .then(r=>r.json()).then(data=>alert(data.message)).catch(err=>{console.error(err); alert('Greška prilikom odjave.');});
+});
+</script>
 </body>
 </html>
