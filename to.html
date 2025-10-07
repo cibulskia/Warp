@@ -1,81 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Google OAuth App (Profile + Image)</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Google OAuth App (All in One)</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-body { font-family: Arial,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f4f4f4; margin:0; }
-.container { background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); text-align:center; width:400px; }
-h1 { color:#333; margin-bottom:20px; }
-input[type="text"] { width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:4px; font-size:16px; }
-button { background-color:#007bff; color:white; padding:10px 15px; border:none; border-radius:4px; cursor:pointer; font-size:16px; margin:5px; }
-button:hover { background-color:#0056b3; }
-#signout-button { background-color:#dc3545; }
-#signout-button:hover { background-color:#c82333; }
-#profile-pic { width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:10px; }
+body{font-family:Arial,Helvetica,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background-color:#f4f4f4;margin:0}
+.container{background:#fff;padding:28px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12);text-align:center;width:420px}
+h1{color:#333;margin-bottom:18px}
+input[type="text"],input[type="file"],textarea{width:calc(100% - 20px);padding:10px;margin-bottom:12px;border:1px solid #ddd;border-radius:4px;font-size:15px}
+button{background:#007bff;color:#fff;padding:10px 14px;border:none;border-radius:4px;cursor:pointer;font-size:15px;margin:5px}
+button:hover{background:#0056b3}
+#signout-button{background:#dc3545}
+#signout-button:hover{background:#c82333}
+#profile-pic{width:96px;height:96px;border-radius:8px;object-fit:cover;border:1px solid #eee;display:block;margin:8px auto}
+.small{font-size:13px;color:#666;margin-top:8px}
+.delete-list{max-height:80px;overflow:auto;border:1px solid #eee;padding:8px;border-radius:4px;text-align:left;background:#fafafa}
+.notice{color:#333;margin-top:10px}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Moja Aplikacija</h1>
-<div id="g_id_onload"
-     data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
-     data-auto_select="true"
-     data-callback="handleCredentialResponse"
-     data-ux_mode="popup"
-     data-cancel_on_tap_outside="false"
-     data-context="use">
-</div>
-<div class="g_id_signin"
-     data-type="standard"
-     data-size="large"
-     data-theme="outline"
-     data-text="sign_in_with"
-     data-shape="rectangular"
-     data-logo_alignment="left">
-</div>
+<h1>Moja Aplikacija - demo verzija</h1>
+
+<div id="g_id_onload" data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com" data-auto_select="true" data-callback="handleCredentialResponse" data-ux_mode="popup" data-cancel_on_tap_outside="false" data-context="use"></div>
+<div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
+
 <div id="app-content" style="display:none;">
-<img id="profile-pic" src="" alt="Profilna slika" style="display:none;">
 <p>Dobrodošao, <span id="user-name"></span>!</p>
-<input type="text" id="data-input" placeholder="Unesi tekst ovde...">
-<input type="file" id="image-input" accept="image/*">
-<button id="save-button">Sačuvaj Podatke</button>
-<button id="load-button">Učitaj Podatke</button>
-<p id="message"></p>
+<img id="profile-pic" src="" alt="Profilna slika" style="display:none" />
+<div>
+<textarea id="data-input" placeholder="Unesi tekst kategorije..." rows="3"></textarea>
+</div>
+<input type="file" id="image-file" accept="image/*" />
+<div>
+<button id="upload-image-button">Uploaduj sliku na imgbb</button>
+<button id="save-button">Sačuvaj tekst i link slike</button>
+<button id="load-button">Učitaj podatke</button>
+</div>
+<div>
 <button id="signout-button">Odjavi se</button>
 </div>
+<p class="small">Istorija delete-linkova (samo za evidenciju):</p>
+<div class="delete-list" id="delete-links-list"></div>
+<p id="message" class="notice"></p>
 </div>
 
 <script>
 const BACKEND_URL = 'https://botanica.ngrok.app';
-const IMGBB_KEY = '2781419b4b4c71b1754552b98b6fe3d0';
+const IMGBB_API_KEY = '2781419b4b4c71b1754552b98b6fe3d0';
 let googleIdToken = null;
 let userName = null;
 
 function handleCredentialResponse(response){
     googleIdToken = response.credential;
-    fetch(`${BACKEND_URL}/verify-google-login`, {
+    fetch(`${BACKEND_URL}/verify-google-login`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({id_token:googleIdToken})
     })
-    .then(r=>r.json())
+    .then(r=>{ if(!r.ok) throw r; return r.json() })
     .then(data=>{
-        if(data.status==='success'){ userName=data.user_name; updateUIForLoggedInUser(); } 
-        else { alert("Login failed: "+data.message); updateUIForLoggedOutUser(); }
-    }).catch(e=>{ alert("Login error"); updateUIForLoggedOutUser(); });
+        if(data.status==='success'){
+            userName = data.user_name;
+            updateUIForLoggedInUser();
+            loadData();
+        } else {
+            googleIdToken = null;
+            userName = null;
+            updateUIForLoggedOutUser();
+            alert('Login failed: ' + (data.message||''));
+        }
+    })
+    .catch(err=>{
+        googleIdToken = null;
+        userName = null;
+        updateUIForLoggedOutUser();
+        alert('Došlo je do greške pri prijavi.');
+    });
 }
 
 function updateUIForLoggedInUser(){
     document.getElementById('g_id_onload').style.display='none';
     document.querySelector('.g_id_signin').style.display='none';
     document.getElementById('app-content').style.display='block';
-    document.getElementById('user-name').textContent=userName;
+    document.getElementById('user-name').textContent=userName||'User';
     document.getElementById('message').textContent='';
-    document.getElementById('data-input').value='';
-    document.getElementById('profile-pic').style.display='none';
 }
 
 function updateUIForLoggedOutUser(){
@@ -83,54 +94,185 @@ function updateUIForLoggedOutUser(){
     document.querySelector('.g_id_signin').style.display='block';
     document.getElementById('app-content').style.display='none';
     document.getElementById('user-name').textContent='';
+    document.getElementById('profile-pic').style.display='none';
+    document.getElementById('delete-links-list').innerHTML='';
     document.getElementById('message').textContent='Molimo prijavite se putem Google-a.';
-    googleIdToken=null;
-    userName=null;
-    document.cookie="session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    googleIdToken = null;
+    userName = null;
+    document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
-window.onload=function(){ updateUIForLoggedOutUser(); }
+window.onload = function(){
+    updateUIForLoggedOutUser();
+};
 
-document.getElementById('save-button').addEventListener('click', async()=>{
-    if(!googleIdToken){ alert("Niste prijavljeni."); return; }
-    const textData=document.getElementById('data-input').value;
-    const imageFile=document.getElementById('image-input').files[0];
-    let imageUrl=null;
-    let deleteUrl=null;
-    if(imageFile){
-        const formData=new FormData();
-        formData.append('image',imageFile);
-        const resp=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:formData});
-        const imgData=await resp.json();
-        if(imgData.success){ imageUrl=imgData.data.url; deleteUrl=imgData.data.delete_url; }
+document.getElementById('upload-image-button').addEventListener('click', function(){
+    const fileInput = document.getElementById('image-file');
+    const file = fileInput.files[0];
+    if(!file){
+        alert('Odaberite fajl.');
+        return;
     }
+    const reader = new FileReader();
+    reader.onload = function(){
+        const base64 = reader.result.split(',')[1];
+        const form = new FormData();
+        form.append('image', base64);
+        fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: 'POST',
+            body: form
+        })
+        .then(r=>r.json())
+        .then(resp=>{
+            if(resp && resp.data){
+                const imageUrl = resp.data.url;
+                const deleteUrl = resp.data.delete_url;
+                document.getElementById('profile-pic').src = imageUrl;
+                document.getElementById('profile-pic').style.display = 'block';
+                document.getElementById('message').textContent = 'Slika uploadovana. Sada sačuvajte link na server.';
+                saveData({image_link:imageUrl, append_delete_link:deleteUrl});
+            } else {
+                document.getElementById('message').textContent = 'Upload neuspeo.';
+            }
+        })
+        .catch(err=>{
+            document.getElementById('message').textContent = 'Greška pri uploadu slike.';
+        });
+    };
+    reader.readAsDataURL(file);
+});
+
+function saveData({text=null,image_link=null,append_delete_link=null}={}){
+    if(!googleIdToken){
+        alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');
+        return;
+    }
+    const payload = {};
+    if(text===null) payload.data = document.getElementById('data-input').value;
+    else payload.data = text;
+    if(image_link) payload.image_link = image_link;
     fetch(`${BACKEND_URL}/save-data`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},
-        body:JSON.stringify({data:textData,image_url:imageUrl,delete_url:deleteUrl})
-    }).then(r=>r.json())
-    .then(d=>{ document.getElementById('message').textContent=d.message; })
-    .catch(e=>{ document.getElementById('message').textContent="Greška prilikom čuvanja podataka."; });
+        body:JSON.stringify(payload)
+    })
+    .then(r=>{
+        if(!r.ok){
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Vaša sesija je istekla. Molimo prijavite se ponovo.'); }
+            throw r;
+        }
+        return r.json();
+    })
+    .then(resp=>{
+        document.getElementById('message').textContent = resp.message || 'Sačuvano.';
+        if(append_delete_link){
+            addDeleteLink(append_delete_link);
+        } else {
+            loadData();
+        }
+    })
+    .catch(err=>{
+        document.getElementById('message').textContent = 'Greška pri čuvanju podataka.';
+    });
+}
+
+function addDeleteLink(delete_link){
+    if(!googleIdToken) return;
+    fetch(`${BACKEND_URL}/add-delete-link`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${googleIdToken}`},
+        body:JSON.stringify({delete_link})
+    })
+    .then(r=>{
+        if(!r.ok){
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Vaša sesija je istekla. Molimo prijavite se ponovo.'); }
+            throw r;
+        }
+        return r.json();
+    })
+    .then(resp=>{
+        document.getElementById('message').textContent = resp.message || 'Delete link dodat.';
+        loadData();
+    })
+    .catch(err=>{
+        document.getElementById('message').textContent = 'Greška pri dodavanju delete linka.';
+    });
+}
+
+document.getElementById('save-button').addEventListener('click', function(){
+    saveData();
 });
 
-document.getElementById('load-button').addEventListener('click',()=>{
-    if(!googleIdToken){ alert("Niste prijavljeni."); return; }
+document.getElementById('load-button').addEventListener('click', function(){
+    loadData();
+});
+
+function loadData(){
+    if(!googleIdToken){
+        alert('Niste prijavljeni. Molimo prijavite se putem Google-a.');
+        return;
+    }
     fetch(`${BACKEND_URL}/load-data`,{
         method:'GET',
         headers:{'Authorization':`Bearer ${googleIdToken}`}
-    }).then(r=>r.json())
-    .then(d=>{
-        document.getElementById('data-input').value=d.data||'';
-        if(d.image_url){ document.getElementById('profile-pic').src=d.image_url; document.getElementById('profile-pic').style.display='block'; }
-        else{ document.getElementById('profile-pic').style.display='none'; }
-        document.getElementById('message').textContent=d.message;
-    }).catch(e=>{ document.getElementById('message').textContent="Greška pri učitavanju podataka."; });
-});
+    })
+    .then(r=>{
+        if(!r.ok){
+            if(r.status===401){ updateUIForLoggedOutUser(); alert('Vaša sesija je istekla. Molimo prijavite se ponovo.'); }
+            throw r;
+        }
+        return r.json();
+    })
+    .then(resp=>{
+        if(resp.status==='success'){
+            document.getElementById('data-input').value = resp.data || '';
+            if(resp.image_link){
+                document.getElementById('profile-pic').src = resp.image_link;
+                document.getElementById('profile-pic').style.display = 'block';
+            } else {
+                document.getElementById('profile-pic').style.display = 'none';
+            }
+            const listEl = document.getElementById('delete-links-list');
+            listEl.innerHTML = '';
+            try{
+                const arr = resp.delete_links ? JSON.parse(resp.delete_links) : [];
+                arr.forEach(link=>{
+                    const a = document.createElement('a');
+                    a.href = link;
+                    a.target = '_blank';
+                    a.textContent = link;
+                    const div = document.createElement('div');
+                    div.appendChild(a);
+                    listEl.appendChild(div);
+                });
+            }catch(e){
+                listEl.textContent = '';
+            }
+            document.getElementById('message').textContent = resp.message || '';
+        } else {
+            document.getElementById('message').textContent = resp.message || 'Nema podataka.';
+        }
+    })
+    .catch(err=>{
+        document.getElementById('message').textContent = 'Greška pri učitavanju podataka.';
+    });
+}
 
-document.getElementById('signout-button').addEventListener('click',()=>{
-    googleIdToken=null; userName=null; updateUIForLoggedOutUser();
-    fetch(`${BACKEND_URL}/logout`,{method:'POST',headers:{'Content-Type':'application/json'}})
-    .then(r=>r.json()).then(d=>alert(d.message)).catch(e=>alert("Greška prilikom odjave."));
+document.getElementById('signout-button').addEventListener('click', function(){
+    googleIdToken = null;
+    userName = null;
+    updateUIForLoggedOutUser();
+    fetch(`${BACKEND_URL}/logout`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'}
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        alert(data.message || 'Odjavljeni ste.');
+    })
+    .catch(err=>{
+        alert('Greška pri odjavi sa servera.');
+    });
 });
 </script>
 </body>
