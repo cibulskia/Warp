@@ -6,16 +6,88 @@
 <title>Google OAuth App with Profile</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-body { font-family: Arial,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f4f4f4; margin:0; }
-.container { background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:450px; text-align:center; }
-h1 { color:#333; margin-bottom:20px; }
-input[type="text"], select { width: calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:4px; font-size:16px; }
-button { background:#007bff; color:white; padding:10px 15px; border:none; border-radius:4px; cursor:pointer; font-size:16px; margin:5px; }
-button:hover { background:#0056b3; }
-#signout-button { background:#dc3545; }
-#signout-button:hover { background:#c82333; }
-#message { margin-top:10px; color:#333; }
-#profile-preview { max-width:100px; margin-bottom:10px; border-radius:50%; }
+body { 
+    font-family: Arial, sans-serif; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    background: #f4f4f4; 
+    margin: 0; 
+}
+.container { 
+    background: #fff; 
+    padding: 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+    width: 450px; 
+    text-align: center; 
+}
+h1 { 
+    color: #333; 
+    margin-bottom: 20px; 
+}
+input[type="text"], select { 
+    width: calc(100% - 20px); 
+    padding: 10px; 
+    margin-bottom: 10px; 
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+    font-size: 16px; 
+}
+button { 
+    background: #007bff; 
+    color: white; 
+    padding: 10px 15px; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    margin: 5px; 
+}
+button:hover { 
+    background: #0056b3; 
+}
+#signout-button { 
+    background: #dc3545; 
+}
+#signout-button:hover { 
+    background: #c82333; 
+}
+#message { 
+    margin-top: 10px; 
+    color: #333; 
+}
+#profile-preview { 
+    max-width: 120px; 
+    margin-bottom: 10px; 
+    border-radius: 50%; 
+    display: block; 
+    margin-left: auto; 
+    margin-right: auto; 
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+.file-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.file-upload-label {
+    background: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 5px;
+}
+.file-upload-label:hover {
+    background: #0056b3;
+}
+#profile-image-input {
+    display: none;
+}
 </style>
 </head>
 <body>
@@ -41,13 +113,19 @@ button:hover { background:#0056b3; }
 
     <div id="app-content" style="display:none;">
         <p>Dobrodošao, <span id="user-name"></span>!</p>
-        <img id="profile-preview" src="" alt="Profilna slika">
-        <input type="file" id="profile-image-input" accept="image/*">
+        
+        <div class="file-upload-container">
+            <img id="profile-preview" src="" alt="Profilna slika">
+            <label for="profile-image-input" class="file-upload-label">Izaberi profilnu sliku</label>
+            <input type="file" id="profile-image-input" accept="image/*">
+        </div>
+
         <input type="text" id="field1" placeholder="Polje 1">
         <input type="text" id="field2" placeholder="Polje 2">
         <input type="text" id="field3" placeholder="Polje 3">
         <input type="text" id="field4" placeholder="Polje 4">
         <input type="text" id="field5" placeholder="Polje 5">
+
         <select id="dropdown-option">
             <option value="">Izaberite opciju</option>
             <option value="Opcija1">Opcija 1</option>
@@ -79,7 +157,12 @@ function handleCredentialResponse(response) {
         if(data.status==='success'){
             userName = data.user_name;
             updateUIForLoggedInUser();
-        } else { googleIdToken=null; userName=null; updateUIForLoggedOutUser(); alert(data.message);}
+        } else { 
+            googleIdToken=null; 
+            userName=null; 
+            updateUIForLoggedOutUser(); 
+            alert(data.message);
+        }
       });
 }
 
@@ -134,7 +217,10 @@ document.getElementById('save-button').addEventListener('click', ()=>{
     }).then(r=>r.json())
       .then(res=>{
         document.getElementById('message').textContent = res.message;
-      }).catch(err=>{ console.error(err); document.getElementById('message').textContent='Greška prilikom čuvanja podataka.'; });
+      }).catch(err=>{
+        console.error(err); 
+        document.getElementById('message').textContent='Greška prilikom čuvanja podataka.'; 
+      });
 });
 
 document.getElementById('load-button').addEventListener('click', ()=>{
@@ -155,8 +241,13 @@ document.getElementById('load-button').addEventListener('click', ()=>{
                     document.getElementById('profile-preview').src=profileImageBase64;
                 }
                 document.getElementById('message').textContent=res.message;
-            } else { document.getElementById('message').textContent=res.message; }
-        }).catch(err=>{ console.error(err); document.getElementById('message').textContent='Greška prilikom učitavanja podataka.'; });
+            } else { 
+                document.getElementById('message').textContent=res.message; 
+            }
+        }).catch(err=>{ 
+            console.error(err); 
+            document.getElementById('message').textContent='Greška prilikom učitavanja podataka.'; 
+        });
 });
 
 document.getElementById('signout-button').addEventListener('click', ()=>{
@@ -168,3 +259,4 @@ document.getElementById('signout-button').addEventListener('click', ()=>{
 </script>
 </body>
 </html>
+
