@@ -1,42 +1,138 @@
 <!DOCTYPE html>
-<html>
+<html lang="sr">
 <head>
-  <meta charset="utf-8">
-  <title>Upload na ImgBB</title>
+  <meta charset="UTF-8">
+  <title>Profilna</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+
+    .profile-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .profile-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    .upload-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .custom-file-input {
+      position: relative;
+      display: inline-block;
+    }
+
+    .custom-file-input input[type="file"] {
+      display: none;
+    }
+
+    .custom-file-input label {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .custom-file-input label:hover {
+      background-color: #0056b3;
+    }
+
+    .upload-button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .upload-button:hover {
+      background-color: #218838;
+    }
+  </style>
 </head>
 <body>
-<h2>Upload slike</h2>
-<input type="file" id="fileInput">
-<button id="uploadBtn">Upload</button>
 
-<img id="uploadedImage" src="" alt="Uploaded image will appear here" style="display:block; margin-top:20px; max-width:300px;">
+  <div class="profile-container">
+    <img src="https://via.placeholder.com/120" alt="Profilna" class="profile-image" id="profilePreview">
 
-<script>
-const apiKey = "2781419b4b4c71b1754552b98b6fe3d0"; // zameniti sa tvojim ključem
+    <div class="upload-controls">
+      <div class="custom-file-input">
+        <input type="file" id="imageInput" accept="image/*">
+        <label for="imageInput">Izaberi sliku</label>
+      </div>
+      <button class="upload-button" onclick="uploadImage()">Otpremi profilnu</button>
+    </div>
+  </div>
 
-document.getElementById('uploadBtn').addEventListener('click', () => {
-    const fileInput = document.getElementById('fileInput');
-    if (!fileInput.files.length) return alert("Izaberi fajl!");
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const profilePreview = document.getElementById('profilePreview');
 
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append("image", file);
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          profilePreview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-    fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-        method: "POST",
+    function uploadImage() {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert("Molimo izaberite sliku.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch('/upload-image', {
+        method: 'POST',
+        credentials: 'include',
         body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data); // vidiš ceo JSON
-        const url = data.data.display_url; // link do slike
-        const img = document.getElementById("uploadedImage");
-        img.src = url;
-        img.style.display = "block";
-    })
-    .catch(err => console.error(err));
-});
-</script>
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert("Slika uspešno otpremljena!");
+        } else {
+          alert("Greška: " + data.message);
+        }
+      })
+      .catch(err => {
+        alert("Došlo je do greške prilikom otpremanja.");
+        console.error(err);
+      });
+    }
+  </script>
+
 </body>
 </html>
-
