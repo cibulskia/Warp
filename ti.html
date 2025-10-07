@@ -21,7 +21,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     text-align: center;
-    width: 420px;
+    width: 450px;
 }
 h1 {
     color: #333;
@@ -62,12 +62,12 @@ button:hover {
     font-weight: bold;
     color: #007bff;
 }
-.profile-container {
+.profile-section {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    margin: 12px 0;
+    gap: 15px;
+    margin: 15px 0;
 }
 .profile-img {
     width: 120px;
@@ -83,9 +83,6 @@ button:hover {
 }
 .file-controls input[type="file"] {
     padding: 5px;
-    font-size: 14px;
-}
-.small {
     font-size: 14px;
 }
 </style>
@@ -113,7 +110,7 @@ button:hover {
     <div id="app-content" style="display:none">
         <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-        <div class="profile-container">
+        <div class="profile-section">
             <img id="profile-image" class="profile-img" src="" alt="Profilna slika" style="display:none"/>
             <div class="file-controls">
                 <input type="file" id="image-file" accept="image/*"/>
@@ -136,7 +133,7 @@ button:hover {
 </div>
 
 <script>
-// --- Ostatak JavaScript-a ostaje isti ---
+// --- JavaScript ostaje isti kao u tvom originalnom kodu ---
 </script>
 </body>
 </html>
