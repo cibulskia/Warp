@@ -6,8 +6,6 @@
     <title>Warp Connect - Platforma za poslove i postavke</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Dodato: JWT-Decode biblioteka -->
-    <script src="https://unpkg.com/jwt-decode/build/jwt-decode.js"></script>
     <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
@@ -35,17 +33,13 @@
             border: 1px solid #ccc;
             margin-top: 10px;
         }
-        /* Stil za profilnu sliku */
-        .profile-picture-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .profile-picture-container img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%; /* Zaobljene ivice za sliku */
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #007bff; /* Mali obrub oko slike */
+            border: 2px solid #ccc;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -159,10 +153,10 @@
                     <!-- Korisničke Postavke Sekcija -->
                     <div class="card user-settings-card">
                         <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
-                        
-                        <!-- Dodato: Profilna slika -->
-                        <div class="profile-picture-container">
-                            <img id="profile-picture" src="https://via.placeholder.com/100" alt="Profilna slika">
+
+                        <!-- Dodata profilna slika -->
+                        <div class="form-group" style="text-align: center;">
+                            <img id="profile-picture" class="profile-pic" src="" alt="Profilna slika">
                         </div>
 
                         <div class="form-group">
@@ -239,33 +233,6 @@
                 });
             })
             .catch(err => console.error('Greška pri učitavanju JSON-a:', err));
-
-        // Funkcija za obradu Google kredencijala i ažuriranje profilne slike
-        function handleCredentialResponse(response) {
-            const responsePayload = jwt_decode(response.credential);
-            console.log("ID: " + responsePayload.sub);
-            console.log('Full Name: ' + responsePayload.name);
-            console.log('Given Name: ' + responsePayload.given_name);
-            console.log('Family Name: ' + responsePayload.family_name);
-            console.log("Image URL: " + responsePayload.picture);
-            console.log("Email: " + responsePayload.email);
-
-            document.getElementById('welcome-message').style.display = 'none';
-            document.getElementById('auth-section').querySelector('.g_id_signin').style.display = 'none';
-            document.getElementById('signout-button').style.display = 'inline-block';
-            document.getElementById('app-content').style.display = 'block';
-            document.getElementById('job-sidebar').style.display = 'block';
-
-            document.getElementById('user-name').textContent = responsePayload.name;
-
-            // Ažuriraj profilnu sliku
-            const profilePictureElement = document.getElementById('profile-picture');
-            if (responsePayload.picture) {
-                profilePictureElement.src = responsePayload.picture;
-            } else {
-                profilePictureElement.src = 'https://via.placeholder.com/100'; // Fallback slika ako nema URL-a
-            }
-        }
     </script>
 </body>
 </html>
