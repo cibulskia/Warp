@@ -207,24 +207,19 @@
             border: 2px solid #ddd;
         }
 
-        .sidebar-additional-content {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .sidebar-display-area {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
+        .sidebar-text-display {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
             border-radius: 4px;
             padding: 10px;
-            margin-top: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            word-wrap: break-word;
             white-space: pre-wrap; /* Omogućava prelom teksta i čuva razmake */
+            min-height: 40px; /* Minimalna visina da se vidi i prazan prostor */
             text-align: left;
-            min-height: 50px; /* Minimalna visina za prikaz */
-            max-height: 150px;
-            overflow-y: auto;
-            word-break: break-word;
+            color: #555;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -234,30 +229,26 @@
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
                 <h2>Potkategorije</h2>
-                <!-- Uklonjeno dugme za kreiranje nove potkategorije -->
             </div>
             <ul id="subcategory-list" class="subcategory-list">
                 <!-- Potkategorije će biti dinamički dodate ovde -->
             </ul>
             <div class="subcategory-buttons">
                 <button id="load-subcategories-button">Učitaj Listu</button>
-                <!-- Uklonjeno dugme za brisanje potkategorije -->
             </div>
 
-            <div class="sidebar-additional-content">
-                <h2>Dodatna Polja</h2>
-                <label for="input4-sidebar">Četvrto polje za tekst:</label>
-                <input type="text" id="input4-sidebar" placeholder="Četvrto polje za tekst">
-                <div id="input4-display" class="sidebar-display-area"></div>
+            <div class="section-separator"></div>
 
-                <label for="input5-sidebar" style="margin-top: 15px; display: block;">Peto polje za tekst:</label>
-                <input type="text" id="input5-sidebar" placeholder="Peto polje za tekst">
-                <div id="input5-display" class="sidebar-display-area"></div>
+            <!-- Premještena polja input4 i input5 -->
+            <h3>Dodatni Podaci</h3>
+            <label for="input4" style="font-size: 14px; color: #555;">Četvrto polje za tekst:</label>
+            <input type="text" id="input4" placeholder="Četvrto polje za tekst">
+            <div id="display-input4" class="sidebar-text-display"></div>
 
-                <button id="save-sidebar-data-button" style="margin-top: 20px;">Sačuvaj Dodatne Podatke</button>
-                <button id="load-sidebar-data-button">Učitaj Dodatne Podatke</button>
-                <p id="sidebar-message" style="margin-top: 10px; min-height: 20px;"></p>
-            </div>
+            <label for="input5" style="font-size: 14px; color: #555;">Peto polje za tekst:</label>
+            <input type="text" id="input5" placeholder="Peto polje za tekst">
+            <div id="display-input5" class="sidebar-text-display"></div>
+
         </div>
 
         <div class="container">
@@ -313,7 +304,6 @@
                 <input type="text" id="input2" placeholder="Drugo polje za tekst">
                 <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
                 <input type="text" id="input3" placeholder="Treće polje za tekst">
-                
                 <select id="dropdown-input">
                     <option value="">Odaberite opciju</option>
                     <option value="opcija1">Opcija 1</option>
@@ -392,7 +382,6 @@
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
             document.getElementById('subcategory-message').textContent = "";
-            document.getElementById('sidebar-message').textContent = ""; // Reset sidebar message
             
             // Prikaz profilne slike
             const profilePicElement = document.getElementById('profile-picture');
@@ -411,13 +400,11 @@
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
             document.getElementById('input3').value = "";
+            document.getElementById('input4').value = ""; // Očisti i u sidebar-u
+            document.getElementById('input5').value = ""; // Očisti i u sidebar-u
             document.getElementById('dropdown-input').value = "";
-
-            // Očisti polja u sidebar-u
-            document.getElementById('input4-sidebar').value = "";
-            document.getElementById('input5-sidebar').value = "";
-            document.getElementById('input4-display').textContent = "";
-            document.getElementById('input5-display').textContent = "";
+            document.getElementById('display-input4').textContent = ""; // Očisti prikaz
+            document.getElementById('display-input5').textContent = ""; // Očisti prikaz
 
 
             // Sakrij formu za potkategorije
@@ -437,7 +424,6 @@
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             document.getElementById('subcategory-message').textContent = "";
-            document.getElementById('sidebar-message').textContent = ""; // Reset sidebar message
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null; // Resetuj URL profilne slike
@@ -449,11 +435,11 @@
             document.getElementById('profile-picture-placeholder').style.display = 'block';
             document.getElementById('profile-picture').src = '';
 
-            // Očisti polja u sidebar-u
-            document.getElementById('input4-sidebar').value = "";
-            document.getElementById('input5-sidebar').value = "";
-            document.getElementById('input4-display').textContent = "";
-            document.getElementById('input5-display').textContent = "";
+            // Očisti sidebar polja i njihove prikaze
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = "";
+            document.getElementById('display-input4').textContent = "";
+            document.getElementById('display-input5').textContent = "";
         }
 
         window.onload = function() {
@@ -472,6 +458,8 @@
                 input2: document.getElementById('input2').value,
                 largeText: document.getElementById('large-text-input').value,
                 input3: document.getElementById('input3').value,
+                input4: document.getElementById('input4').value, // Uključi input4 u čuvanje
+                input5: document.getElementById('input5').value, // Uključi input5 u čuvanje
                 dropdown: document.getElementById('dropdown-input').value
             };
 
@@ -513,12 +501,28 @@
                 document.getElementById('input2').value = data.input2 || '';
                 document.getElementById('large-text-input').value = data.largeText || '';
                 document.getElementById('input3').value = data.input3 || '';
+                document.getElementById('input4').value = data.input4 || ''; // Učitaj i u sidebar
+                document.getElementById('input5').value = data.input5 || ''; // Učitaj i u sidebar
                 document.getElementById('dropdown-input').value = data.dropdown || '';
                 
+                // Prikaz učitanih vrednosti u sidebar-u
+                document.getElementById('display-input4').textContent = data.input4 || '';
+                document.getElementById('display-input5').textContent = data.input5 || '';
+
                 document.getElementById('message').textContent = data.message;
             })
             .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
         });
+
+        // Event listeneri za ažuriranje prikaza čim se tekst promeni u input poljima u sidebar-u
+        document.getElementById('input4').addEventListener('input', (event) => {
+            document.getElementById('display-input4').textContent = event.target.value;
+        });
+
+        document.getElementById('input5').addEventListener('input', (event) => {
+            document.getElementById('display-input5').textContent = event.target.value;
+        });
+
 
         document.getElementById('signout-button').addEventListener('click', () => {
             googleIdToken = null;
@@ -712,73 +716,6 @@
                 document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja detalja potkategorije."; 
             });
         }
-
-        // --- Sidebar dodatni podaci (nove funkcije) ---
-
-        // Event listeneri za prikazivanje teksta u display area
-        document.getElementById('input4-sidebar').addEventListener('input', (event) => {
-            document.getElementById('input4-display').textContent = event.target.value;
-        });
-
-        document.getElementById('input5-sidebar').addEventListener('input', (event) => {
-            document.getElementById('input5-display').textContent = event.target.value;
-        });
-
-
-        document.getElementById('save-sidebar-data-button').addEventListener('click', () => {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            const dataToSave = {
-                input4_sidebar: document.getElementById('input4-sidebar').value,
-                input5_sidebar: document.getElementById('input5-sidebar').value
-            };
-
-            fetch(`${BACKEND_URL}/save-sidebar-data`, { // Pretpostavljamo novu backend rutu
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-                body: JSON.stringify(dataToSave)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => { document.getElementById('sidebar-message').textContent = data.message; })
-            .catch(error => { console.error("Error saving sidebar data:", error); document.getElementById('sidebar-message').textContent = "Greška prilikom čuvanja dodatnih podataka."; });
-        });
-
-        document.getElementById('load-sidebar-data-button').addEventListener('click', () => {
-            if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/load-sidebar-data`, { // Pretpostavljamo novu backend rutu
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('input4-sidebar').value = data.input4_sidebar || '';
-                document.getElementById('input5-sidebar').value = data.input5_sidebar || '';
-                document.getElementById('input4-display').textContent = data.input4_sidebar || '';
-                document.getElementById('input5-display').textContent = data.input5_sidebar || '';
-                
-                document.getElementById('sidebar-message').textContent = data.message;
-            })
-            .catch(error => { console.error("Error loading sidebar data:", error); document.getElementById('sidebar-message').textContent = "Greška prilikom učitavanja dodatnih podataka."; });
-        });
     </script>
 </body>
 </html>
