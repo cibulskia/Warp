@@ -192,7 +192,6 @@
             margin: 0;
         }
 
-        /* Stil za profilnu sliku */
         #profile-picture-container {
             margin-bottom: 20px;
             display: flex;
@@ -201,12 +200,11 @@
         }
 
         #profile-picture {
-            border-radius: 50%;
             width: 100px;
             height: 100px;
+            border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #007bff;
-            margin-bottom: 10px;
+            border: 2px solid #ddd;
         }
     </style>
 </head>
@@ -216,12 +214,14 @@
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
                 <h2>Potkategorije</h2>
+                <!-- Uklonjeno dugme za kreiranje nove potkategorije -->
             </div>
             <ul id="subcategory-list" class="subcategory-list">
                 <!-- Potkategorije će biti dinamički dodate ovde -->
             </ul>
             <div class="subcategory-buttons">
                 <button id="load-subcategories-button">Učitaj Listu</button>
+                <!-- Uklonjeno dugme za brisanje potkategorije -->
             </div>
         </div>
 
@@ -270,9 +270,9 @@
 
                 <!-- Original Data Section -->
                 <h2>Glavni Podaci</h2>
-                <div id="profile-picture-container" style="display: none;">
-                    <img id="profile-picture" src="" alt="Profilna slika">
-                    <p id="profile-name"></p>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
                 </div>
                 <input type="text" id="input1" placeholder="Prvo polje za tekst">
                 <input type="text" id="input2" placeholder="Drugo polje za tekst">
@@ -303,12 +303,18 @@
 
         let googleIdToken = null;
         let userName = null;
-        let userPicture = null; // Dodato za URL slike
+        let userProfilePicUrl = null; // Nova promenljiva za URL profilne slike
         let currentSubcategoryId = null;
 
         function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
             googleIdToken = response.credential;
+
+            // Parsiranje JWT tokena za dobijanje podataka o korisniku, uključujući sliku
+            const tokenParts = googleIdToken.split('.');
+            const payload = JSON.parse(atob(tokenParts[1]));
+            userName = payload.name;
+            userProfilePicUrl = payload.picture; // Preuzimanje URL-a profilne slike
 
             fetch(`${BACKEND_URL}/verify-google-login`, {
                 method: 'POST',
@@ -322,8 +328,7 @@
             .then(data => {
                 if (data.status === 'success') {
                     console.log("Login successful on backend:", data);
-                    userName = data.user_name;
-                    userPicture = data.user_picture; // Preuzimamo URL slike
+                    // Ime korisnika je već izvučeno iz JWT tokena
                     updateUIForLoggedInUser();
                     loadSubcategories();
                 } else {
@@ -331,7 +336,7 @@
                     alert("Login failed: " + data.message);
                     googleIdToken = null;
                     userName = null;
-                    userPicture = null;
+                    userProfilePicUrl = null;
                     updateUIForLoggedOutUser();
                 }
             })
@@ -340,7 +345,7 @@
                 alert("An error occurred during login. Please try again.");
                 googleIdToken = null;
                 userName = null;
-                userPicture = null;
+                userProfilePicUrl = null;
                 updateUIForLoggedOutUser();
             });
         }
@@ -354,20 +359,18 @@
             document.getElementById('message').textContent = "";
             document.getElementById('subcategory-message').textContent = "";
             
-            // Prikaz profilne slike i imena
-            const profilePictureContainer = document.getElementById('profile-picture-container');
-            const profilePictureElement = document.getElementById('profile-picture');
-            const profileNameElement = document.getElementById('profile-name');
-
-            if (userPicture) {
-                profilePictureElement.src = userPicture;
-                profilePictureElement.alt = `Profilna slika za ${userName}`;
-                profileNameElement.textContent = userName;
-                profilePictureContainer.style.display = 'flex'; // Prikazi kontejner
+            // Prikaz profilne slike
+            const profilePicElement = document.getElementById('profile-picture');
+            const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
+                profilePicElement.style.display = 'block';
+                profilePicPlaceholder.style.display = 'none';
             } else {
-                profilePictureContainer.style.display = 'none'; // Sakrij ako nema slike
+                profilePicElement.style.display = 'none';
+                profilePicPlaceholder.style.display = 'block';
             }
-
+            
             // Očisti sva polja prilikom prijave (glavni podaci)
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
@@ -396,14 +399,14 @@
             document.getElementById('subcategory-message').textContent = "";
             googleIdToken = null;
             userName = null;
-            userPicture = null; // Resetuj i URL slike
+            userProfilePicUrl = null; // Resetuj URL profilne slike
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.getElementById('subcategory-list').innerHTML = '';
 
-            // Sakrij profilnu sliku prilikom odjave
-            document.getElementById('profile-picture-container').style.display = 'none';
-            document.getElementById('profile-picture').src = "";
-            document.getElementById('profile-name').textContent = "";
+            // Sakrij profilnu sliku i prikaži placeholder
+            document.getElementById('profile-picture').style.display = 'none';
+            document.getElementById('profile-picture-placeholder').style.display = 'block';
+            document.getElementById('profile-picture').src = '';
         }
 
         window.onload = function() {
@@ -477,7 +480,7 @@
         document.getElementById('signout-button').addEventListener('click', () => {
             googleIdToken = null;
             userName = null;
-            userPicture = null; // Resetuj i URL slike
+            userProfilePicUrl = null; // Resetuj URL profilne slike
             updateUIForLoggedOutUser();
 
             fetch(`${BACKEND_URL}/logout`, {
@@ -534,7 +537,7 @@
 
             const subcategoryData = {
                 id: currentSubcategoryId,
-                name: document.getElementById('subcategory-name').value,
+                name: document.getElementById('subcategory-name').value, // Slanje name, short_desc, long_desc iako su readonly
                 short_description: document.getElementById('subcategory-short-desc').value,
                 long_description: document.getElementById('subcategory-long-desc').value,
                 is_active: document.getElementById('subcategory-checkbox').checked
