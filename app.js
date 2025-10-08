@@ -1,9 +1,11 @@
+// app.js
+
 const BACKEND_URL = 'https://botanica.ngrok.app';
 
 let googleIdToken = null;
 let userName = null;
 let userProfilePicUrl = null;
-let currentSubcategoryId = null;
+let currentSubcategoryId = null; // This will also be managed by UI, but its value is critical for backend calls
 
 function handleCredentialResponse(response) {
     console.log("Encoded JWT ID token: " + response.credential);
@@ -26,16 +28,17 @@ function handleCredentialResponse(response) {
     .then(data => {
         if (data.status === 'success') {
             console.log("Login successful on backend:", data);
-            updateUIForLoggedInUser();
-            loadSubcategories();
-            loadMainData(); // Automatically load main data after successful login
+            // Call UI update functions from main script
+            window.updateUIForLoggedInUser(userName, userProfilePicUrl);
+            window.loadSubcategories(); // Call the function from the main script
+            window.loadMainData();      // Call the function from the main script
         } else {
             console.error("Backend login failed:", data.message);
             alert("Login failed: " + data.message);
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null;
-            updateUIForLoggedOutUser();
+            window.updateUIForLoggedOutUser(); // Call the function from the main script
         }
     })
     .catch(error => {
@@ -44,81 +47,42 @@ function handleCredentialResponse(response) {
         googleIdToken = null;
         userName = null;
         userProfilePicUrl = null;
-        updateUIForLoggedOutUser();
+        window.updateUIForLoggedOutUser(); // Call the function from the main script
     });
 }
 
-function updateUIForLoggedInUser() {
-    document.getElementById('g_id_onload').style.display = 'none';
-    document.querySelector('.g_id_signin').style.display = 'none';
-    document.getElementById('app-content').style.display = 'block';
-    document.getElementById('subcategory-sidebar').style.display = 'flex';
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('message').textContent = "";
-    document.getElementById('subcategory-message').textContent = "";
-    
-    const profilePicElement = document.getElementById('profile-picture');
-    const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
-    if (userProfilePicUrl) {
-        profilePicElement.src = userProfilePicUrl;
-        profilePicElement.style.display = 'block';
-        profilePicPlaceholder.style.display = 'none';
-    } else {
-        profilePicElement.style.display = 'none';
-        profilePicPlaceholder.style.display = 'block';
+function saveMainData() {
+    if (!googleIdToken) {
+        alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+        return;
     }
-    
-    document.getElementById('input1').value = "";
-    document.getElementById('input2').value = "";
-    document.getElementById('large-text-input').value = "";
-    document.getElementById('input3').value = "";
-    document.getElementById('input4').value = "";
-    document.getElementById('input5').value = "";
-    document.getElementById('dropdown-input').value = "";
-    document.getElementById('sidebar-large-text-input-2').value = "";
-    document.getElementById('sidebar-large-text-input-3').value = "";
 
-    document.getElementById('subcategory-form').style.display = 'none';
-    currentSubcategoryId = null;
-    document.getElementById('current-subcategory-id').textContent = "Nijedna";
-    clearSubcategoryForm();
-    document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
-}
+    const dataToSave = {
+        input1: document.getElementById('input1').value,
+        input2: document.getElementById('input2').value,
+        largeText: document.getElementById('large-text-input').value,
+        input3: document.getElementById('input3').value,
+        input4: document.getElementById('input4').value,
+        input5: document.getElementById('input5').value,
+        dropdown: document.getElementById('dropdown-input').value,
+        largeText2: document.getElementById('sidebar-large-text-input-2').value,
+        largeText3: document.getElementById('sidebar-large-text-input-3').value
+    };
 
-function updateUIForLoggedOutUser() {
-    document.getElementById('g_id_onload').style.display = 'block';
-    document.querySelector('.g_id_signin').style.display = 'block';
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('subcategory-sidebar').style.display = 'none';
-    document.getElementById('user-name').textContent = "";
-    document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-    document.getElementById('subcategory-message').textContent = "";
-    googleIdToken = null;
-    userName = null;
-    userProfilePicUrl = null;
-    document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.getElementById('subcategory-list').innerHTML = '';
-
-    document.getElementById('profile-picture').style.display = 'none';
-    document.getElementById('profile-picture-placeholder').style.display = 'block';
-    document.getElementById('profile-picture').src = '';
-}
-
-function clearSubcategoryForm() {
-    document.getElementById('subcategory-name').value = '';
-    document.getElementById('subcategory-short-desc').value = '';
-    document.getElementById('subcategory-long-desc').value = '';
-    document.getElementById('subcategory-checkbox').checked = false;
-}
-
-function showSubcategoryForm(subcategory = {}) {
-    document.getElementById('subcategory-form').style.display = 'block';
-    currentSubcategoryId = subcategory.id;
-    document.getElementById('current-subcategory-id').textContent = subcategory.id || 'Nijedna';
-    document.getElementById('subcategory-name').value = subcategory.name || '';
-    document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
-    document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
-    document.getElementById('subcategory-checkbox').checked = subcategory.is_active || false;
+    fetch(`${BACKEND_URL}/save-data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
+        body: JSON.stringify(dataToSave)
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); window.updateUIForLoggedOutUser(); }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => { document.getElementById('message').textContent = data.message; })
+    .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
 }
 
 function loadMainData() {
@@ -132,7 +96,7 @@ function loadMainData() {
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); window.updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
@@ -153,7 +117,106 @@ function loadMainData() {
     .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
 }
 
-function loadSubcategories(reselect = false) {
+function signOutUser() {
+    googleIdToken = null;
+    userName = null;
+    userProfilePicUrl = null;
+    window.updateUIForLoggedOutUser(); // Call the function from the main script
+
+    fetch(`${BACKEND_URL}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Backend logout response:", data.message);
+        alert("Uspešno ste se odjavili.");
+    })
+    .catch(error => {
+        console.error("Error during backend logout:", error);
+        alert("Došlo je do greške prilikom odjave sa servera.");
+    });
+}
+
+function saveSubcategory(subcategoryData, isNew, subcategoryIdToUpdate = null) {
+    if (!googleIdToken) {
+        alert("Niste prijavljeni.");
+        return;
+    }
+
+    let url = `${BACKEND_URL}/subcategories`;
+    let method = 'POST';
+
+    if (!isNew && subcategoryIdToUpdate) {
+        url = `${BACKEND_URL}/subcategories/${subcategoryIdToUpdate}`;
+        method = 'PUT';
+    }
+
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
+        body: JSON.stringify(subcategoryData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); window.updateUIForLoggedOutUser(); }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('subcategory-message').textContent = data.message;
+        if (data.status === 'success' && data.subcategory && method === 'POST') {
+            currentSubcategoryId = data.subcategory.id; // Update global ID for newly created
+        }
+        window.loadSubcategories(true); // Reload and re-select if needed
+    })
+    .catch(error => { 
+        console.error("Error saving subcategory:", error); 
+        document.getElementById('subcategory-message').textContent = "Greška prilikom čuvanja potkategorije."; 
+    });
+}
+
+function deleteSubcategory(subcategoryId) {
+    if (!googleIdToken) {
+        alert("Niste prijavljeni.");
+        return;
+    }
+    if (!subcategoryId || subcategoryId === 'Nova') {
+        alert("Nije odabrana potkategorija za brisanje.");
+        return;
+    }
+
+    if (!confirm(`Da li ste sigurni da želite da obrišete potkategoriju ${subcategoryId}?`)) {
+        return;
+    }
+
+    fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${googleIdToken}` }
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); window.updateUIForLoggedOutUser(); }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('subcategory-message').textContent = data.message;
+        document.getElementById('subcategory-form').style.display = 'none';
+        window.clearSubcategoryForm();
+        currentSubcategoryId = null;
+        document.getElementById('current-subcategory-id').textContent = "Nijedna";
+        window.loadSubcategories();
+    })
+    .catch(error => { 
+        console.error("Error deleting subcategory:", error); 
+        document.getElementById('subcategory-message').textContent = "Greška prilikom brisanja potkategorije."; 
+    });
+}
+
+function loadSubcategoriesFromBackend(reselect = false) {
     if (!googleIdToken) {
         alert("Niste prijavljeni.");
         return;
@@ -165,7 +228,7 @@ function loadSubcategories(reselect = false) {
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); window.updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
@@ -174,7 +237,7 @@ function loadSubcategories(reselect = false) {
         const subcategoryListElement = document.getElementById('subcategory-list');
         subcategoryListElement.innerHTML = '';
         
-        let newlySelectedId = currentSubcategoryId;
+        let newlySelectedId = currentSubcategoryId; // Keep track of potentially selected ID
 
         if (data.status === 'success' && data.subcategories.length > 0) {
             data.subcategories.forEach(sub => {
@@ -183,7 +246,7 @@ function loadSubcategories(reselect = false) {
                 listItem.dataset.id = sub.id;
                 listItem.textContent = sub.name;
                 listItem.addEventListener('click', () => {
-                    selectSubcategory(sub.id);
+                    window.selectSubcategory(sub.id);
                 });
                 subcategoryListElement.appendChild(listItem);
             });
@@ -193,12 +256,12 @@ function loadSubcategories(reselect = false) {
         }
 
         if (reselect && newlySelectedId && newlySelectedId !== 'Nova') {
-            selectSubcategory(newlySelectedId);
+            window.selectSubcategory(newlySelectedId);
         } else {
-            currentSubcategoryId = null;
+            currentSubcategoryId = null; // Clear if no reselect or new category
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
             document.getElementById('subcategory-form').style.display = 'none';
-            clearSubcategoryForm();
+            window.clearSubcategoryForm();
         }
     })
     .catch(error => { 
@@ -207,19 +270,7 @@ function loadSubcategories(reselect = false) {
     });
 }
 
-function selectSubcategory(subcategoryId) {
-    document.querySelectorAll('.subcategory-list-item').forEach(item => {
-        item.classList.remove('selected');
-    });
-
-    const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
-    if (selectedItem) {
-        selectedItem.classList.add('selected');
-        loadSubcategoryDetails(subcategoryId);
-    }
-}
-
-function loadSubcategoryDetails(subcategoryId) {
+function loadSubcategoryDetailsFromBackend(subcategoryId) {
     if (!googleIdToken) {
         alert("Niste prijavljeni.");
         return;
@@ -231,19 +282,20 @@ function loadSubcategoryDetails(subcategoryId) {
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); window.updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
         if (data.status === 'success' && data.subcategory) {
-            showSubcategoryForm(data.subcategory);
+            currentSubcategoryId = data.subcategory.id; // Update global ID
+            window.showSubcategoryForm(data.subcategory);
             document.getElementById('subcategory-message').textContent = `Potkategorija "${data.subcategory.name}" učitana.`;
         } else {
             document.getElementById('subcategory-message').textContent = "Potkategorija nije pronađena.";
             document.getElementById('subcategory-form').style.display = 'none';
-            clearSubcategoryForm();
+            window.clearSubcategoryForm();
             currentSubcategoryId = null;
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
         }
@@ -254,13 +306,16 @@ function loadSubcategoryDetails(subcategoryId) {
     });
 }
 
-// Expose functions to the global scope if needed for HTML inline calls or global access
+// Expose functions globally for index.html to call
 window.handleCredentialResponse = handleCredentialResponse;
-window.updateUIForLoggedInUser = updateUIForLoggedInUser;
-window.updateUIForLoggedOutUser = updateUIForLoggedOutUser;
+window.saveMainData = saveMainData;
 window.loadMainData = loadMainData;
-window.loadSubcategories = loadSubcategories;
-window.selectSubcategory = selectSubcategory;
-window.loadSubcategoryDetails = loadSubcategoryDetails;
-window.clearSubcategoryForm = clearSubcategoryForm;
-window.showSubcategoryForm = showSubcategoryForm;
+window.signOutUser = signOutUser;
+window.saveSubcategory = saveSubcategory;
+window.deleteSubcategory = deleteSubcategory;
+window.loadSubcategoriesFromBackend = loadSubcategoriesFromBackend;
+window.loadSubcategoryDetailsFromBackend = loadSubcategoryDetailsFromBackend;
+
+// Helper to get currentSubcategoryId in UI functions
+window.getCurrentSubcategoryId = () => currentSubcategoryId;
+window.setCurrentSubcategoryId = (id) => { currentSubcategoryId = id; };
