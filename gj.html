@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>warp connect</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Global reset & font */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #eef2f3 0%, #d9e2ec 100%);
+            padding: 20px;
+        }
+
+        /* Layout wrappers */
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1300px;
+        }
+
+        .container, .subcategory-sidebar {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 25px 30px;
+        }
+
+        .container {
+            flex-grow: 1;
+            max-width: 850px;
+            text-align: center;
+        }
+
+        .subcategory-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Headings */
+        h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.3rem;
+            color: #34495e;
+            margin: 20px 0 10px;
+        }
+        h3 {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        /* Inputs & textarea */
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 15px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: #fafafa;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #007bff;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input[type="text"]:disabled,
+        textarea:disabled,
+        select:disabled {
+            background-color: #f1f3f5;
+            color: #868e96;
+        }
+
+        /* Buttons */
+        button {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            margin: 6px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #0056b3, #003f7f);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        #signout-button {
+            background: linear-gradient(135deg, #dc3545, #a71d2a);
+        }
+        #signout-button:hover {
+            background: linear-gradient(135deg, #c82333, #7b1320);
+        }
+
+        /* Messages */
+        #message, #subcategory-message {
+            margin-top: 10px;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            min-height: 20px;
+        }
+        #user-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        /* Sidebar */
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-grow: 1;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .subcategory-list-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f1f1;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: #f7faff;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #eaf4ff;
+            border-left: 4px solid #007bff;
+            font-weight: 600;
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        /* Checkbox */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .checkbox-container input[type="checkbox"] {
+            transform: scale(1.2);
+            margin-right: 8px;
+        }
+
+        /* Profile */
+        #profile-picture-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff44;
+            margin-bottom: 8px;
+        }
+
+        /* Section separators */
+        .section-separator {
+            border-top: 1px solid #eee;
+            margin: 25px 0;
+        }
+
+        /* Iframe wrapper */
+        .displayed-iframe-wrapper {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background-color: #fafbfc;
+            text-align: left;
+        }
+        .displayed-iframe-wrapper h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2>lista poslova</h2>
+            </div>
+            <ul id="subcategory-list" class="subcategory-list"></ul>
+            <div class="subcategory-buttons"></div>
+            <h2>aktivne prijave</h2>
+            <textarea id="sidebar-large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..." disabled></textarea>
+            <h2>poslovi u toku</h2>
+            <textarea id="sidebar-large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..." disabled></textarea>
+        </div>
+
+        <div class="container">
+            <h1>warp connect</h1>
+
+            <div id="g_id_onload"
+                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                 data-auto_select="true"
+                 data-callback="handleCredentialResponse"
+                 data-ux_mode="popup"
+                 data-cancel_on_tap_outside="false"
+                 data-context="use">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+
+            <div id="app-content" style="display: none;">
+                <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <h2>Detalji posla (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
+                <div id="subcategory-form" style="display: none; padding-top: 10px;">
+                    <input type="text" id="subcategory-name" placeholder="naziv posla" disabled>
+                    <input type="text" id="subcategory-short-desc" placeholder="Kratak opis posla" disabled>
+                    <textarea id="subcategory-long-desc" placeholder="Detaljan opis posla..." disabled></textarea>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="subcategory-checkbox">
+                        <label for="subcategory-checkbox">prihvatam uslove i prijavljujem se za posao</label>
+                    </div>
+                    
+                    <button id="save-subcategory-button">posalji prijavu</button>
+                    <button id="cancel-subcategory-edit-button">izadji</button>
+                </div>
+                
+                <p id="subcategory-message"></p>
+
+                <div class="section-separator"></div>
+
+                <div class="displayed-iframe-wrapper">
+                    <h3>Prikazani sadržaj:</h3>
+                    <div id="displayed-iframe-content">
+                        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pubhtml?widget=true&amp;headers=false"
+                                width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+
+                <h2>korisnicka podesavanja</h2>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
+                </div>
+                <input type="text" id="input1" placeholder="naziv firme">
+                <input type="text" id="input2" placeholder="kratak opis firme">
+                <textarea id="large-text-input" placeholder="detaljan opis firme"></textarea>
+                <input type="text" id="input3" placeholder="kontakt email">
+                <input type="text" id="input4" placeholder="web stranica">
+                <select id="dropdown-input">
+                    <option value="">vrsta obrade</option>
+                    <option value="opcija1">strug</option>
+                    <option value="opcija2">glodalica</option>
+                    <option value="opcija3">strug i glodalica</option>
+                </select>
+
+                <button id="save-button">Sačuvaj korisnicka podesavanja</button>
+                
+                <p id="message"></p>
+                
+                <input type="text" id="input5" placeholder="Unesite iframe kod ovde (npr. Google Sheet embed)" disabled style="width: 100%; padding: 5px; margin-top: 10px; font-size: 12px;">
+
+                <div class="section-separator"></div>
+
+                <button id="signout-button">Odjavi se</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // JS code stays identical as in your version (functions, event listeners...)
+    </script>
+</body>
+</html>
