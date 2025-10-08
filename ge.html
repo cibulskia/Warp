@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>warp connect</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css"> <!-- Assuming you put CSS into style.css, or keep it embedded for this request -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            max-width: 800px;
+        }
+
+        .subcategory-sidebar {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            flex-shrink: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #message, #subcategory-message {
+            margin-top: 20px;
+            color: #333;
+            min-height: 20px;
+        }
+
+        #user-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #signout-button {
+            background-color: #dc3545;
+        }
+
+        #signout-button:hover {
+            background-color: #c82333;
+        }
+
+        .section-separator {
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .subcategory-list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        #subcategory-form {
+            text-align: left;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+        }
+
+        #profile-picture-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2>lista poslova</h2>
+                <button id="create-subcategory-button">Kreiraj Novu</button>
+            </div>
+            <ul id="subcategory-list" class="subcategory-list"></ul>
+            <div class="subcategory-buttons">
+                <button id="load-subcategories-button">Učitaj Listu</button>
+                <button id="delete-subcategory-button">Obriši Izabranu</button>
+            </div>
+            <label for="sidebar-large-text-input-2">Dodatni tekst:</label><textarea id="sidebar-large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..." rows="4" cols="50"></textarea>
+            <label for="sidebar-large-text-input-3">Dodatni tekst:</label><textarea id="sidebar-large-text-input-3" placeholder="Unesite dodatni veliki tekst ovde..." rows="4" cols="50"></textarea>
+        </div>
+
+        <div class="container">
+            <h1>Moja Aplikacija</h1>
+
+            <div id="g_id_onload"
+                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                 data-auto_select="true"
+                 data-callback="handleCredentialResponse"
+                 data-ux_mode="popup"
+                 data-cancel_on_tap_outside="false"
+                 data-context="use">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+
+            <div id="app-content" style="display: none;">
+                <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
+                <div id="subcategory-form" style="display: none; padding-top: 10px;">
+                    <input type="text" id="subcategory-name" placeholder="Ime potkategorije">
+                    <input type="text" id="subcategory-short-desc" placeholder="Kratak opis">
+                    <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..."></textarea>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="subcategory-checkbox">
+                        <label for="subcategory-checkbox">Aktivna potkategorija</label>
+                    </div>
+                    
+                    <button id="save-subcategory-button">Sačuvaj Potkategoriju</button>
+                    <button id="cancel-subcategory-edit-button">Odustani</button>
+                </div>
+                
+                <p id="subcategory-message"></p>
+
+                <div class="section-separator"></div>
+
+                <h2>Glavni Podaci</h2>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
+                </div>
+                <input type="text" id="input1" placeholder="Prvo polje za tekst">
+                <input type="text" id="input2" placeholder="Drugo polje za tekst">
+                <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+                <input type="text" id="input3" placeholder="Treće polje za tekst">
+                <input type="text" id="input4" placeholder="Četvrto polje za tekst">
+                <input type="text" id="input5" placeholder="Peto polje za tekst">
+                <select id="dropdown-input">
+                    <option value="">Odaberite opciju</option>
+                    <option value="opcija1">Opcija 1</option>
+                    <option value="opcija2">Opcija 2</option>
+                    <option value="opcija3">Opcija 3</option>
+                </select>
+
+                <button id="save-button">Sačuvaj Glavne Podatke</button>
+                <button id="load-button">Učitaj Glavne Podatke</button>
+                <p id="message"></p>
+
+                <div class="section-separator"></div>
+
+                <button id="signout-button">Odjavi se</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // UI functions moved from original script
+        function updateUIForLoggedInUser(userName, userProfilePicUrl) {
+            document.getElementById('g_id_onload').style.display = 'none';
+            document.querySelector('.g_id_signin').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('subcategory-sidebar').style.display = 'flex';
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('message').textContent = "";
+            document.getElementById('subcategory-message').textContent = "";
+            
+            const profilePicElement = document.getElementById('profile-picture');
+            const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
+                profilePicElement.style.display = 'block';
+                profilePicPlaceholder.style.display = 'none';
+            } else {
+                profilePicElement.style.display = 'none';
+                profilePicPlaceholder.style.display = 'block';
+            }
+            
+            document.getElementById('input1').value = "";
+            document.getElementById('input2').value = "";
+            document.getElementById('large-text-input').value = "";
+            document.getElementById('input3').value = "";
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = "";
+            document.getElementById('dropdown-input').value = "";
+            document.getElementById('sidebar-large-text-input-2').value = "";
+            document.getElementById('sidebar-large-text-input-3').value = "";
+
+            document.getElementById('subcategory-form').style.display = 'none';
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            clearSubcategoryForm();
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('g_id_onload').style.display = 'block';
+            document.querySelector('.g_id_signin').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+            document.getElementById('subcategory-sidebar').style.display = 'none';
+            document.getElementById('user-name').textContent = "";
+            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
+            document.getElementById('subcategory-message').textContent = "";
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
+
+            document.getElementById('profile-picture').style.display = 'none';
+            document.getElementById('profile-picture-placeholder').style.display = 'block';
+            document.getElementById('profile-picture').src = '';
+        }
+
+        window.onload = function() {
+            updateUIForLoggedOutUser();
+        };
+
+        // Event Listeners
+        document.getElementById('save-button').addEventListener('click', window.saveMainData);
+        document.getElementById('load-button').addEventListener('click', window.loadMainData);
+        document.getElementById('signout-button').addEventListener('click', window.signOutUser);
+
+        function clearSubcategoryForm() {
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('subcategory-checkbox').checked = false;
+        }
+        window.clearSubcategoryForm = clearSubcategoryForm; // Expose to app.js
+
+        function showSubcategoryForm(subcategory = {}) {
+            document.getElementById('subcategory-form').style.display = 'block';
+            window.setCurrentSubcategoryId(subcategory.id); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = subcategory.id || 'Nijedna';
+            document.getElementById('subcategory-name').value = subcategory.name || '';
+            document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
+            document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
+            document.getElementById('subcategory-checkbox').checked = subcategory.is_active || false;
+        }
+        window.showSubcategoryForm = showSubcategoryForm; // Expose to app.js
+
+        document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
+            document.getElementById('subcategory-form').style.display = 'none';
+            clearSubcategoryForm();
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            document.getElementById('subcategory-message').textContent = "";
+        });
+
+        document.getElementById('create-subcategory-button').addEventListener('click', () => {
+            if (!window.getCurrentSubcategoryId() && !document.getElementById('g_id_onload').style.display === 'none') { // Check login state
+                alert("Niste prijavljeni.");
+                return;
+            }
+            clearSubcategoryForm();
+            showSubcategoryForm({ id: 'Nova' }); // Indicate that it's a new subcategory
+            document.getElementById('subcategory-message').textContent = "Unesite detalje za novu potkategoriju.";
+            window.setCurrentSubcategoryId(null); // Clear current ID for creation
+            document.getElementById('current-subcategory-id').textContent = "Nova";
+        });
+
+        document.getElementById('save-subcategory-button').addEventListener('click', () => {
+            const subcategoryData = {
+                name: document.getElementById('subcategory-name').value,
+                short_description: document.getElementById('subcategory-short-desc').value,
+                long_description: document.getElementById('subcategory-long-desc').value,
+                is_active: document.getElementById('subcategory-checkbox').checked
+            };
+            const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
+            const isNew = (!currentSubcategoryId || currentSubcategoryId === 'Nova');
+            window.saveSubcategory(subcategoryData, isNew, isNew ? null : currentSubcategoryId);
+        });
+
+        document.getElementById('delete-subcategory-button').addEventListener('click', () => {
+            const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
+            window.deleteSubcategory(currentSubcategoryId);
+        });
+
+        document.getElementById('load-subcategories-button').addEventListener('click', () => window.loadSubcategoriesFromBackend());
+
+        function loadSubcategories(reselect = false) {
+             window.loadSubcategoriesFromBackend(reselect);
+        }
+        window.loadSubcategories = loadSubcategories; // Expose to app.js
+
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                window.loadSubcategoryDetailsFromBackend(subcategoryId);
+            }
+        }
+        window.selectSubcategory = selectSubcategory; // Expose to app.js
+
+        // Initial load for authentication status after app.js has loaded
+        // This is handled by window.onload = updateUIForLoggedOutUser;
+        // The GSI client will automatically call handleCredentialResponse if a session exists.
+    </script>
+</body>
+</html>
