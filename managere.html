@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warp Connect - Platforma za poslove i postavke</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Vaš postojeći CSS fajl -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Dodatni stilovi za PDF sekciju i opšta poboljšanja */
+        body {
+            font-family: 'Poppins', sans-serif; /* Koristimo Poppins za celo telo */
+            background-color: #f0f2f5; /* Svetlija pozadina za prijatniji osećaj */
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #fff; /* Bela pozadina za glavnu aplikaciju */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Suptilna senka */
+            border-radius: 10px; /* Zaobljene ivice za ceo kontejner */
+            margin: 20px auto;
+            max-width: 1200px; /* Maksimalna širina */
+            overflow: hidden; /* Sprečava prelivanje sadržaja */
+        }
+
+        .app-header {
+            background-color: #4A90E2; /* Svetao, profesionalan plavi header */
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Suptilna linija */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-header .logo {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .app-header .logo i {
+            margin-right: 10px;
+            font-size: 28px;
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            flex-grow: 1; /* Omogućava da popuni raspoloživi prostor */
+        }
+
+        .job-sidebar {
+            width: 300px; /* Fiksna širina sidebara */
+            background-color: #f8f9fa; /* Svetlija pozadina sidebara */
+            padding: 20px;
+            border-right: 1px solid #e0e0e0; /* Razdelna linija */
+            box-shadow: inset -2px 0 5px rgba(0, 0, 0, 0.05); /* Suptilna unutrašnja senka */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4em;
+            color: #4A90E2;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-header h2 i {
+            margin-right: 8px;
+        }
+
+        .job-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1; /* Omogućava da lista zauzme što više prostora */
+            overflow-y: auto; /* Skrolovanje za listu poslova */
+            max-height: 40vh; /* Ograničite visinu liste poslova ako je predugačka */
+        }
+
+        .job-list li {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .job-list li:hover {
+            background-color: #e6f2ff; /* Svetlo plava pozadina pri hoveru */
+            border-color: #4A90E2;
+            transform: translateY(-2px); /* Mali efekat lebdenja */
+        }
+        
+        .job-list li.selected {
+            background-color: #d1e7ff; /* Još izraženija plava za selektovani posao */
+            border-color: #4A90E2;
+            font-weight: 500;
+        }
+
+        .job-list li .job-item-title {
+            font-weight: 500;
+            color: #333;
+        }
+
+        #pdf-sidebar-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        #pdf-sidebar-section h3 {
+            font-size: 1.2em;
+            color: #4A90E2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        #pdf-sidebar-section h3 i {
+            margin-right: 8px;
+        }
+
+        #pdf-list button {
+            display: block;
+            margin-bottom: 8px; /* Razmak između dugmadi */
+            padding: 10px 15px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            background: #ffffff; /* Bela pozadina za PDF dugmad */
+            border: 1px solid #dcdcdc; /* Suptilna ivica */
+            border-radius: 5px;
+            font-size: 0.95em;
+            color: #555;
+            transition: all 0.2s ease-in-out;
+        }
+        #pdf-list button:hover {
+            background-color: #e6f2ff;
+            border-color: #4A90E2;
+            color: #333;
+        }
+
+        .main-content-area {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Razmak između kartica */
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e0e0e0;
+        }
+
+        .card h2, .card h3 {
+            color: #4A90E2;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .card h2 i, .card h3 i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .welcome-card {
+            text-align: center;
+            padding: 50px 25px;
+            background-color: #e6f2ff; /* Svetlo plava pozadina za dobrodošlicu */
+            border-color: #cce0ff;
+        }
+
+        .welcome-card h2 {
+            font-size: 2em;
+            color: #333;
+        }
+
+        .welcome-card p {
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .user-info-card {
+            background-color: #f8ffe0; /* Svetlo zelena/žuta za info karticu */
+            border-color: #e0ffcc;
+        }
+
+        .info-message {
+            margin-top: 15px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.95em;
+            background-color: #d4edda; /* Svetlo zelena za poruke o uspehu */
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Forma grupe i input polja */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #4A90E2;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            width: calc(100% - 20px); /* Oduzimamo padding */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Padding uključen u širinu */
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #4A90E2;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical; /* Omogućava vertikalnu promenu veličine */
+        }
+
+        /* Checkbox stilizacija */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: #4A90E2; /* Plava boja za čekboks */
+        }
+
+        .checkbox-container label {
+            margin-bottom: 0;
+            font-weight: 400;
+            color: #333;
+        }
+
+        /* Dugmad */
+        .button-group {
+            display: flex;
+            gap: 15px; /* Razmak između dugmadi */
+            margin-top: 25px;
+            flex-wrap: wrap; /* Omogućava prelamanje dugmadi na manjim ekranima */
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: #4A90E2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #357ABD;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: #4A90E2;
+            border: 1px solid #4A90E2;
+        }
+
+        .btn-outline:hover {
+            background-color: #e6f2ff;
+            color: #4A90E2;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-icon i {
+            margin-right: 8px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4A90E2;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* PDF Preview u glavnom sadržaju */
+        #pdf-preview {
+            width: 100%;
+            height: 600px; /* Povećana visina za bolji prikaz */
+            border: 1px solid #e0e0e0;
+            border-radius: 8px; /* Zaobljene ivice */
+            background-color: #f9f9f9; /* Svetlija pozadina za iframe */
+        }
+        
+        .pdf-section-card h2 {
+            margin-bottom: 10px; /* Manji razmak iznad PDF previewa */
+        }
+
+        /* Google Sign-in dugme stilizacija */
+        #auth-section .g_id_signin {
+            margin-left: 15px; /* Mali razmak od loga */
+            /* Prilagodite po potrebi da se bolje uklopi */
+        }
+
+        #signout-button {
+            margin-left: 15px;
+        }
+
+        /* Responsivni dizajn */
+        @media (max-width: 768px) {
+            .app-container {
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .main-content-wrapper {
+                flex-direction: column;
+            }
+
+            .job-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+                order: 2; /* Sidebar ide ispod glavnog sadržaja na mobilnom */
+            }
+
+            .main-content-area {
+                order: 1; /* Glavni sadržaj ide prvi */
+                padding: 15px;
+            }
+
+            .app-header {
+                flex-direction: column;
+                padding: 15px;
+                text-align: center;
+            }
+
+            .app-header .logo {
+                margin-bottom: 15px;
+            }
+
+            #auth-section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+            #auth-section .g_id_signin, #signout-button {
+                margin-left: 0;
+                margin-bottom: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .job-list {
+                max-height: 300px; /* Manja visina liste poslova na mobilnom */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-starship"></i> Warp Connect
+            </div>
+            <div id="auth-section">
+                <div id="g_id_onload"
+                     data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                     data-auto_select="true"
+                     data-callback="handleCredentialResponse"
+                     data-ux_mode="popup"
+                     data-cancel_on_tap_outside="false"
+                     data-context="use">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+                <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> Odjavi se
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Wrapper -->
+        <div class="main-content-wrapper">
+            <!-- Sidebar za Poslove + PDF listu -->
+            <aside class="job-sidebar" id="job-sidebar" style="display: none;">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-briefcase"></i> Poslovi</h2>
+                    <button id="load-jobs-button" class="btn btn-primary btn-icon btn-small">
+                        <i class="fas fa-sync-alt"></i> Učitaj
+                    </button>
+                </div>
+                <ul id="job-list" class="job-list">
+                    <!-- Poslovi će biti dinamički dodati ovde -->
+                </ul>
+                <div id="job-list-loading" class="loading-spinner" style="display: none;"></div>
+
+                <!-- PDF Lista ispod poslova -->
+                <div id="pdf-sidebar-section">
+                    <h3><i class="fas fa-file-pdf"></i> PDF Lista</h3>
+                    <div id="pdf-list"></div>
+                </div>
+            </aside>
+
+            <!-- Glavni sadržaj -->
+            <main class="main-content-area">
+                <div id="welcome-message" class="card welcome-card">
+                    <h2>Dobrodošao na Warp Connect!</h2>
+                    <p>Prijavite se putem Google naloga da biste pristupili svojim postavkama i istražili dostupne poslove.</p>
+                </div>
+
+                <div id="app-content" style="display: none;">
+                    <div class="card user-info-card">
+                        <h3><i class="fas fa-user-circle"></i> Dobrodošao, <span id="user-name"></span>!</h3>
+                        <p id="message" class="info-message"></p>
+                    </div>
+
+                    <!-- Detalji Posla Sekcija -->
+                    <div class="card job-details-card">
+                        <h2>
+                            <i class="fas fa-file-invoice"></i> Detalji Posla (<span id="current-job-id" class="job-id">Nijedan</span>)
+                        </h2>
+                        <div id="job-form" style="display: none; padding-top: 10px;">
+                            <div class="form-group">
+                                <label for="job-title"><i class="fas fa-tag"></i> Naziv posla:</label>
+                                <input type="text" id="job-title" placeholder="Naziv posla" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-short-desc"><i class="fas fa-lightbulb"></i> Kratak opis:</label>
+                                <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-long-desc"><i class="fas fa-align-left"></i> Detaljan opis:</label>
+                                <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="job-checkbox">
+                                <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
+                            </div>
+                            
+                            <div class="button-group">
+                                <button id="save-job-button" class="btn btn-primary btn-icon">
+                                    <i class="fas fa-paper-plane"></i> Pošalji prijavu
+                                </button>
+                                <button id="cancel-job-edit-button" class="btn btn-secondary btn-icon">
+                                    <i class="fas fa-times-circle"></i> Izađi
+                                </button>
+                            </div>
+                        </div>
+                        <p id="job-message" class="info-message"></p>
+                        <div id="job-details-loading" class="loading-spinner" style="display: none;"></div>
+                    </div>
+
+                    <!-- PDF Preview u glavnom sadržaju -->
+                    <div class="card pdf-section-card" id="pdf-section">
+                        <h2><i class="fas fa-file-pdf"></i> PDF Preview</h2>
+                        <iframe id="pdf-preview" src=""></iframe>
+                    </div>
+
+                    <!-- Korisničke Postavke Sekcija -->
+                    <div class="card user-settings-card">
+                        <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
+                        <div class="form-group">
+                            <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
+                            <input type="text" id="company-name-input" placeholder="Ime firme">
+                        </div>
+                        <div class="form-group">
+                            <label for="company-short-desc-input"><i class="fas fa-info-circle"></i> Kratko objašnjenje:</label>
+                            <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
+                        </div>
+                        <div class="form-group">
+                            <label for="company-long-desc-input"><i class="fas fa-align-justify"></i> Detaljno objašnjenje:</label>
+                            <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email-input"><i class="fas fa-envelope"></i> Kontakt email:</label>
+                            <input type="text" id="contact-email-input" placeholder="Kontakt email">
+                        </div>
+                        <div class="form-group">
+                            <label for="website-input"><i class="fas fa-globe"></i> Web adresa:</label>
+                            <input type="text" id="website-input" placeholder="Web adresa">
+                        </div>
+                        <div class="form-group">
+                            <label for="additional-info-input"><i class="fas fa-plus-circle"></i> Dodatno objašnjenje:</label>
+                            <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-settings-dropdown"><i class="fas fa-list-alt"></i> Odaberite opciju:</label>
+                            <select id="user-settings-dropdown">
+                                <option value="">Odaberite opciju</option>
+                                <option value="opcija1">Opcija 1</option>
+                                <option value="opcija2">Opcija 2</option>
+                                <option value="opcija3">Opcija 3</option>
+                            </select>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="save-settings-button" class="btn btn-primary btn-icon">
+                                <i class="fas fa-save"></i> Sačuvaj Postavke
+                            </button>
+                            <button id="load-settings-button" class="btn btn-outline btn-icon">
+                                <i class="fas fa-download"></i> Učitaj Postavke
+                            </button>
+                        </div>
+                        <div id="settings-loading" class="loading-spinner" style="display: none;"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Vaš postojeći script.js fajl -->
+    <script src="script.js"></script>
+    <script>
+        // PDF lista skripta - sada u sidebaru
+        fetch('pdfs.json')
+            .then(response => response.json())
+            .then(data => {
+                const listContainer = document.getElementById('pdf-list');
+                
+                data.forEach(pdf => {
+                    const button = document.createElement('button');
+                    button.textContent = pdf.name;
+                    button.addEventListener('click', () => {
+                        const match = pdf.link.match(/\/d\/(.*?)\//);
+                        if(match && match[1]) {
+                            const fileId = match[1];
+                            const previewLink = `https://drive.google.com/file/d/${fileId}/preview`;
+                            document.getElementById('pdf-preview').src = previewLink;
+                        } else {
+                            console.error('Neispravan link PDF-a:', pdf.link);
+                        }
+                    });
+                    listContainer.appendChild(button);
+                });
+            })
+            .catch(err => console.error('Greška pri učitavanju JSON-a:', err));
+    </script>
+</body>
+</html>
