@@ -21,6 +21,29 @@
         .main-wrapper {
             display: flex;
             gap: 20px;
+            width: 100%;<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth App (All in One)</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
             width: 100%;
             max-width: 1200px;
         }
@@ -304,7 +327,7 @@
 
                 <h2>Preview PDF-a</h2>
                 <iframe id="pdf-preview" src=""></iframe>
-                <button id="apply-pdf-to-input5-button" style="display: none;">Primeni PDF naziv na Peto Polje</button>
+                <button id="apply-pdf-to-input5-button" style="display: none;">Primeni PDF naziv na Peto Polje i Sačuvaj</button>
                 <div class="section-separator"></div>
 
                 <h2>Glavni Podaci</h2>
@@ -747,8 +770,7 @@
             if (selectedPdfName) {
                 document.getElementById('input5').value = selectedPdfName;
                 document.getElementById('message').textContent = `Naziv PDF-a "${selectedPdfName}" je unet u Peto Polje.`;
-                // Optionally, automatically save the main data after updating input5
-                // document.getElementById('save-button').click();
+                document.getElementById('save-button').click(); // Automatically save the main data
             } else {
                 document.getElementById('message').textContent = "Nijedan PDF nije odabran.";
             }
