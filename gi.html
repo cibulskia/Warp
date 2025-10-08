@@ -229,9 +229,11 @@
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
                 <h2>lista poslova</h2>
+                
             </div>
             <ul id="subcategory-list" class="subcategory-list"></ul>
             <div class="subcategory-buttons">
+                
             </div>
             <h2>aktivne prijave</h2>
             <textarea id="sidebar-large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..." disabled></textarea>
@@ -271,11 +273,11 @@
                         <input type="checkbox" id="subcategory-checkbox">
                         <label for="subcategory-checkbox">prihvatam uslove i prijavljujem se za posao</label>
                     </div>
-
+                    
                     <button id="save-subcategory-button">posalji prijavu</button>
                     <button id="cancel-subcategory-edit-button">izadji</button>
                 </div>
-
+                
                 <p id="subcategory-message"></p>
 
                 <div class="section-separator"></div>
@@ -305,12 +307,14 @@
                     <option value="opcija2">glodalica</option>
                     <option value="opcija3">strug i glodalica</option>
                 </select>
-                <input type="text" id="input5" placeholder="Unesite iframe kod ovde (npr. Google Sheet embed)" disabled style="width: calc(100% - 20px); padding: 5px; margin-bottom: 5px; font-size: 14px;">
-
 
                 <button id="save-button">Sačuvaj korisnicka podesavanja</button>
-
+                
                 <p id="message"></p>
+                
+                <!-- Moved iframe input here -->
+                <input type="text" id="input5" placeholder="Unesite iframe kod ovde (npr. Google Sheet embed)" disabled style="width: 100%; padding: 5px; margin-top: 10px; font-size: 12px;">
+
 
                 <div class="section-separator"></div>
 
@@ -330,7 +334,7 @@
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
             document.getElementById('subcategory-message').textContent = "";
-
+            
             const profilePicElement = document.getElementById('profile-picture');
             const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
             if (userProfilePicUrl) {
@@ -341,7 +345,7 @@
                 profilePicElement.style.display = 'none';
                 profilePicPlaceholder.style.display = 'block';
             }
-
+            
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
@@ -413,7 +417,8 @@
         document.getElementById('signout-button').addEventListener('click', window.signOutUser);
 
         // Add event listener for the iframe input field (it's disabled, but the event won't fire for manual input anyway)
-        // document.getElementById('input5').addEventListener('input', updateDisplayedIframe);
+        // This event listener is relevant when `input5` becomes enabled/editable.
+        document.getElementById('input5').addEventListener('input', updateDisplayedIframe);
 
         function clearSubcategoryForm() {
             document.getElementById('subcategory-name').value = '';
@@ -428,8 +433,8 @@
             window.setCurrentSubcategoryId(subcategory.id); // Use setter from app.js
             document.getElementById('current-subcategory-id').textContent = subcategory.id || 'Nijedna';
             document.getElementById('subcategory-name').value = subcategory.name || '';
-            document.getElementById('subcategory-short_description').value = subcategory.short_description || '';
-            document.getElementById('subcategory-long_description').value = subcategory.long_description || '';
+            document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
+            document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
             document.getElementById('subcategory-checkbox').checked = subcategory.is_active || false;
         }
         window.showSubcategoryForm = showSubcategoryForm; // Expose to app.js
