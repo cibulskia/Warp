@@ -33,27 +33,15 @@
             border: 1px solid #ccc;
             margin-top: 10px;
         }
-        /* Stilovi za profilnu sliku */
-        .profile-picture-card {
-            text-align: center;
-            padding: 20px;
-            margin-bottom: 20px; /* Razmak ispod profilne slike */
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .profile-picture-card img {
+        /* Korisnička slika */
+        #user-profile-image {
+            display: block;
+            margin: 0 auto 15px auto;
             width: 120px;
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #6200ea; /* Boja okvira */
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
-        }
-        .profile-picture-card p {
-            margin-top: 10px;
-            font-size: 1.1em;
-            color: #333;
+            border: 3px solid #007bff;
         }
     </style>
 </head>
@@ -144,7 +132,7 @@
                                 <input type="checkbox" id="job-checkbox">
                                 <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
                             </div>
-                            
+
                             <div class="button-group">
                                 <button id="save-job-button" class="btn btn-primary btn-icon">
                                     <i class="fas fa-paper-plane"></i> Pošalji prijavu
@@ -164,16 +152,13 @@
                         <iframe id="pdf-preview" src=""></iframe>
                     </div>
 
-                    <!-- Sekcija za profilnu sliku -->
-                    <div class="card profile-picture-card" id="profile-picture-section" style="display: none;">
-                        <h2><i class="fas fa-image"></i> Vaša Profilna Slika</h2>
-                        <img id="profile-picture" src="" alt="Profilna slika" style="display: none;">
-                        <p id="profile-picture-name"></p>
-                    </div>
-                    
                     <!-- Korisničke Postavke Sekcija -->
                     <div class="card user-settings-card">
                         <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
+
+                        <!-- Profilna slika -->
+                        <img id="user-profile-image" src="" alt="Profilna slika korisnika">
+
                         <div class="form-group">
                             <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
                             <input type="text" id="company-name-input" placeholder="Ime firme">
@@ -223,58 +208,14 @@
         </div>
     </div>
 
-    <!-- Ovdje dodajemo sav JavaScript kod koji NE MOŽE ići u script.js -->
+    <script src="scriptb.js"></script>
     <script>
-        // Funkcija za dekodiranje JWT tokena (kopirano, jer je pretpostavka da je u script.js)
-        function decodeJwtResponse(token) {
-            var base64Url = token.split('.')[1];
-            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
-
-        // handleCredentialResponse funkcija za Google prijavu (kopirana i modifikovana)
-        function handleCredentialResponse(response) {
-            const responsePayload = decodeJwtResponse(response.credential);
-
-            // Ažuriranje korisničkog imena i vidljivosti glavnih sekcija
-            document.getElementById('user-name').textContent = responsePayload.name;
-            document.getElementById('welcome-message').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            document.getElementById('job-sidebar').style.display = 'block';
-            document.getElementById('signout-button').style.display = 'block';
-
-            // Logika za prikaz profilne slike
-            const profilePictureSection = document.getElementById('profile-picture-section');
-            const profilePictureElement = document.getElementById('profile-picture');
-            const profilePictureNameElement = document.getElementById('profile-picture-name');
-
-            if (responsePayload.picture) {
-                profilePictureElement.src = responsePayload.picture;
-                profilePictureElement.alt = responsePayload.name + " profilna slika";
-                profilePictureElement.style.display = 'block'; // Prikaži sliku
-                profilePictureSection.style.display = 'block'; // Prikaži celu sekciju za profilnu sliku
-            } else {
-                profilePictureElement.style.display = 'none'; // Sakrij sliku ako je nema
-                profilePictureSection.style.display = 'none'; // Sakrij sekciju ako nema slike
-            }
-            profilePictureNameElement.textContent = responsePayload.name; // Uvek prikaži ime ispod slike (ako je sekcija vidljiva)
-
-            // Ovde možete dodati pozive ka drugim funkcijama iz script.js koje treba da se izvrše
-            // nakon prijave, kao što je učitavanje poslova ili podešavanja, ako su te funkcije
-            // globalno dostupne ili ih je moguće pozvati.
-            // Primer: if (typeof loadJobs === 'function') { loadJobs(); }
-            // Primer: if (typeof loadUserSettings === 'function') { loadUserSettings(); }
-        }
-
-        // Vaša postojeća PDF lista skripta
+        // PDF lista skripta - sada u sidebaru
         fetch('pdfs.json')
             .then(response => response.json())
             .then(data => {
-                const listContainer = document.getElementById('pdf-list');
-                
+                const listContainer = document.getElementById('pdf-list'); 
+
                 data.forEach(pdf => {
                     const button = document.createElement('button');
                     button.textContent = pdf.name;
@@ -293,35 +234,14 @@
             })
             .catch(err => console.error('Greška pri učitavanju JSON-a:', err));
 
-        // Ako imate globalne funkcije za odjavu, možete ih pozvati odavde
-        document.getElementById('signout-button').addEventListener('click', () => {
-            // Primer odjave, prilagodite vašoj implementaciji
-            // window.location.href = '/logout'; // Ili pozovite funkciju iz script.js ako je globalno dostupna
-            alert('Odjavljivanje...'); // Privremeno obaveštenje
-            // window.google.accounts.id.disableAutoSelect(); // Ovo može pomoći pri odjavi
-            document.getElementById('app-content').style.display = 'none';
-            document.getElementById('job-sidebar').style.display = 'none';
-            document.getElementById('welcome-message').style.display = 'block';
-            document.getElementById('signout-button').style.display = 'none';
-            
-            // Sakrijte i profilnu sliku pri odjavi
-            document.getElementById('profile-picture-section').style.display = 'none';
-            document.getElementById('profile-picture').style.display = 'none';
-            document.getElementById('profile-picture-name').textContent = '';
-        });
+        // Primer JS za postavljanje slike korisnika
+        function setUserProfileImage(url) {
+            const img = document.getElementById('user-profile-image');
+            img.src = url;
+        }
 
-        // Event listener za učitavanje poslova (pretpostavka da je loadJobs funkcija u script.js,
-        // ali ako je read-only, morali biste prebaciti i logiku učitavanja poslova ovde)
-        document.getElementById('load-jobs-button').addEventListener('click', () => {
-            alert('Učitavanje poslova...'); // Privremena poruka
-            // Ako loadJobs funkcija postoji u script.js i globalno je dostupna, pozovite je:
-            // if (typeof loadJobs === 'function') { loadJobs(); }
-        });
-
+        // Pozovite ovu funkciju sa pravim URL-om slike korisnika
+        // npr: setUserProfileImage('https://lh3.googleusercontent.com/a-/AOh14GhEXAMPLE');
     </script>
-    <!-- Kraj lokalnog JavaScript koda -->
-    
-    <!-- Vaš script.js fajl, koji je read-only, i dalje se učitava -->
-    <script src="script.js"></script> 
 </body>
 </html>
