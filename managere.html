@@ -1,349 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Warp Connect - Platforma za poslove i postavke</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Google Fonts - Poppins -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* Dodatni stilovi za PDF sekciju */
-        #pdf-section { margin-top: 20px; }
-        #pdf-list button {
-            display: block;
-            margin: 5px 0;
-            padding: 10px;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            background: #f4f4f4;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        #pdf-preview {
-            width: 100%;
-            height: 600px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warp Connect - Platforma za poslove i postavke</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Google Fonts - Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Dodatni stilovi za PDF sekciju */
+    #pdf-section {
+      margin-top: 20px;
+    }
 
-        /* Profilna slika */
-        #profile-section { margin: 20px 0; text-align: center; }
-        #profile-picture {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 2px solid #ccc;
-            object-fit: cover;
-            display: inline-block;
-            vertical-align: middle;
-        }
+    #pdf-list button {
+      display: block;
+      margin: 5px 0;
+      padding: 10px;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
 
-        /* male prilagodbe za header/sidebar ako treba */
-        .app-container { font-family: 'Poppins', Arial, sans-serif; }
-    </style>
+    #pdf-preview {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+
+    #profile-picture-card {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    #profile-picture {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      object-fit: cover;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="logo">
-                <i class="fas fa-starship"></i> Warp Connect
-            </div>
-            <div id="auth-section">
-                <!-- Google Identity button: onload will call handleCredentialResponse -->
-                <div id="g_id_onload"
-                     data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
-                     data-auto_select="true"
-                     data-callback="handleCredentialResponse"
-                     data-ux_mode="popup"
-                     data-cancel_on_tap_outside="false"
-                     data-context="use">
-                </div>
-
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="large"
-                     data-theme="outline"
-                     data-text="sign_in_with"
-                     data-shape="rectangular"
-                     data-logo_alignment="left">
-                </div>
-
-                <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none; margin-left:10px;">
-                    <i class="fas fa-sign-out-alt"></i> Odjavi se
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Content Wrapper -->
-        <div class="main-content-wrapper" style="display:flex; gap:20px; padding:20px;">
-            <!-- Sidebar za Poslove + PDF listu -->
-            <aside class="job-sidebar" id="job-sidebar" style="display: none; width:300px;">
-                <div class="sidebar-header">
-                    <h2><i class="fas fa-briefcase"></i> Poslovi</h2>
-                    <button id="load-jobs-button" class="btn btn-primary btn-icon btn-small">
-                        <i class="fas fa-sync-alt"></i> Učitaj
-                    </button>
-                </div>
-                <ul id="job-list" class="job-list">
-                    <!-- Poslovi će biti dinamički dodati ovde -->
-                </ul>
-                <div id="job-list-loading" class="loading-spinner" style="display: none;"></div>
-
-                <!-- PDF Lista ispod poslova -->
-                <div id="pdf-sidebar-section" style="margin-top:20px;">
-                    <h3><i class="fas fa-file-pdf"></i> PDF Lista</h3>
-                    <div id="pdf-list"></div>
-                </div>
-            </aside>
-
-            <!-- Glavni sadržaj -->
-            <main class="main-content-area" style="flex:1;">
-                <div id="welcome-message" class="card welcome-card">
-                    <h2>Dobrodošao na Warp Connect!</h2>
-                    <p>Prijavite se putem Google naloga da biste pristupili svojim postavkama i istražili dostupne poslove.</p>
-                </div>
-
-                <div id="app-content" style="display: none;">
-                    <div class="card user-info-card" style="margin-top:16px;">
-                        <h3><i class="fas fa-user-circle"></i> Dobrodošao, <span id="user-name"></span>!</h3>
-                        <p id="message" class="info-message"></p>
-                    </div>
-
-                    <!-- Detalji Posla Sekcija -->
-                    <div class="card job-details-card" style="margin-top:16px;">
-                        <h2>
-                            <i class="fas fa-file-invoice"></i> Detalji Posla (<span id="current-job-id" class="job-id">Nijedan</span>)
-                        </h2>
-                        <div id="job-form" style="display: none; padding-top: 10px;">
-                            <div class="form-group">
-                                <label for="job-title"><i class="fas fa-tag"></i> Naziv posla:</label>
-                                <input type="text" id="job-title" placeholder="Naziv posla" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label for="job-short-desc"><i class="fas fa-lightbulb"></i> Kratak opis:</label>
-                                <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label for="job-long-desc"><i class="fas fa-align-left"></i> Detaljan opis:</label>
-                                <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
-                            </div>
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="job-checkbox">
-                                <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
-                            </div>
-
-                            <div class="button-group">
-                                <button id="save-job-button" class="btn btn-primary btn-icon">
-                                    <i class="fas fa-paper-plane"></i> Pošalji prijavu
-                                </button>
-                                <button id="cancel-job-edit-button" class="btn btn-secondary btn-icon">
-                                    <i class="fas fa-times-circle"></i> Izađi
-                                </button>
-                            </div>
-                        </div>
-                        <p id="job-message" class="info-message"></p>
-                        <div id="job-details-loading" class="loading-spinner" style="display: none;"></div>
-                    </div>
-
-                    <!-- PDF Preview u glavnom sadržaju -->
-                    <div class="card pdf-section-card" id="pdf-section" style="margin-top:16px;">
-                        <h2><i class="fas fa-file-pdf"></i> PDF Preview</h2>
-                        <iframe id="pdf-preview" src=""></iframe>
-                    </div>
-
-                    <!-- NOVO: Profilna slika između PDF i korisničkih postavki -->
-                    <div class="card profile-section-card" id="profile-section" style="margin-top:16px;">
-                        <h2><i class="fas fa-user"></i> Profilna slika</h2>
-                        <!-- Default doodle avatar će odmah biti vidljiv, a posle logina menja se u avatar Google naloga -->
-                        <img id="profile-picture" src="" alt="Profilna slika">
-                    </div>
-
-                    <!-- Korisničke Postavke Sekcija -->
-                    <div class="card user-settings-card" style="margin-top:16px;">
-                        <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
-                        <div class="form-group">
-                            <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
-                            <input type="text" id="company-name-input" placeholder="Ime firme">
-                        </div>
-                        <div class="form-group">
-                            <label for="company-short-desc-input"><i class="fas fa-info-circle"></i> Kratko objašnjenje:</label>
-                            <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
-                        </div>
-                        <div class="form-group">
-                            <label for="company-long-desc-input"><i class="fas fa-align-justify"></i> Detaljno objašnjenje:</label>
-                            <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-email-input"><i class="fas fa-envelope"></i> Kontakt email:</label>
-                            <input type="text" id="contact-email-input" placeholder="Kontakt email">
-                        </div>
-                        <div class="form-group">
-                            <label for="website-input"><i class="fas fa-globe"></i> Web adresa:</label>
-                            <input type="text" id="website-input" placeholder="Web adresa">
-                        </div>
-                        <div class="form-group">
-                            <label for="additional-info-input"><i class="fas fa-plus-circle"></i> Dodatno objašnjenje:</label>
-                            <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
-                        </div>
-                        <div class="form-group">
-                            <label for="user-settings-dropdown"><i class="fas fa-list-alt"></i> Odaberite opciju:</label>
-                            <select id="user-settings-dropdown">
-                                <option value="">Odaberite opciju</option>
-                                <option value="opcija1">Opcija 1</option>
-                                <option value="opcija2">Opcija 2</option>
-                                <option value="opcija3">Opcija 3</option>
-                            </select>
-                        </div>
-
-                        <div class="button-group" style="margin-top:10px;">
-                            <button id="save-settings-button" class="btn btn-primary btn-icon">
-                                <i class="fas fa-save"></i> Sačuvaj Postavke
-                            </button>
-                            <button id="load-settings-button" class="btn btn-outline btn-icon">
-                                <i class="fas fa-download"></i> Učitaj Postavke
-                            </button>
-                        </div>
-                        <div id="settings-loading" class="loading-spinner" style="display: none;"></div>
-                    </div>
-                </div>
-            </main>
-        </div>
+<div class="app-container">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="logo">
+      <i class="fas fa-starship"></i> Warp Connect
     </div>
+    <div id="auth-section">
+      <div id="g_id_onload"
+           data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+           data-auto_select="true"
+           data-callback="handleCredentialResponse"
+           data-ux_mode="popup"
+           data-cancel_on_tap_outside="false"
+           data-context="use">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="outline"
+           data-text="sign_in_with"
+           data-shape="rectangular"
+           data-logo_alignment="left">
+      </div>
+      <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i> Odjavi se
+      </button>
+    </div>
+  </header>
 
-    <!-- Tvoj postojeći script.js ako ima logiku koju ne želiš da diraš -->
-    <script src="script.js"></script>
+  <!-- Main Content Wrapper -->
+  <div class="main-content-wrapper">
+    <!-- Sidebar za Poslove + PDF listu -->
+    <aside class="job-sidebar" id="job-sidebar" style="display: none;">
+      <div class="sidebar-header">
+        <h2><i class="fas fa-briefcase"></i> Poslovi</h2>
+        <button id="load-jobs-button" class="btn btn-primary btn-icon btn-small">
+          <i class="fas fa-sync-alt"></i> Učitaj
+        </button>
+      </div>
+      <ul id="job-list" class="job-list">
+        <!-- Poslovi će biti dinamički dodati ovde -->
+      </ul>
+      <div id="job-list-loading" class="loading-spinner" style="display: none;"></div>
 
-    <!-- Inline skripta koja:
-         - prikazuje default doodle avatar odmah
-         - učitava pdf listu iz pdfs.json
-         - prima Google credential (JWT), dekodira ga i menja profilnu sliku i ime
-         - omogućava odjavu -->
-    <script>
-        (function(){
-            const DEFAULT_DOODLE = 'https://ssl.gstatic.com/accounts/ui/avatar_2x.png';
+      <!-- PDF Lista ispod poslova -->
+      <div id="pdf-sidebar-section">
+        <h3><i class="fas fa-file-pdf"></i> PDF Lista</h3>
+        <div id="pdf-list"></div>
+      </div>
+    </aside>
 
-            // Prikaži doodle odmah
-            document.addEventListener('DOMContentLoaded', () => {
-                const profileImg = document.getElementById('profile-picture');
-                profileImg.src = DEFAULT_DOODLE;
-                profileImg.style.display = 'block';
-            });
+    <!-- Glavni sadržaj -->
+    <main class="main-content-area">
+      <div id="welcome-message" class="card welcome-card">
+        <h2>Dobrodošao na Warp Connect!</h2>
+        <p>Prijavite se putem Google naloga da biste pristupili svojim postavkama i istražili dostupne poslove.</p>
+      </div>
 
-            // PDF lista (isti kod koji si imao)
-            (function loadPdfList(){
-                fetch('pdfs.json')
-                    .then(response => response.json())
-                    .then(data => {
-                        const listContainer = document.getElementById('pdf-list');
-                        if (!Array.isArray(data)) return;
-                        data.forEach(pdf => {
-                            const button = document.createElement('button');
-                            button.textContent = pdf.name || 'Nepoznato';
-                            button.addEventListener('click', () => {
-                                // izvuci fileId iz linka kao ranije
-                                const match = (pdf.link || '').match(/\/d\/(.*?)\//);
-                                if(match && match[1]) {
-                                    const fileId = match[1];
-                                    const previewLink = `https://drive.google.com/file/d/${fileId}/preview`;
-                                    document.getElementById('pdf-preview').src = previewLink;
-                                } else {
-                                    console.error('Neispravan link PDF-a:', pdf.link);
-                                    // ako je direktan link do pdf-a, pokušaj staviti ga direktno
-                                    document.getElementById('pdf-preview').src = pdf.link || '';
-                                }
-                            });
-                            listContainer.appendChild(button);
-                        });
-                    })
-                    .catch(err => {
-                        console.error('Greška pri učitavanju JSON-a:', err);
-                    });
-            })();
+      <div id="app-content" style="display: none;">
+        <div class="card user-info-card">
+          <h3><i class="fas fa-user-circle"></i> Dobrodošao, <span id="user-name"></span>!</h3>
+          <p id="message" class="info-message"></p>
+        </div>
 
-            // Siguran parser JWT payload (base64url -> JSON)
-            function parseJwtPayload(token) {
-                try {
-                    const base64Url = token.split('.')[1];
-                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-                    const jsonPayload = decodeURIComponent(atob(padded).split('').map(function(c) {
-                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                    }).join(''));
-                    return JSON.parse(jsonPayload);
-                } catch (e) {
-                    console.error('parseJwtPayload error', e);
-                    return null;
-                }
-            }
+        <!-- Detalji Posla Sekcija -->
+        <div class="card job-details-card">
+          <h2>
+            <i class="fas fa-file-invoice"></i> Detalji Posla (<span id="current-job-id" class="job-id">Nijedan</span>)
+          </h2>
+          <div id="job-form" style="display: none; padding-top: 10px;">
+            <div class="form-group">
+              <label for="job-title"><i class="fas fa-tag"></i> Naziv posla:</label>
+              <input type="text" id="job-title" placeholder="Naziv posla" readonly>
+            </div>
+            <div class="form-group">
+              <label for="job-short-desc"><i class="fas fa-lightbulb"></i> Kratak opis:</label>
+              <input type="text" id="job-short-desc" placeholder="Kratak opis posla" readonly>
+            </div>
+            <div class="form-group">
+              <label for="job-long-desc"><i class="fas fa-align-left"></i> Detaljan opis:</label>
+              <textarea id="job-long-desc" placeholder="Detaljan opis posla..." readonly></textarea>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="job-checkbox">
+              <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
+            </div>
 
-            // Ova funkcija mora postojati globalno jer je data-callback je "handleCredentialResponse"
-            window.handleCredentialResponse = function(response) {
-                if (!response || !response.credential) {
-                    console.warn('Nema credential-a u odgovoru.');
-                    return;
-                }
-                const payload = parseJwtPayload(response.credential);
-                if (!payload) return;
+            <div class="button-group">
+              <button id="save-job-button" class="btn btn-primary btn-icon">
+                <i class="fas fa-paper-plane"></i> Pošalji prijavu
+              </button>
+              <button id="cancel-job-edit-button" class="btn btn-secondary btn-icon">
+                <i class="fas fa-times-circle"></i> Izađi
+              </button>
+            </div>
+          </div>
+          <p id="job-message" class="info-message"></p>
+          <div id="job-details-loading" class="loading-spinner" style="display: none;"></div>
+        </div>
 
-                // postavi profilnu sliku (ako postoji) i ime
-                const profileImg = document.getElementById('profile-picture');
-                const nameEl = document.getElementById('user-name');
+        <!-- PDF Preview u glavnom sadržaju -->
+        <div class="card pdf-section-card" id="pdf-section">
+          <h2><i class="fas fa-file-pdf"></i> PDF Preview</h2>
+          <iframe id="pdf-preview" src=""></iframe>
+        </div>
 
-                profileImg.src = payload.picture || DEFAULT_DOODLE;
-                profileImg.style.display = 'block';
-                if (payload.name) {
-                    nameEl.textContent = payload.name;
-                }
+        <!-- Google profilna slika -->
+        <div class="card" id="profile-picture-card">
+          <h2><i class="fas fa-user"></i> Google Profilna Slika</h2>
+          <img id="profile-picture" alt="Profilna slika">
+        </div>
 
-                // Prikaži sadržaj aplikacije i sidebar (ako želiš to odmah)
-                const appContent = document.getElementById('app-content');
-                const jobSidebar = document.getElementById('job-sidebar');
-                if (appContent) appContent.style.display = 'block';
-                if (jobSidebar) jobSidebar.style.display = 'block';
+        <!-- Korisničke Postavke Sekcija -->
+        <div class="card user-settings-card">
+          <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
+          <div class="form-group">
+            <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
+            <input type="text" id="company-name-input" placeholder="Ime firme">
+          </div>
+          <div class="form-group">
+            <label for="company-short-desc-input"><i class="fas fa-info-circle"></i> Kratko objašnjenje:</label>
+            <input type="text" id="company-short-desc-input" placeholder="Kratko objašnjenje firme">
+          </div>
+          <div class="form-group">
+            <label for="company-long-desc-input"><i class="fas fa-align-justify"></i> Detaljno objašnjenje:</label>
+            <textarea id="company-long-desc-input" placeholder="Detaljno objašnjenje firme..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="contact-email-input"><i class="fas fa-envelope"></i> Kontakt email:</label>
+            <input type="text" id="contact-email-input" placeholder="Kontakt email">
+          </div>
+          <div class="form-group">
+            <label for="website-input"><i class="fas fa-globe"></i> Web adresa:</label>
+            <input type="text" id="website-input" placeholder="Web adresa">
+          </div>
+          <div class="form-group">
+            <label for="additional-info-input"><i class="fas fa-plus-circle"></i> Dodatno objašnjenje:</label>
+            <input type="text" id="additional-info-input" placeholder="Dodatno objašnjenje">
+          </div>
+          <div class="form-group">
+            <label for="user-settings-dropdown"><i class="fas fa-list-alt"></i> Odaberite opciju:</label>
+            <select id="user-settings-dropdown">
+              <option value="">Odaberite opciju</option>
+              <option value="opcija1">Opcija 1</option>
+              <option value="opcija2">Opcija 2</option>
+              <option value="opcija3">Opcija 3</option>
+            </select>
+          </div>
 
-                // Sakrij GSI dugme (ako želiš) i pokaži dugme za odjavu
-                const signInBtn = document.querySelector('.g_id_signin');
-                const signoutBtn = document.getElementById('signout-button');
-                if (signInBtn) signInBtn.style.display = 'none';
-                if (signoutBtn) signoutBtn.style.display = 'inline-block';
-            };
+          <div class="button-group">
+            <button id="save-settings-button" class="btn btn-primary btn-icon">
+              <i class="fas fa-save"></i> Sačuvaj Postavke
+            </button>
+            <button id="load-settings-button" class="btn btn-outline btn-icon">
+              <i class="fas fa-download"></i> Učitaj Postavke
+            </button>
+          </div>
+          <div id="settings-loading" class="loading-spinner" style="display: none;"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
 
-            // Odjava: disableAutoSelect + reset UI
-            document.addEventListener('DOMContentLoaded', () => {
-                const signoutBtn = document.getElementById('signout-button');
-                if (!signoutBtn) return;
+<script>
+  // PDF lista skripta - sada u sidebaru
+  fetch('pdfs.json')
+    .then(response => response.json())
+    .then(data => {
+      const listContainer = document.getElementById('pdf-list');
 
-                signoutBtn.addEventListener('click', () => {
-                    try {
-                        if (google && google.accounts && google.accounts.id) {
-                            google.accounts.id.disableAutoSelect();
-                        }
-                    } catch (e) {
-                        console.warn('google.accounts.id nije dostupan', e);
-                    }
+      data.forEach(pdf => {
+        const button = document.createElement('button');
+        button.textContent = pdf.name;
+        button.addEventListener('click', () => {
+          const match = pdf.link.match(/\/d\/(.*?)\//);
+          if (match && match[1]) {
+            const fileId = match[1];
+            const previewLink = `https://drive.google.com/file/d/${fileId}/preview`;
+            document.getElementById('pdf-preview').src = previewLink;
+          } else {
+            console.error('Neispravan link PDF-a:', pdf.link);
+          }
+        });
+        listContainer.appendChild(button);
+      });
+    })
+    .catch(err => console.error('Greška pri učitavanju JSON-a:', err));
 
-                    // resetuj UI
-                    const profileImg = document.getElementById('profile-picture');
-                    const nameEl = document.getElementById('user-name');
-                    profileImg.src = DEFAULT_DOODLE;
-                    nameEl.textContent = '';
-                    const signInBtn = document.querySelector('.g_id_signin');
-                    if (signInBtn) signInBtn.style.display = 'inline-block';
-                    signoutBtn.style.display = 'none';
+  // Funkcija za dobijanje korisničkih podataka iz Google tokena
+  function handleCredentialResponse(response) {
+    const data = parseJwt(response.credential);
+    document.getElementById('user-name').textContent = data.name || "";
+    if (data.picture) {
+      const profilePic = document.getElementById('profile-picture');
+      profilePic.src = data.picture;
+      profilePic.style.display = "block";
+    }
+    document.getElementById('welcome-message').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    document.getElementById('signout-button').style.display = 'inline-block';
+  }
 
-                    // po potrebi sakrij app content / sidebar
-                    // document.getElementById('app-content').style.display = 'none';
-                    // document.getElementById('job-sidebar').style.display = 'none';
-                });
-            });
-        })();
-    </script>
+  function parseJwt(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  }
+</script>
 </body>
 </html>
