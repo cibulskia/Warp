@@ -240,18 +240,18 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
+                <h2>Detalji posla (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
                 <div id="subcategory-form" style="display: none; padding-top: 10px;">
-                    <input type="text" id="subcategory-name" placeholder="Ime potkategorije">
-                    <input type="text" id="subcategory-short-desc" placeholder="Kratak opis">
-                    <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..."></textarea>
+                    <input type="text" id="subcategory-name" placeholder="naziv posla">
+                    <input type="text" id="subcategory-short-desc" placeholder="Kratak opis posla">
+                    <textarea id="subcategory-long-desc" placeholder="Detaljan opis posla..."></textarea>
                     <div class="checkbox-container">
                         <input type="checkbox" id="subcategory-checkbox">
-                        <label for="subcategory-checkbox">Aktivna potkategorija</label>
+                        <label for="subcategory-checkbox">prihvatam uslove i prijavljujem se za posao</label>
                     </div>
                     
                     <button id="save-subcategory-button">Sačuvaj Potkategoriju</button>
-                    <button id="cancel-subcategory-edit-button">Odustani</button>
+                    <button id="cancel-subcategory-edit-button">izadji</button>
                 </div>
                 
                 <p id="subcategory-message"></p>
@@ -263,20 +263,20 @@
                     <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
                     <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
                 </div>
-                <input type="text" id="input1" placeholder="Prvo polje za tekst">
-                <input type="text" id="input2" placeholder="Drugo polje za tekst">
-                <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
-                <input type="text" id="input3" placeholder="Treće polje za tekst">
-                <input type="text" id="input4" placeholder="Četvrto polje za tekst">
-                <input type="text" id="input5" placeholder="Peto polje za tekst">
+                <input type="text" id="input1" placeholder="naziv firme">
+                <input type="text" id="input2" placeholder="kratak opis firme">
+                <textarea id="large-text-input" placeholder="detaljan opis firme"></textarea>
+                <input type="text" id="input3" placeholder="kontakt email">
+                <input type="text" id="input4" placeholder="web stranica">
+                <input type="text" id="input5" placeholder="<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pubhtml?widget=true&amp;headers=false"></iframe>">
                 <select id="dropdown-input">
-                    <option value="">Odaberite opciju</option>
-                    <option value="opcija1">Opcija 1</option>
-                    <option value="opcija2">Opcija 2</option>
-                    <option value="opcija3">Opcija 3</option>
+                    <option value="">vrsta obrade</option>
+                    <option value="opcija1">strug</option>
+                    <option value="opcija2">glodalica</option>
+                    <option value="opcija3">strug i glodalica</option>
                 </select>
 
-                <button id="save-button">Sačuvaj Glavne Podatke</button>
+                <button id="save-button">Sačuvaj korisnicka podesavanja</button>
                 <button id="load-button">Učitaj Glavne Podatke</button>
                 <p id="message"></p>
 
