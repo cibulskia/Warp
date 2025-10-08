@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Warp Connect - Platforma za poslove i postavke</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -13,9 +13,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         /* Dodatni stilovi za PDF sekciju */
-        #pdf-section {
-            margin-top: 20px;
-        }
+        #pdf-section { margin-top: 20px; }
         #pdf-list button {
             display: block;
             margin: 5px 0;
@@ -33,18 +31,21 @@
             border: 1px solid #ccc;
             margin-top: 10px;
         }
+
         /* Profilna slika */
-        #profile-section {
-            margin: 20px 0;
-            text-align: center;
-        }
+        #profile-section { margin: 20px 0; text-align: center; }
         #profile-picture {
             width: 120px;
             height: 120px;
             border-radius: 50%;
             border: 2px solid #ccc;
             object-fit: cover;
+            display: inline-block;
+            vertical-align: middle;
         }
+
+        /* male prilagodbe za header/sidebar ako treba */
+        .app-container { font-family: 'Poppins', Arial, sans-serif; }
     </style>
 </head>
 <body>
@@ -55,6 +56,7 @@
                 <i class="fas fa-starship"></i> Warp Connect
             </div>
             <div id="auth-section">
+                <!-- Google Identity button: onload will call handleCredentialResponse -->
                 <div id="g_id_onload"
                      data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
                      data-auto_select="true"
@@ -63,6 +65,7 @@
                      data-cancel_on_tap_outside="false"
                      data-context="use">
                 </div>
+
                 <div class="g_id_signin"
                      data-type="standard"
                      data-size="large"
@@ -71,16 +74,17 @@
                      data-shape="rectangular"
                      data-logo_alignment="left">
                 </div>
-                <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none;">
+
+                <button id="signout-button" class="btn btn-secondary btn-icon" style="display: none; margin-left:10px;">
                     <i class="fas fa-sign-out-alt"></i> Odjavi se
                 </button>
             </div>
         </header>
 
         <!-- Main Content Wrapper -->
-        <div class="main-content-wrapper">
+        <div class="main-content-wrapper" style="display:flex; gap:20px; padding:20px;">
             <!-- Sidebar za Poslove + PDF listu -->
-            <aside class="job-sidebar" id="job-sidebar" style="display: none;">
+            <aside class="job-sidebar" id="job-sidebar" style="display: none; width:300px;">
                 <div class="sidebar-header">
                     <h2><i class="fas fa-briefcase"></i> Poslovi</h2>
                     <button id="load-jobs-button" class="btn btn-primary btn-icon btn-small">
@@ -93,27 +97,27 @@
                 <div id="job-list-loading" class="loading-spinner" style="display: none;"></div>
 
                 <!-- PDF Lista ispod poslova -->
-                <div id="pdf-sidebar-section">
+                <div id="pdf-sidebar-section" style="margin-top:20px;">
                     <h3><i class="fas fa-file-pdf"></i> PDF Lista</h3>
                     <div id="pdf-list"></div>
                 </div>
             </aside>
 
             <!-- Glavni sadržaj -->
-            <main class="main-content-area">
+            <main class="main-content-area" style="flex:1;">
                 <div id="welcome-message" class="card welcome-card">
                     <h2>Dobrodošao na Warp Connect!</h2>
                     <p>Prijavite se putem Google naloga da biste pristupili svojim postavkama i istražili dostupne poslove.</p>
                 </div>
 
                 <div id="app-content" style="display: none;">
-                    <div class="card user-info-card">
+                    <div class="card user-info-card" style="margin-top:16px;">
                         <h3><i class="fas fa-user-circle"></i> Dobrodošao, <span id="user-name"></span>!</h3>
                         <p id="message" class="info-message"></p>
                     </div>
 
                     <!-- Detalji Posla Sekcija -->
-                    <div class="card job-details-card">
+                    <div class="card job-details-card" style="margin-top:16px;">
                         <h2>
                             <i class="fas fa-file-invoice"></i> Detalji Posla (<span id="current-job-id" class="job-id">Nijedan</span>)
                         </h2>
@@ -134,7 +138,7 @@
                                 <input type="checkbox" id="job-checkbox">
                                 <label for="job-checkbox"><i class="fas fa-check-square"></i> Prijavi se za posao</label>
                             </div>
-                            
+
                             <div class="button-group">
                                 <button id="save-job-button" class="btn btn-primary btn-icon">
                                     <i class="fas fa-paper-plane"></i> Pošalji prijavu
@@ -149,19 +153,20 @@
                     </div>
 
                     <!-- PDF Preview u glavnom sadržaju -->
-                    <div class="card pdf-section-card" id="pdf-section">
+                    <div class="card pdf-section-card" id="pdf-section" style="margin-top:16px;">
                         <h2><i class="fas fa-file-pdf"></i> PDF Preview</h2>
                         <iframe id="pdf-preview" src=""></iframe>
                     </div>
 
-                    <!-- Nova sekcija - Profilna slika -->
-                    <div class="card profile-section-card" id="profile-section">
+                    <!-- NOVO: Profilna slika između PDF i korisničkih postavki -->
+                    <div class="card profile-section-card" id="profile-section" style="margin-top:16px;">
                         <h2><i class="fas fa-user"></i> Profilna slika</h2>
-                        <img id="profile-picture" src="" alt="Profilna slika" style="display:none;">
+                        <!-- Default doodle avatar će odmah biti vidljiv, a posle logina menja se u avatar Google naloga -->
+                        <img id="profile-picture" src="" alt="Profilna slika">
                     </div>
 
                     <!-- Korisničke Postavke Sekcija -->
-                    <div class="card user-settings-card">
+                    <div class="card user-settings-card" style="margin-top:16px;">
                         <h2><i class="fas fa-cog"></i> Korisničke Postavke</h2>
                         <div class="form-group">
                             <label for="company-name-input"><i class="fas fa-building"></i> Ime firme:</label>
@@ -197,7 +202,7 @@
                             </select>
                         </div>
 
-                        <div class="button-group">
+                        <div class="button-group" style="margin-top:10px;">
                             <button id="save-settings-button" class="btn btn-primary btn-icon">
                                 <i class="fas fa-save"></i> Sačuvaj Postavke
                             </button>
@@ -212,53 +217,133 @@
         </div>
     </div>
 
+    <!-- Tvoj postojeći script.js ako ima logiku koju ne želiš da diraš -->
     <script src="script.js"></script>
+
+    <!-- Inline skripta koja:
+         - prikazuje default doodle avatar odmah
+         - učitava pdf listu iz pdfs.json
+         - prima Google credential (JWT), dekodira ga i menja profilnu sliku i ime
+         - omogućava odjavu -->
     <script>
-        // PDF lista skripta - sada u sidebaru
-        fetch('pdfs.json')
-            .then(response => response.json())
-            .then(data => {
-                const listContainer = document.getElementById('pdf-list');
-                
-                data.forEach(pdf => {
-                    const button = document.createElement('button');
-                    button.textContent = pdf.name;
-                    button.addEventListener('click', () => {
-                        const match = pdf.link.match(/\/d\/(.*?)\//);
-                        if(match && match[1]) {
-                            const fileId = match[1];
-                            const previewLink = `https://drive.google.com/file/d/${fileId}/preview`;
-                            document.getElementById('pdf-preview').src = previewLink;
-                        } else {
-                            console.error('Neispravan link PDF-a:', pdf.link);
-                        }
-                    });
-                    listContainer.appendChild(button);
-                });
-            })
-            .catch(err => console.error('Greška pri učitavanju JSON-a:', err));
+        (function(){
+            const DEFAULT_DOODLE = 'https://ssl.gstatic.com/accounts/ui/avatar_2x.png';
 
-        // Profilna slika iz Google naloga
-        function handleCredentialResponse(response) {
-            const data = decodeJwtResponse(response.credential);
-            if (data && data.picture) {
+            // Prikaži doodle odmah
+            document.addEventListener('DOMContentLoaded', () => {
                 const profileImg = document.getElementById('profile-picture');
-                profileImg.src = data.picture;
+                profileImg.src = DEFAULT_DOODLE;
                 profileImg.style.display = 'block';
-            }
-            if (data && data.name) {
-                document.getElementById("user-name").textContent = data.name;
-            }
-        }
+            });
 
-        function decodeJwtResponse(token) {
-            var base64Url = token.split('.')[1];
-            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
+            // PDF lista (isti kod koji si imao)
+            (function loadPdfList(){
+                fetch('pdfs.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        const listContainer = document.getElementById('pdf-list');
+                        if (!Array.isArray(data)) return;
+                        data.forEach(pdf => {
+                            const button = document.createElement('button');
+                            button.textContent = pdf.name || 'Nepoznato';
+                            button.addEventListener('click', () => {
+                                // izvuci fileId iz linka kao ranije
+                                const match = (pdf.link || '').match(/\/d\/(.*?)\//);
+                                if(match && match[1]) {
+                                    const fileId = match[1];
+                                    const previewLink = `https://drive.google.com/file/d/${fileId}/preview`;
+                                    document.getElementById('pdf-preview').src = previewLink;
+                                } else {
+                                    console.error('Neispravan link PDF-a:', pdf.link);
+                                    // ako je direktan link do pdf-a, pokušaj staviti ga direktno
+                                    document.getElementById('pdf-preview').src = pdf.link || '';
+                                }
+                            });
+                            listContainer.appendChild(button);
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Greška pri učitavanju JSON-a:', err);
+                    });
+            })();
+
+            // Siguran parser JWT payload (base64url -> JSON)
+            function parseJwtPayload(token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+                    const jsonPayload = decodeURIComponent(atob(padded).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    return JSON.parse(jsonPayload);
+                } catch (e) {
+                    console.error('parseJwtPayload error', e);
+                    return null;
+                }
+            }
+
+            // Ova funkcija mora postojati globalno jer je data-callback je "handleCredentialResponse"
+            window.handleCredentialResponse = function(response) {
+                if (!response || !response.credential) {
+                    console.warn('Nema credential-a u odgovoru.');
+                    return;
+                }
+                const payload = parseJwtPayload(response.credential);
+                if (!payload) return;
+
+                // postavi profilnu sliku (ako postoji) i ime
+                const profileImg = document.getElementById('profile-picture');
+                const nameEl = document.getElementById('user-name');
+
+                profileImg.src = payload.picture || DEFAULT_DOODLE;
+                profileImg.style.display = 'block';
+                if (payload.name) {
+                    nameEl.textContent = payload.name;
+                }
+
+                // Prikaži sadržaj aplikacije i sidebar (ako želiš to odmah)
+                const appContent = document.getElementById('app-content');
+                const jobSidebar = document.getElementById('job-sidebar');
+                if (appContent) appContent.style.display = 'block';
+                if (jobSidebar) jobSidebar.style.display = 'block';
+
+                // Sakrij GSI dugme (ako želiš) i pokaži dugme za odjavu
+                const signInBtn = document.querySelector('.g_id_signin');
+                const signoutBtn = document.getElementById('signout-button');
+                if (signInBtn) signInBtn.style.display = 'none';
+                if (signoutBtn) signoutBtn.style.display = 'inline-block';
+            };
+
+            // Odjava: disableAutoSelect + reset UI
+            document.addEventListener('DOMContentLoaded', () => {
+                const signoutBtn = document.getElementById('signout-button');
+                if (!signoutBtn) return;
+
+                signoutBtn.addEventListener('click', () => {
+                    try {
+                        if (google && google.accounts && google.accounts.id) {
+                            google.accounts.id.disableAutoSelect();
+                        }
+                    } catch (e) {
+                        console.warn('google.accounts.id nije dostupan', e);
+                    }
+
+                    // resetuj UI
+                    const profileImg = document.getElementById('profile-picture');
+                    const nameEl = document.getElementById('user-name');
+                    profileImg.src = DEFAULT_DOODLE;
+                    nameEl.textContent = '';
+                    const signInBtn = document.querySelector('.g_id_signin');
+                    if (signInBtn) signInBtn.style.display = 'inline-block';
+                    signoutBtn.style.display = 'none';
+
+                    // po potrebi sakrij app content / sidebar
+                    // document.getElementById('app-content').style.display = 'none';
+                    // document.getElementById('job-sidebar').style.display = 'none';
+                });
+            });
+        })();
     </script>
 </body>
 </html>
