@@ -6,6 +6,8 @@
     <title>Warp Connect - Platforma za poslove i postavke</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Dodato: JWT-Decode biblioteka -->
+    <script src="https://unpkg.com/jwt-decode/build/jwt-decode.js"></script>
     <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
@@ -264,10 +266,6 @@
                 profilePictureElement.src = 'https://via.placeholder.com/100'; // Fallback slika ako nema URL-a
             }
         }
-
-        // Dodajte ovu liniju ako niste već dodali JWT-Decode biblioteku
-        // <script src="https://unpkg.com/jwt-decode/build/jwt-decode.js"></script>
-        // u head ili pre ovog skripta
     </script>
 </body>
 </html>
