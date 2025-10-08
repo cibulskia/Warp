@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warp Connect - Modern Interface</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Font Awesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Removed 'style.css' to embed all styles directly for simplicity in this example -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #6C63FF; /* A vibrant violet/blue */
+            --secondary-color: #00D28E; /* A fresh green */
+            --tertiary-color: #FFC300; /* A warm accent yellow */
+            --background-light: #F0F2F5; /* Light grey for overall background */
+            --background-dark: #E0E4E8; /* Slightly darker grey for elements */
+            --text-color-dark: #2C3E50; /* Darker text for readability */
+            --text-color-light: #7F8C8D; /* Lighter text for secondary info */
+            --border-color: #DDE2E7; /* Light border */
+            --card-background: #FFFFFF; /* White cards */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --gradient-primary: linear-gradient(45deg, #6C63FF, #8E7EFF); /* Primary gradient */
+            --gradient-secondary: linear-gradient(45deg, #00D28E, #00EBA2); /* Secondary gradient */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background-color: var(--background-light);
+            margin: 0;
+            padding: 30px;
+            box-sizing: border-box;
+            color: var(--text-color-dark);
+            line-height: 1.6;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: 15px; /* Slightly more rounded corners */
+            box-shadow: 0 8px 25px var(--shadow-light); /* More pronounced shadow */
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px var(--shadow-medium);
+        }
+
+        .container {
+            flex-grow: 1;
+            max-width: 900px;
+        }
+
+        .subcategory-sidebar {
+            width: 350px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1, h2, h3 {
+            color: var(--text-color-dark);
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 2.5em; /* Larger main title */
+            color: var(--primary-color);
+            background-image: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+        h1 i {
+            color: var(--primary-color);
+            -webkit-text-fill-color: var(--primary-color); /* Ensure icon color */
+        }
+
+        h2 { font-size: 1.8em; margin-bottom: 20px;}
+        h3 { font-size: 1.4em; margin-bottom: 15px; }
+
+        .subcategory-sidebar h2, .subcategory-sidebar h3 {
+             justify-content: flex-start;
+             color: var(--text-color-dark);
+        }
+        .subcategory-sidebar h2 i, .subcategory-sidebar h3 i {
+             color: var(--primary-color); /* Icon color in sidebar headings */
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 20px);
+            padding: 14px 18px; /* Slightly more padding */
+            margin-bottom: 18px; /* More space between inputs */
+            border: 1px solid var(--border-color);
+            border-radius: 10px; /* More rounded input fields */
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: all 0.3s ease-in-out;
+            background-color: var(--background-light); /* Light background for inputs */
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.25); /* Primary color focus shadow */
+            outline: none;
+            background-color: var(--card-background); /* White background on focus */
+        }
+
+        input[type="text"]:disabled,
+        textarea:disabled,
+        select:disabled {
+            background-color: var(--background-dark);
+            cursor: not-allowed;
+            color: var(--text-color-light);
+            opacity: 0.8;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 140px; /* Taller text area */
+        }
+
+        button {
+            background-image: var(--gradient-primary); /* Primary gradient for main buttons */
+            color: white;
+            padding: 14px 28px; /* More padding */
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 17px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.2);
+        }
+
+        button:hover {
+            background-image: linear-gradient(45deg, #5C56E8, #7F73FF); /* Slightly darker gradient on hover */
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(108, 99, 255, 0.2);
+        }
+
+        #message, #subcategory-message {
+            margin-top: 25px; /* More margin */
+            padding: 15px;
+            border-radius: 10px;
+            background-color: var(--background-dark);
+            color: var(--text-color-dark);
+            min-height: 25px;
+            font-size: 1em;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        #user-name {
+            font-weight: 700; /* Bolder user name */
+            color: var(--primary-color);
+        }
+
+        #signout-button {
+            background-image: linear-gradient(45deg, #E74C3C, #C0392B); /* Red gradient for sign out */
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2);
+        }
+
+        #signout-button:hover {
+            background-image: linear-gradient(45deg, #C0392B, #A93226);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .section-separator {
+            border-top: 1px solid var(--border-color);
+            margin: 40px 0;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px; /* Taller list */
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            flex-grow: 1;
+            background-color: var(--card-background);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); /* Inner shadow for list */
+        }
+
+        .subcategory-list-item {
+            padding: 15px 20px; /* More padding */
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05em;
+            color: var(--text-color-dark);
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: var(--background-light);
+            color: var(--primary-color); /* Highlight text on hover */
+        }
+
+        .subcategory-list-item.selected {
+            background-color: rgba(108, 99, 255, 0.1); /* Light primary color background */
+            border-left: 5px solid var(--primary-color); /* Thicker left border */
+            font-weight: 600;
+            color: var(--primary-color);
+            padding-left: 15px; /* Adjust padding for border */
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            padding: 15px 0;
+            background-color: var(--background-light);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 22px; /* Larger checkbox */
+            height: 22px;
+            margin-right: 15px;
+            accent-color: var(--secondary-color); /* Secondary color for checkbox */
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            font-size: 1.05em;
+            color: var(--text-color-dark);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px; /* More space between buttons */
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 150px;
+            background-image: var(--gradient-secondary); /* Secondary gradient for subcategory buttons */
+            box-shadow: 0 5px 15px rgba(0, 210, 142, 0.2);
+        }
+        .subcategory-buttons button:hover {
+            background-image: linear-gradient(45deg, #00B17D, #00D28E);
+            box-shadow: 0 8px 20px rgba(0, 210, 142, 0.3);
+        }
+        #cancel-subcategory-edit-button {
+            background-image: linear-gradient(45deg, #7F8C8D, #95A5A6); /* Grey gradient for cancel */
+            box-shadow: 0 5px 15px rgba(127, 140, 141, 0.2);
+        }
+        #cancel-subcategory-edit-button:hover {
+            background-image: linear-gradient(45deg, #626D6E, #7F8C8D);
+            box-shadow: 0 8px 20px rgba(127, 140, 141, 0.3);
+        }
+
+
+        #subcategory-form {
+            text-align: left;
+            padding-top: 15px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.6em;
+        }
+
+        #profile-picture-container {
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #profile-picture {
+            width: 130px; /* Larger profile picture */
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--primary-color); /* Thicker primary color border */
+            box-shadow: 0 6px 15px var(--shadow-medium);
+        }
+
+        #profile-picture-placeholder {
+            color: var(--text-color-light);
+            font-size: 1em;
+            font-style: italic;
+        }
+
+        .displayed-iframe-wrapper {
+            margin-bottom: 35px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            background-color: var(--background-light);
+            text-align: left;
+            box-shadow: 0 6px 20px var(--shadow-light);
+        }
+
+        .displayed-iframe-wrapper h3 {
+            margin-top: 0;
+            color: var(--text-color-dark);
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .displayed-iframe-wrapper h3 i {
+            color: var(--tertiary-color); /* Accent color for iframe icon */
+        }
+
+
+        .displayed-iframe-wrapper iframe {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.08); /* Inner shadow for iframe */
+        }
+
+        .g_id_signin {
+            margin-top: 25px;
+            margin-bottom: 35px;
+            display: inline-block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                flex-direction: column;
+                padding: 0;
+            }
+            .subcategory-sidebar, .container {
+                width: 100%;
+                max-width: 100%;
+                padding: 20px;
+            }
+            body {
+                padding: 20px;
+            }
+            h1 { font-size: 2.2em; }
+            h2 { font-size: 1.6em; }
+            h3 { font-size: 1.2em; }
+            .card {
+                padding: 25px;
+            }
+            .subcategory-list {
+                max-height: 300px;
+            }
+            .checkbox-container {
+                padding: 12px 0;
+            }
+            button {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+            input[type="text"], textarea, select {
+                padding: 12px 15px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .card {
+                padding: 20px;
+                border-radius: 12px;
+            }
+            h1 { font-size: 2em; margin-bottom: 20px; }
+            h2 { font-size: 1.4em; margin-bottom: 15px;}
+            h3 { font-size: 1.1em; margin-bottom: 12px;}
+            .subcategory-sidebar h2, .subcategory-sidebar h3 {
+                font-size: 1.3em;
+            }
+            .profile-picture {
+                width: 100px;
+                height: 100px;
+            }
+            .subcategory-list {
+                max-height: 200px;
+            }
+            .displayed-iframe-wrapper {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="subcategory-sidebar card" id="subcategory-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-list-alt"></i> Lista poslova</h2>
+            </div>
+            <ul id="subcategory-list" class="subcategory-list"></ul>
+            <div class="subcategory-buttons">
+                <!-- Example of where buttons for creating/editing subcategories could go -->
+            </div>
+            <h3><i class="fas fa-file-invoice"></i> Aktivne prijave</h3>
+            <textarea id="sidebar-large-text-input-2" placeholder="Trenutno aktivne prijave za posao..." disabled></textarea>
+            <h3><i class="fas fa-play-circle"></i> Poslovi u toku</h3>
+            <textarea id="sidebar-large-text-input-3" placeholder="Poslovi koji su trenutno u fazi izvršavanja..." disabled></textarea>
+        </div>
+
+        <div class="container card">
+            <h1><i class="fas fa-network-wired"></i> Warp Connect</h1>
+
+            <div id="g_id_onload"
+                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                 data-auto_select="true"
+                 data-callback="handleCredentialResponse"
+                 data-ux_mode="popup"
+                 data-cancel_on_tap_outside="false"
+                 data-context="use">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+
+            <div id="app-content" style="display: none;">
+                <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <div class="section-separator"></div>
+
+                <h2><i class="fas fa-briefcase"></i> Detalji posla (<span id="current-subcategory-id" style="font-weight: normal;">Nijedan</span>)</h2>
+                <div id="subcategory-form" style="display: none; padding-top: 10px;">
+                    <input type="text" id="subcategory-name" placeholder="Naziv posla" disabled>
+                    <input type="text" id="subcategory-short-desc" placeholder="Kratak opis posla" disabled>
+                    <textarea id="subcategory-long-desc" placeholder="Detaljan opis posla..." disabled></textarea>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="subcategory-checkbox">
+                        <label for="subcategory-checkbox">Prihvatam uslove i prijavljujem se za posao</label>
+                    </div>
+
+                    <button id="save-subcategory-button"><i class="fas fa-paper-plane"></i> Pošalji prijavu</button>
+                    <button id="cancel-subcategory-edit-button" class="btn-secondary"><i class="fas fa-times-circle"></i> Izađi</button>
+                </div>
+
+                <p id="subcategory-message"></p>
+
+                <div class="section-separator"></div>
+
+                <div class="displayed-iframe-wrapper">
+                    <h3><i class="fas fa-external-link-alt"></i> Prikazani sadržaj:</h3>
+                    <div id="displayed-iframe-content">
+                        <!-- Default iframe placeholder content -->
+                        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pubhtml?widget=true&amp;headers=false"
+                                width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+
+                <h2><i class="fas fa-cogs"></i> Korisnička podešavanja</h2>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
+                </div>
+                <input type="text" id="input1" placeholder="Naziv firme">
+                <input type="text" id="input2" placeholder="Kratak opis firme">
+                <textarea id="large-text-input" placeholder="Detaljan opis firme"></textarea>
+                <input type="text" id="input3" placeholder="Kontakt email">
+                <input type="text" id="input4" placeholder="Web stranica">
+                <select id="dropdown-input">
+                    <option value="">Vrsta obrade</option>
+                    <option value="opcija1">Strug</option>
+                    <option value="opcija2">Glodalica</option>
+                    <option value="opcija3">Strug i glodalica</option>
+                </select>
+
+                <button id="save-button"><i class="fas fa-save"></i> Sačuvaj korisnička podešavanja</button>
+
+                <p id="message"></p>
+
+                <input type="text" id="input5" placeholder="Unesite iframe kod ovde (npr. Google Sheet embed)" disabled style="width: 100%; padding: 5px; margin-top: 10px; font-size: 12px;">
+
+
+                <div class="section-separator"></div>
+
+                <button id="signout-button"><i class="fas fa-sign-out-alt"></i> Odjavi se</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // UI functions moved from original script
+        function updateUIForLoggedInUser(userName, userProfilePicUrl) {
+            document.getElementById('g_id_onload').style.display = 'none';
+            document.querySelector('.g_id_signin').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('subcategory-sidebar').style.display = 'flex';
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('message').textContent = "";
+            document.getElementById('subcategory-message').textContent = "";
+
+            const profilePicElement = document.getElementById('profile-picture');
+            const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
+                profilePicElement.style.display = 'block';
+                profilePicPlaceholder.style.display = 'none';
+            } else {
+                profilePicElement.style.display = 'none';
+                profilePicPlaceholder.style.display = 'block';
+            }
+
+            document.getElementById('input1').value = "";
+            document.getElementById('input2').value = "";
+            document.getElementById('large-text-input').value = "";
+            document.getElementById('input3').value = "";
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = ""; // Clear iframe input
+            document.getElementById('dropdown-input').value = "";
+            document.getElementById('sidebar-large-text-input-2').value = "";
+            document.getElementById('sidebar-large-text-input-3').value = "";
+
+            // Reset displayed iframe to default
+            document.getElementById('displayed-iframe-content').innerHTML = `
+                <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pubhtml?widget=true&amp;headers=false"
+                        width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            `;
+
+            document.getElementById('subcategory-form').style.display = 'none';
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = "Nijedan";
+            clearSubcategoryForm();
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('g_id_onload').style.display = 'block';
+            document.querySelector('.g_id_signin').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+            document.getElementById('subcategory-sidebar').style.display = 'none';
+            document.getElementById('user-name').textContent = "";
+            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
+            document.getElementById('subcategory-message').textContent = "";
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
+
+            document.getElementById('profile-picture').style.display = 'none';
+            document.getElementById('profile-picture-placeholder').style.display = 'block';
+            document.getElementById('profile-picture').src = '';
+
+            // Reset displayed iframe to default
+            document.getElementById('displayed-iframe-content').innerHTML = `
+                <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pubhtml?widget=true&amp;headers=false"
+                            width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            `;
+        }
+
+        window.onload = function() {
+            updateUIForLoggedOutUser();
+        };
+
+        // Function to update the displayed iframe
+        function updateDisplayedIframe() {
+            const iframeCode = document.getElementById('input5').value;
+            const displayedIframeContainer = document.getElementById('displayed-iframe-content');
+            if (iframeCode.trim() !== "") {
+                displayedIframeContainer.innerHTML = iframeCode;
+            } else {
+                // If input5 is empty, revert to the default iframe
+                displayedIframeContainer.innerHTML = `
+                    <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pubhtml?widget=true&amp;headers=false"
+                            width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                `;
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('save-button').addEventListener('click', window.saveMainData);
+        // Removed: document.getElementById('load-button').addEventListener('click', window.loadMainData);
+        document.getElementById('signout-button').addEventListener('click', window.signOutUser);
+
+        // Add event listener for the iframe input field (it's disabled, but the event won't fire for manual input anyway)
+        // This event listener is relevant when `input5` becomes enabled/editable.
+        document.getElementById('input5').addEventListener('input', updateDisplayedIframe);
+
+        function clearSubcategoryForm() {
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('subcategory-checkbox').checked = false;
+        }
+        window.clearSubcategoryForm = clearSubcategoryForm; // Expose to app.js
+
+        function showSubcategoryForm(subcategory = {}) {
+            document.getElementById('subcategory-form').style.display = 'block';
+            window.setCurrentSubcategoryId(subcategory.id); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = subcategory.id || 'Nijedan';
+            document.getElementById('subcategory-name').value = subcategory.name || '';
+            document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
+            document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
+            document.getElementById('subcategory-checkbox').checked = subcategory.is_active || false;
+        }
+        window.showSubcategoryForm = showSubcategoryForm; // Expose to app.js
+
+        document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
+            document.getElementById('subcategory-form').style.display = 'none';
+            clearSubcategoryForm();
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = "Nijedan";
+            document.getElementById('subcategory-message').textContent = "";
+        });
+
+        document.getElementById('save-subcategory-button').addEventListener('click', () => {
+            const subcategoryData = {
+                name: document.getElementById('subcategory-name').value,
+                short_description: document.getElementById('subcategory-short-desc').value,
+                long_description: document.getElementById('subcategory-long-desc').value,
+                is_active: document.getElementById('subcategory-checkbox').checked
+            };
+            const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
+            const isNew = (!currentSubcategoryId || currentSubcategoryId === 'Nijedan');
+            window.saveSubcategory(subcategoryData, isNew, isNew ? null : currentSubcategoryId);
+        });
+
+        function loadSubcategories(reselect = false) {
+             window.loadSubcategoriesFromBackend(reselect);
+        }
+        window.loadSubcategories = loadSubcategories; // Expose to app.js
+
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                window.loadSubcategoryDetailsFromBackend(subcategoryId);
+            }
+        }
+        window.selectSubcategory = selectSubcategory; // Expose to app.js
+
+        // Initial load for authentication status after app.js has loaded
+        // This is handled by window.onload = updateUIForLoggedOutUser;
+        // The GSI client will automatically call handleCredentialResponse if a session exists.
+    </script>
+</body>
+</html>
