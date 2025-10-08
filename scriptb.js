@@ -2,7 +2,7 @@ const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
 
 let googleIdToken = null;
 let userName = null;
-let userProfileImage = null; // Dodato za profilnu sliku
+let userProfilePic = null; // New variable for profile picture
 let currentJobId = null;
 
 // Helper functions for showing/hiding loading spinners and messages
@@ -17,7 +17,8 @@ function hideLoading(elementId) {
 function showMessage(elementId, message, type = 'info') {
     const messageElement = document.getElementById(elementId);
     messageElement.textContent = message;
-    messageElement.className = `info-message ${type}`;
+    // Clear previous classes and add the new one
+    messageElement.className = `info-message ${type}`; 
     messageElement.style.display = 'block';
 }
 
@@ -25,10 +26,9 @@ function hideMessage(elementId) {
     const messageElement = document.getElementById(elementId);
     messageElement.style.display = 'none';
     messageElement.textContent = '';
-    messageElement.className = 'info-message';
+    messageElement.className = 'info-message'; // Reset to default info style
 }
 
-// --- Google Login ---
 function handleCredentialResponse(response) {
     console.log("Encoded JWT ID token: " + response.credential);
     googleIdToken = response.credential;
@@ -39,14 +39,14 @@ function handleCredentialResponse(response) {
         body: JSON.stringify({ id_token: googleIdToken })
     })
     .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
         return response.json();
     })
     .then(data => {
         if (data.status === 'success') {
             console.log("Login successful on backend:", data);
             userName = data.user_name;
-            userProfileImage = data.user_image; // Pretpostavljamo da backend vraća URL slike
+            userProfilePic = data.user_picture; // Get profile picture URL
             updateUIForLoggedInUser();
             loadJobs();
         } else {
@@ -54,7 +54,7 @@ function handleCredentialResponse(response) {
             alert("Prijava neuspešna: " + data.message);
             googleIdToken = null;
             userName = null;
-            userProfileImage = null;
+            userProfilePic = null;
             updateUIForLoggedOutUser();
         }
     })
@@ -63,12 +63,11 @@ function handleCredentialResponse(response) {
         alert("Došlo je do greške tokom prijave. Molimo pokušajte ponovo.");
         googleIdToken = null;
         userName = null;
-        userProfileImage = null;
+        userProfilePic = null;
         updateUIForLoggedOutUser();
     });
 }
 
-// --- UI Updates ---
 function updateUIForLoggedInUser() {
     document.getElementById('welcome-message').style.display = 'none';
     document.getElementById('g_id_onload').style.display = 'none';
@@ -76,19 +75,20 @@ function updateUIForLoggedInUser() {
     document.getElementById('app-content').style.display = 'block';
     document.getElementById('job-sidebar').style.display = 'flex';
     document.getElementById('user-name').textContent = userName;
-    document.getElementById('signout-button').style.display = 'flex';
+    document.getElementById('signout-button').style.display = 'flex'; // Show signout button
+
+    const profilePicElement = document.getElementById('user-profile-pic');
+    if (userProfilePic) {
+        profilePicElement.src = userProfilePic;
+        profilePicElement.style.display = 'block';
+    } else {
+        profilePicElement.style.display = 'none';
+    }
 
     hideMessage('message');
     hideMessage('job-message');
-
-    // Profilna slika
-    const profileImgEl = document.getElementById('user-profile-image');
-    if (profileImgEl && userProfileImage) {
-        profileImgEl.src = userProfileImage;
-        profileImgEl.style.display = 'block';
-    }
-
-    // Clear user settings fields
+    
+    // Clear all fields on login (user settings)
     document.getElementById('company-name-input').value = "";
     document.getElementById('company-short-desc-input').value = "";
     document.getElementById('company-long-desc-input').value = "";
@@ -97,55 +97,56 @@ function updateUIForLoggedInUser() {
     document.getElementById('additional-info-input').value = "";
     document.getElementById('user-settings-dropdown').value = "";
 
+    // Hide job form
     document.getElementById('job-form').style.display = 'none';
     currentJobId = null;
     document.getElementById('current-job-id').textContent = "Nijedan";
     clearJobForm();
+    // Clear selection in sidebar
     document.querySelectorAll('.job-list-item').forEach(item => item.classList.remove('selected'));
 }
 
 function updateUIForLoggedOutUser() {
-    document.getElementById('welcome-message').style.display = 'flex';
+    document.getElementById('welcome-message').style.display = 'flex'; // Show welcome card
     document.getElementById('g_id_onload').style.display = 'block';
     document.querySelector('.g_id_signin').style.display = 'block';
     document.getElementById('app-content').style.display = 'none';
     document.getElementById('job-sidebar').style.display = 'none';
     document.getElementById('user-name').textContent = "";
-    document.getElementById('signout-button').style.display = 'none';
-
-    // Sakrij profilnu sliku
-    const profileImgEl = document.getElementById('user-profile-image');
-    if (profileImgEl) profileImgEl.style.display = 'none';
+    document.getElementById('signout-button').style.display = 'none'; // Hide signout button
+    document.getElementById('user-profile-pic').style.display = 'none'; // Hide profile picture
 
     showMessage('message', "Molimo prijavite se putem Google-a.", 'info');
     hideMessage('job-message');
-
+    
     googleIdToken = null;
     userName = null;
-    userProfileImage = null;
+    userProfilePic = null;
     document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.getElementById('job-list').innerHTML = '';
 }
 
-// --- Window onload ---
 window.onload = function() {
     updateUIForLoggedOutUser();
 };
 
-// --- User settings functions ---
+// --- User settings functions (renamed from "Glavni podaci") ---
 document.getElementById('save-settings-button').addEventListener('click', () => {
-    if (!googleIdToken) { alert("Niste prijavljeni."); return; }
+    if (!googleIdToken) {
+        alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+        return;
+    }
 
     showLoading('settings-loading');
     hideMessage('message');
 
     const settingsToSave = {
-        input1: document.getElementById('company-name-input').value,
-        input2: document.getElementById('company-short-desc-input').value,
-        largeText: document.getElementById('company-long-desc-input').value,
-        input3: document.getElementById('contact-email-input').value,
-        input4: document.getElementById('website-input').value,
-        input5: document.getElementById('additional-info-input').value,
+        input1: document.getElementById('company-name-input').value, // Ime firme
+        input2: document.getElementById('company-short-desc-input').value, // Kratko objašnjenje firme
+        largeText: document.getElementById('company-long-desc-input').value, // Detaljno objašnjenje firme
+        input3: document.getElementById('contact-email-input').value, // Kontakt email
+        input4: document.getElementById('website-input').value, // Web adresa
+        input5: document.getElementById('additional-info-input').value, // Dodatno objašnjenje
         dropdown: document.getElementById('user-settings-dropdown').value
     };
 
@@ -156,21 +157,28 @@ document.getElementById('save-settings-button').addEventListener('click', () => 
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
-    .then(data => { showMessage('message', data.message, 'success'); })
+    .then(data => { 
+        showMessage('message', data.message, 'success'); 
+    })
     .catch(error => { 
         console.error("Greška pri čuvanju postavki:", error); 
         showMessage('message', "Greška prilikom čuvanja korisničkih postavki.", 'error'); 
     })
-    .finally(() => hideLoading('settings-loading'));
+    .finally(() => {
+        hideLoading('settings-loading');
+    });
 });
 
 document.getElementById('load-settings-button').addEventListener('click', () => {
-    if (!googleIdToken) { alert("Niste prijavljeni."); return; }
+    if (!googleIdToken) {
+        alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+        return;
+    }
 
     showLoading('settings-loading');
     hideMessage('message');
@@ -181,7 +189,7 @@ document.getElementById('load-settings-button').addEventListener('click', () => 
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
@@ -194,20 +202,22 @@ document.getElementById('load-settings-button').addEventListener('click', () => 
         document.getElementById('website-input').value = data.input4 || '';
         document.getElementById('additional-info-input').value = data.input5 || '';
         document.getElementById('user-settings-dropdown').value = data.dropdown || '';
+        
         showMessage('message', data.message, 'success');
     })
     .catch(error => { 
         console.error("Greška pri učitavanju postavki:", error); 
         showMessage('message', "Greška prilikom učitavanja korisničkih postavki.", 'error'); 
     })
-    .finally(() => hideLoading('settings-loading'));
+    .finally(() => {
+        hideLoading('settings-loading');
+    });
 });
 
-// --- Signout ---
 document.getElementById('signout-button').addEventListener('click', () => {
     googleIdToken = null;
     userName = null;
-    userProfileImage = null;
+    userProfilePic = null;
     updateUIForLoggedOutUser();
 
     fetch(`${BACKEND_URL}/logout`, {
@@ -225,7 +235,8 @@ document.getElementById('signout-button').addEventListener('click', () => {
     });
 });
 
-// --- Job functions ---
+// --- Functions for jobs (renamed from "potkategorija") ---
+
 function clearJobForm() {
     document.getElementById('job-title').value = '';
     document.getElementById('job-short-desc').value = '';
@@ -233,7 +244,7 @@ function clearJobForm() {
     document.getElementById('job-checkbox').checked = false;
 }
 
-function showJobForm(job = {}) {
+function showJobForm(job = {}) { 
     document.getElementById('job-form').style.display = 'block';
     currentJobId = job.id;
     document.getElementById('current-job-id').textContent = job.id;
@@ -243,18 +254,23 @@ function showJobForm(job = {}) {
     document.getElementById('job-checkbox').checked = job.is_active;
 }
 
-// --- Save & Cancel Job ---
 document.getElementById('cancel-job-edit-button').addEventListener('click', () => {
     document.getElementById('job-form').style.display = 'none';
     clearJobForm();
     currentJobId = null;
-    document.getElementById('current-job-id').textContent = "Nijedan";
+    document.getElementById('current-job-id').textContent = "Nijedan"; 
     hideMessage('job-message');
 });
 
 document.getElementById('save-job-button').addEventListener('click', () => {
-    if (!googleIdToken) { alert("Niste prijavljeni."); return; }
-    if (!currentJobId) { showMessage('job-message', "Nije odabran posao za čuvanje.", 'error'); return; }
+    if (!googleIdToken) {
+        alert("Niste prijavljeni.");
+        return;
+    }
+    if (!currentJobId) {
+        showMessage('job-message', "Nije odabran posao za čuvanje.", 'error');
+        return;
+    }
 
     showLoading('job-details-loading');
     hideMessage('job-message');
@@ -267,45 +283,51 @@ document.getElementById('save-job-button').addEventListener('click', () => {
         is_active: document.getElementById('job-checkbox').checked
     };
 
-    fetch(`${BACKEND_URL}/subcategories/${currentJobId}`, {
+    const url = `${BACKEND_URL}/subcategories/${currentJobId}`; // Backend i dalje koristi 'subcategories'
+
+    fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
         body: JSON.stringify(jobData)
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
         showMessage('job-message', data.message, 'success');
-        loadJobs(true);
+        loadJobs(true); // Re-load job list and re-select the one that was just saved
     })
     .catch(error => { 
         console.error("Greška pri čuvanju posla:", error); 
         showMessage('job-message', "Greška prilikom čuvanja posla.", 'error'); 
     })
-    .finally(() => hideLoading('job-details-loading'));
+    .finally(() => {
+        hideLoading('job-details-loading');
+    });
 });
 
-// --- Load Jobs ---
 document.getElementById('load-jobs-button').addEventListener('click', () => loadJobs());
 
 function loadJobs(reselect = false) {
-    if (!googleIdToken) { alert("Niste prijavljeni."); return; }
+    if (!googleIdToken) {
+        alert("Niste prijavljeni.");
+        return;
+    }
 
     showLoading('job-list-loading');
     hideMessage('job-message');
 
-    fetch(`${BACKEND_URL}/subcategories`, {
+    fetch(`${BACKEND_URL}/subcategories`, { // Backend i dalje koristi 'subcategories'
         method: 'GET',
         headers: { 'Authorization': `Bearer ${googleIdToken}` }
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
@@ -313,15 +335,18 @@ function loadJobs(reselect = false) {
     .then(data => {
         const jobListElement = document.getElementById('job-list');
         jobListElement.innerHTML = '';
+        
         let newlySelectedId = currentJobId;
 
-        if (data.status === 'success' && data.subcategories.length > 0) {
+        if (data.status === 'success' && data.subcategories.length > 0) { // Backend returns 'subcategories'
             data.subcategories.forEach(sub => {
                 const listItem = document.createElement('li');
                 listItem.className = 'job-list-item';
                 listItem.dataset.id = sub.id;
-                listItem.innerHTML = `<i class="fas fa-hand-pointer"></i> ${sub.name}`;
-                listItem.addEventListener('click', () => selectJob(sub.id));
+                listItem.innerHTML = `<i class="fas fa-hand-pointer"></i> ${sub.name}`; // Added icon
+                listItem.addEventListener('click', () => {
+                    selectJob(sub.id);
+                });
                 jobListElement.appendChild(listItem);
             });
             showMessage('job-message', "Poslovi uspešno učitani.", 'success');
@@ -329,23 +354,29 @@ function loadJobs(reselect = false) {
             showMessage('job-message', "Nema sačuvanih poslova.", 'info');
         }
 
-        if (reselect && newlySelectedId) selectJob(newlySelectedId);
-        else {
+        if (reselect && newlySelectedId) {
+            selectJob(newlySelectedId);
+        } else {
             currentJobId = null;
-            document.getElementById('current-job-id').textContent = "Nijedan";
+            document.getElementById('current-job-id').textContent = "Nijedan"; 
             document.getElementById('job-form').style.display = 'none';
             clearJobForm();
         }
     })
-    .catch(error => {
-        console.error("Greška pri učitavanju poslova:", error);
-        showMessage('job-message', "Greška prilikom učitavanja poslova.", 'error');
+    .catch(error => { 
+        console.error("Greška pri učitavanju poslova:", error); 
+        showMessage('job-message', "Greška prilikom učitavanja poslova.", 'error'); 
     })
-    .finally(() => hideLoading('job-list-loading'));
+    .finally(() => {
+        hideLoading('job-list-loading');
+    });
 }
 
 function selectJob(jobId) {
-    document.querySelectorAll('.job-list-item').forEach(item => item.classList.remove('selected'));
+    document.querySelectorAll('.job-list-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+
     const selectedItem = document.querySelector(`.job-list-item[data-id="${jobId}"]`);
     if (selectedItem) {
         selectedItem.classList.add('selected');
@@ -354,37 +385,42 @@ function selectJob(jobId) {
 }
 
 function loadJobDetails(jobId) {
-    if (!googleIdToken) { alert("Niste prijavljeni."); return; }
+    if (!googleIdToken) {
+        alert("Niste prijavljeni.");
+        return;
+    }
 
     showLoading('job-details-loading');
     hideMessage('job-message');
 
-    fetch(`${BACKEND_URL}/subcategories/${jobId}`, {
+    fetch(`${BACKEND_URL}/subcategories/${jobId}`, { // Backend i dalje koristi 'subcategories'
         method: 'GET',
         headers: { 'Authorization': `Bearer ${googleIdToken}` }
     })
     .then(response => {
         if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla."); updateUIForLoggedOutUser(); }
+            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        if (data.status === 'success' && data.subcategory) {
-            showJobForm(data.subcategory);
+        if (data.status === 'success' && data.subcategory) { // Backend returns 'subcategory'
+            showJobForm(data.subcategory); 
             showMessage('job-message', `Posao "${data.subcategory.name}" učitan.`, 'info');
         } else {
             showMessage('job-message', "Posao nije pronađen.", 'error');
             document.getElementById('job-form').style.display = 'none';
             clearJobForm();
             currentJobId = null;
-            document.getElementById('current-job-id').textContent = "Nijedan";
+            document.getElementById('current-job-id').textContent = "Nijedan"; 
         }
     })
-    .catch(error => {
-        console.error("Greška pri učitavanju detalja posla:", error);
-        showMessage('job-message', "Greška prilikom učitavanja detalja posla.", 'error');
+    .catch(error => { 
+        console.error("Greška pri učitavanju detalja posla:", error); 
+        showMessage('job-message', "Greška prilikom učitavanja detalja posla.", 'error'); 
     })
-    .finally(() => hideLoading('job-details-loading'));
+    .finally(() => {
+        hideLoading('job-details-loading');
+    });
 }
