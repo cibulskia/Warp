@@ -250,7 +250,7 @@ function loadSubcategoriesFromBackend(reselect = false) {
                 });
                 subcategoryListElement.appendChild(listItem);
             });
-            document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
+            document.getElementById('subcategory-message').textContent = "Lista Poslova Uspešno Učitana.";
         } else {
             document.getElementById('subcategory-message').textContent = "Nema sačuvanih potkategorija.";
         }
