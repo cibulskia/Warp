@@ -132,6 +132,7 @@
         .subcategory-list-item {
             padding: 10px 15px;
             border-bottom: 1px solid #eee;
+            /* Removed cursor: pointer; to indicate non-interactiveness */
             text-align: left;
             display: flex;
             flex-direction: column; 
@@ -142,35 +143,36 @@
             border-bottom: none;
         }
 
-        /* Removed .subcategory-list-item.selected as items are not interactive */
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
 
         .subcategory-item-name {
             font-weight: bold;
             margin-bottom: 5px; 
-            color: #0056b3; /* Added some style for the name */
         }
 
         /* Styles for individual spreadsheet data boxes */
-        /* Each data box represents a single cell's content */
-        .spreadsheet-data-box {
+        .spreadsheet-data-field { /* Changed class name for clarity */
             background-color: #f8f9fa;
             border: 1px solid #e2e6ea;
             border-radius: 4px;
             padding: 8px 12px;
-            margin-bottom: 5px; /* Spacing between data boxes for cells */
+            margin-bottom: 5px; /* Spacing between fields */
             font-size: 0.9em;
             color: #343a40;
-            width: calc(100% - 24px); /* Account for padding */
+            width: calc(100% - 24px); 
             box-sizing: border-box;
             word-wrap: break-word; 
         }
-        .spreadsheet-data-box:last-child {
-            margin-bottom: 0; /* No margin after the last data box in a list item */
+        .spreadsheet-data-field:last-child {
+            margin-bottom: 0;
         }
 
-        /* The checkbox container is hidden as per original CSS */
         .checkbox-container {
-            display: none; 
+            display: none; /* Hide checkbox container completely */
         }
         
         #subcategory-form {
@@ -270,8 +272,8 @@
 
     <script>
         const BACKEND_URL = 'https://botanica.ngrok.app';
-        const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_Pdfpqibta76JnjO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv'; // Vaš URL
-        
+        const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
+
         let googleIdToken = null;
         let userName = null;
         let userProfilePicUrl = null;
@@ -284,7 +286,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                // Split by newline for rows, then by comma for cells. Trim whitespace.
+                // Split by newline for rows, then by comma for cells
                 spreadsheetData = csvText.split('\n').map(row => row.split(',').map(cell => cell.trim())); 
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
             } catch (error) {
@@ -359,7 +361,6 @@
                 profilePicPlaceholder.style.display = 'block';
             }
             
-            // Clear main data fields on login
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
@@ -381,17 +382,17 @@
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null;
-            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Clear session cookie
-            document.getElementById('subcategory-list').innerHTML = ''; // Clear subcategory list
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
-            document.getElementById('profile-picture').src = ''; // Clear profile picture
+            document.getElementById('profile-picture').src = '';
         }
 
         window.onload = function() {
             fetchSpreadsheetData().then(() => {
-                updateUIForLoggedOutUser(); // Initial state is logged out
+                updateUIForLoggedOutUser();
             });
         };
 
@@ -500,7 +501,7 @@
             })
             .then(data => {
                 const subcategoryListElement = document.getElementById('subcategory-list');
-                subcategoryListElement.innerHTML = ''; // Clear existing list items
+                subcategoryListElement.innerHTML = '';
                 
                 if (data.status === 'success' && data.subcategories.length > 0) {
                     data.subcategories.forEach(sub => {
@@ -519,11 +520,12 @@
 
                             rowData.forEach((cellContent, index) => {
                                 // Skip empty cells and the first cell (which might be the "name" already in sub.name)
+                                // Now, each non-empty cell will get its own 'spreadsheet-data-field'
                                 if (cellContent && index > 0) { 
-                                    const dataBox = document.createElement('div');
-                                    dataBox.className = 'spreadsheet-data-box';
-                                    dataBox.textContent = cellContent;
-                                    listItem.appendChild(dataBox);
+                                    const dataField = document.createElement('div'); // Changed from dataBox to dataField
+                                    dataField.className = 'spreadsheet-data-field'; // Changed class name
+                                    dataField.textContent = cellContent;
+                                    listItem.appendChild(dataField);
                                 }
                             });
                         }
