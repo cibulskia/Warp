@@ -217,7 +217,7 @@
         }
 
         // Funkcija za obradu Google kredencijala
-        function handleCredentialResponse(response) {
+        async function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
             googleIdToken = response.credential;
 
@@ -225,37 +225,67 @@
             userName = payload.name;
             userProfilePicUrl = payload.picture;
 
-            fetch(`${BACKEND_URL}/verify-google-login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_token: googleIdToken })
-            })
-            .then(response => {
-                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log("Login successful on backend:", data);
-                    updateUIForLoggedInUser();
-                    loadSpreadsheetData(); // Učitaj podatke iz tabele nakon uspešne prijave
+            try {
+                // 1. Verifikacija prijave na backendu
+                const verifyResponse = await fetch(`${BACKEND_URL}/verify-google-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_token: googleIdToken })
+                });
+
+                if (!verifyResponse.ok) {
+                    throw new Error(`HTTP error! status: ${verifyResponse.status}`);
+                }
+                const verifyData = await verifyResponse.json();
+
+                if (verifyData.status === 'success') {
+                    console.log("Login successful on backend:", verifyData);
+                    updateUIForLoggedInUser(); // Ažuriraj UI za prijavljenog korisnika
+
+                    // 2. Učitaj korisničke podatke sa backend-a
+                    const loadResponse = await fetch(`${BACKEND_URL}/load-data`, {
+                        method: 'GET',
+                        headers: { 'Authorization': `Bearer ${googleIdToken}` }
+                    });
+
+                    if (!loadResponse.ok) {
+                        if (loadResponse.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                        throw new Error(`HTTP error! status: ${loadResponse.status}`);
+                    }
+                    const userData = await loadResponse.json();
+
+                    // Popuni polja sa učitanim podacima
+                    document.getElementById('input1').value = userData.input1 || '';
+                    document.getElementById('input2').value = userData.input2 || '';
+                    document.getElementById('large-text-input').value = userData.largeText || '';
+                    document.getElementById('input3').value = userData.input3 || '';
+                    document.getElementById('input4').value = userData.input4 || '';
+                    document.getElementById('input5').value = userData.input5 || '';
+                    document.getElementById('dropdown-input').value = userData.dropdown || '';
+                    document.getElementById('message').textContent = userData.message || "Podaci uspešno učitani.";
+
+                    // 3. Učitaj podatke iz Google Spreadsheeta
+                    await loadSpreadsheetData(); 
+                    
+                    // 4. Prikaz podataka u sekciji sa podacima na osnovu input5
+                    displayDataSectionRows();
+
                 } else {
-                    console.error("Backend login failed:", data.message);
-                    alert("Login failed: " + data.message);
+                    console.error("Backend login failed:", verifyData.message);
+                    alert("Login failed: " + verifyData.message);
                     googleIdToken = null;
                     userName = null;
                     userProfilePicUrl = null;
                     updateUIForLoggedOutUser();
                 }
-            })
-            .catch(error => {
-                console.error("Error during backend login verification:", error);
-                alert("An error occurred during login. Please try again.");
+            } catch (error) {
+                console.error("Error during login process:", error);
+                alert("Došlo je do greške prilikom prijave. Molimo pokušajte ponovo.");
                 googleIdToken = null;
                 userName = null;
                 userProfilePicUrl = null;
                 updateUIForLoggedOutUser();
-            });
+            }
         }
 
         // Funkcija za ažuriranje UI-ja za prijavljenog korisnika
@@ -274,12 +304,13 @@
                 profilePicElement.style.display = 'none';
             }
             
+            // Očisti polja, biće popunjena sa učitanim podacima ako postoje
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
             document.getElementById('input3').value = "";
             document.getElementById('input4').value = "";
-            document.getElementById('input5').value = ""; // Očisti polje za redove sekcije sa podacima
+            document.getElementById('input5').value = ""; 
             document.getElementById('dropdown-input').value = "";
 
             // Očisti polja sekcije sa podacima
@@ -322,7 +353,6 @@
                 // Jednostavno parsiranje CSV-a po linijama
                 spreadsheetData = csvText.split('\n').map(row => row.split(','));
                 console.log("Spreadsheet data loaded:", spreadsheetData);
-                // Nema potrebe da se odmah renderuje, jer se renderuje na osnovu input5 polja
             } catch (error) {
                 console.error("Error loading spreadsheet data:", error);
                 document.getElementById('message').textContent = "Greška prilikom učitavanja podataka iz tabele.";
@@ -350,9 +380,12 @@
         // Pozovi ovu funkciju na početku da osiguraš ispravan UI
         window.onload = function() {
             updateUIForLoggedOutUser();
-            // Učitaj spreadsheet podatke odmah pri učitavanju stranice
-            // da bi bili dostupni kada se korisnik prijavi i učita svoje podatke.
-            // Ova linija je već bila tu i ispravna je.
+            // Spreadsheet podaci se sada učitavaju nakon uspešne prijave, 
+            // ali je dobro da se učitaju i pri prvom učitavanju stranice 
+            // ako želimo da omogucimo sidebar i pre prijave.
+            // Međutim, ako je namera da se sidebar prikazuje tek nakon prijave
+            // i učitavanja korisničkih podataka, onda ova linija ovde nije neophodna.
+            // Za sada je uklanjam jer je logika da se sve pokreće nakon prijave.
             // loadSpreadsheetData(); 
         };
 
@@ -393,24 +426,24 @@
         });
 
         // Event listener za "Učitaj Podatke"
-        document.getElementById('load-button').addEventListener('click', () => {
+        document.getElementById('load-button').addEventListener('click', async () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
             }
 
-            fetch(`${BACKEND_URL}/load-data`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
+            try {
+                const response = await fetch(`${BACKEND_URL}/load-data`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${googleIdToken}` }
+                });
+
                 if (!response.ok) {
                     if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.json();
-            })
-            .then(data => {
+                const data = await response.json();
+
                 document.getElementById('input1').value = data.input1 || '';
                 document.getElementById('input2').value = data.input2 || '';
                 document.getElementById('large-text-input').value = data.largeText || '';
@@ -421,10 +454,13 @@
                 
                 document.getElementById('message').textContent = data.message;
 
-                // Prikaz podataka iz Spreadsheeta u sekciji sa podacima nakon učitavanja korisničkih podataka
+                // Učitaj podatke iz Spreadsheeta i prikaži u sekciji sa podacima
+                await loadSpreadsheetData();
                 displayDataSectionRows();
-            })
-            .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
+            } catch (error) { 
+                console.error("Error loading data:", error); 
+                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; 
+            }
         });
 
         // Event listener za promene u input5 polju (za dinamičko ažuriranje sekcije sa podacima)
