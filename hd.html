@@ -374,7 +374,7 @@
                         foundData = true;
                         const dataHtml = `
                             <div class="spreadsheet-data-item">
-                                <p>${rowData.join(', ')}</p>
+                                <p>${rowData.join('<br>')}</p>
                             </div>
                         `;
                         spreadsheetContentDiv.innerHTML += dataHtml;
