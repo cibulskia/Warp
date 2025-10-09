@@ -86,6 +86,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #007bff;
+            display: none; /* Sakrij dok se ne učita */
         }
 
         #user-name {
@@ -160,24 +161,39 @@
         let userName = null;
         let userProfilePicture = null;
 
+        // Funkcija za dekodovanje JWT tokena (jednostavna, za frontend prikaz)
+        function decodeJwtResponse(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
         function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
             googleIdToken = response.credential;
 
+            // Dekodiraj token na frontendu da dobiješ ime i sliku
+            const tokenPayload = decodeJwtResponse(googleIdToken);
+            userName = tokenPayload.name;
+            userProfilePicture = tokenPayload.picture;
+
+            // Pošalji ID token na backend radi verifikacije i backend logike
             fetch(`${BACKEND_URL}/verify-google-login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_token: googleIdToken })
             })
-            .then(response => {
-                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                return response.json();
+            .then(backendResponse => {
+                if (!backendResponse.ok) { throw new Error(`HTTP error! status: ${backendResponse.status}`); }
+                return backendResponse.json();
             })
             .then(data => {
                 if (data.status === 'success') {
                     console.log("Login successful on backend:", data);
-                    userName = data.user_name;
-                    userProfilePicture = data.profile_picture; // Preuzimanje profilne slike
+                    // Opciono, backend može da vrati potvrdjeno ime, ali mi koristimo ono iz tokena za UI
                     updateUIForLoggedInUser();
                     loadData(); // Automatsko učitavanje podataka nakon prijave
                 } else {
@@ -204,7 +220,15 @@
             document.querySelector('.g_id_signin').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('user-name').textContent = userName;
-            document.getElementById('user-profile-picture').src = userProfilePicture; // Postavljanje profilne slike
+            
+            const profilePictureElement = document.getElementById('user-profile-picture');
+            if (userProfilePicture) {
+                profilePictureElement.src = userProfilePicture;
+                profilePictureElement.style.display = 'block'; // Prikazi sliku
+            } else {
+                profilePictureElement.style.display = 'none'; // Sakrij ako nema slike
+            }
+
             document.getElementById('message').textContent = "";
             
             // Očisti sva polja prilikom prijave
@@ -223,6 +247,7 @@
             document.getElementById('app-content').style.display = 'none';
             document.getElementById('user-name').textContent = "";
             document.getElementById('user-profile-picture').src = ""; // Uklanjanje slike
+            document.getElementById('user-profile-picture').style.display = 'none'; // Sakrij sliku
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             googleIdToken = null;
             userName = null;
