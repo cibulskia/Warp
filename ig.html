@@ -64,7 +64,6 @@
             box-sizing: border-box;
         }
 
-        /* All subcategory detail fields are now always readonly and styled as such */
         #subcategory-name,
         #subcategory-short-desc,
         #subcategory-long-desc {
@@ -121,7 +120,7 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 300px;
+            max-height: 500px; /* Povećana visina za više pravougaonika */
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 4px;
@@ -132,7 +131,6 @@
         .subcategory-list-item {
             padding: 10px 15px;
             border-bottom: 1px solid #eee;
-            /* Removed cursor: pointer; to indicate non-interactiveness */
             text-align: left;
             display: flex;
             flex-direction: column; 
@@ -143,36 +141,26 @@
             border-bottom: none;
         }
 
-        .subcategory-list-item.selected {
-            background-color: #e0f2ff;
-            border-left: 3px solid #007bff;
-            font-weight: bold;
-        }
-
         .subcategory-item-name {
             font-weight: bold;
             margin-bottom: 5px; 
+            color: #007bff; /* Boja za ime podkategorije */
         }
 
-        /* Styles for individual spreadsheet data boxes */
-        .spreadsheet-data-field { /* Changed class name for clarity */
+        .spreadsheet-data-box {
             background-color: #f8f9fa;
             border: 1px solid #e2e6ea;
             border-radius: 4px;
             padding: 8px 12px;
-            margin-bottom: 5px; /* Spacing between fields */
+            margin-bottom: 5px;
             font-size: 0.9em;
             color: #343a40;
             width: calc(100% - 24px); 
             box-sizing: border-box;
             word-wrap: break-word; 
         }
-        .spreadsheet-data-field:last-child {
+        .spreadsheet-data-box:last-child {
             margin-bottom: 0;
-        }
-
-        .checkbox-container {
-            display: none; /* Hide checkbox container completely */
         }
         
         #subcategory-form {
@@ -286,7 +274,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                // Split by newline for rows, then by comma for cells
+                // Split by newline, then each row by comma. Trim whitespace from cells.
                 spreadsheetData = csvText.split('\n').map(row => row.split(',').map(cell => cell.trim())); 
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
             } catch (error) {
@@ -361,6 +349,7 @@
                 profilePicPlaceholder.style.display = 'block';
             }
             
+            // Clear main data fields on login/refresh if they were previously filled
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
@@ -382,9 +371,10 @@
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null;
-            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategory-list').innerHTML = '';
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Clear session cookie
+            document.getElementById('subcategory-list').innerHTML = ''; // Clear subcategory list
 
+            // Clear profile picture
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
             document.getElementById('profile-picture').src = '';
@@ -392,7 +382,7 @@
 
         window.onload = function() {
             fetchSpreadsheetData().then(() => {
-                updateUIForLoggedOutUser();
+                updateUIForLoggedOutUser(); // Ensure UI is logged out initially
             });
         };
 
@@ -518,23 +508,28 @@
                             const rowNumber = parseInt(rowNumberMatch[0], 10);
                             const rowData = getSpreadsheetRowData(rowNumber); 
 
+                            // Display each non-empty cell from the row (excluding the first if it's the name)
                             rowData.forEach((cellContent, index) => {
-                                // Skip empty cells and the first cell (which might be the "name" already in sub.name)
-                                // Now, each non-empty cell will get its own 'spreadsheet-data-field'
-                                if (cellContent && index > 0) { 
-                                    const dataField = document.createElement('div'); // Changed from dataBox to dataField
-                                    dataField.className = 'spreadsheet-data-field'; // Changed class name
-                                    dataField.textContent = cellContent;
-                                    listItem.appendChild(dataField);
+                                // Assuming the first column in the spreadsheet might also be the subcategory name
+                                // We display all cells, letting the user define what's important.
+                                if (cellContent) { 
+                                    const dataBox = document.createElement('div');
+                                    dataBox.className = 'spreadsheet-data-box';
+                                    dataBox.textContent = cellContent;
+                                    listItem.appendChild(dataBox);
                                 }
                             });
                         }
                         subcategoryListElement.appendChild(listItem);
                     });
-                } 
+                } else {
+                    // If no subcategories or an error, clear the list
+                    subcategoryListElement.innerHTML = '<li>Nema pronađenih potkategorija.</li>';
+                }
             })
             .catch(error => { 
                 console.error("Error loading subcategories:", error); 
+                document.getElementById('subcategory-list').innerHTML = '<li>Greška prilikom učitavanja potkategorija.</li>';
             });
         }
     </script>
