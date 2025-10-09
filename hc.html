@@ -129,9 +129,8 @@
             text-align: left;
             transition: background-color 0.2s ease;
             display: flex;
-            flex-direction: column; /* Changed to column to stack spreadsheet data */
-            justify-content: flex-start; /* Align items to start for column layout */
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .subcategory-list-item:last-child {
@@ -202,24 +201,23 @@
         }
 
         .spreadsheet-data-display {
-            font-size: 0.85em;
-            color: #555;
-            margin-top: 5px;
-            padding-left: 10px;
-            border-left: 2px solid #ccc;
-            width: 100%; /* Ensure it takes full width */
-            box-sizing: border-box; /* Include padding and border in width */
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            text-align: left;
         }
-        .spreadsheet-data-display p {
-            margin: 2px 0;
-            white-space: nowrap; /* Prevent text wrapping for single lines */
-            overflow: hidden; /* Hide overflow */
-            text-overflow: ellipsis; /* Add ellipsis if text overflows */
+        .spreadsheet-data-display h3 {
+            color: #007bff;
+            margin-bottom: 10px;
         }
-        .subcategory-name-display {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+        .spreadsheet-data-item {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            white-space: pre-wrap; /* Preserve line breaks */
+            word-wrap: break-word; /* Break long words */
         }
     </style>
 </head>
@@ -237,6 +235,13 @@
             </div>
             <textarea id="sidebar-large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..."></textarea>
             <textarea id="sidebar-large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..."></textarea>
+            
+            <div class="spreadsheet-data-display">
+                <h3>Podaci iz Spreadsheeta:</h3>
+                <div id="spreadsheet-content">
+                    <!-- Spreadsheet data will be loaded here -->
+                </div>
+            </div>
         </div>
 
         <div class="container">
@@ -309,95 +314,74 @@
         </div>
     </div>
 
-    <!-- Existing app.js script. You might need to integrate parts of the script below into it -->
-    <script src="app.js"></script> 
-    
+    <script src="app.js"></script>
     <script>
-        // Global variable to store spreadsheet data
-        let spreadsheetHeaders = [];
-        let spreadsheetDataRows = []; // Stores data rows, excluding headers
+        // Define the spreadsheet URL globally
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv";
+        let spreadsheetData = []; // To store the parsed CSV data
 
-        // Function to fetch and parse spreadsheet data
+        // Function to fetch and parse the CSV data
         async function fetchSpreadsheetData() {
             try {
                 const response = await fetch(SPREADSHEET_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
                 const csvText = await response.text();
-                // Split by new line, filter out empty rows, then split each row by comma
-                const rows = csvText.split('\n').filter(row => row.trim() !== '').map(row => row.split(',').map(cell => cell.trim()));
-                
-                if (rows.length > 0) {
-                    spreadsheetHeaders = rows[0]; // First row is headers
-                    spreadsheetDataRows = rows.slice(1); // Remaining rows are data
-                } else {
-                    spreadsheetHeaders = [];
-                    spreadsheetDataRows = [];
-                }
-                
-                console.log("Spreadsheet headers loaded:", spreadsheetHeaders);
-                console.log("Spreadsheet data rows loaded:", spreadsheetDataRows);
-
+                spreadsheetData = parseCSV(csvText);
+                console.log("Spreadsheet data loaded:", spreadsheetData);
             } catch (error) {
-                console.error("Failed to fetch spreadsheet data:", error);
+                console.error("Error fetching or parsing spreadsheet data:", error);
+                document.getElementById('spreadsheet-content').innerHTML = '<p style="color: red;">Greška pri učitavanju podataka iz spreadsheeta.</p>';
             }
         }
 
-        // Function to display spreadsheet data for visible subcategories
-        window.displaySpreadsheetDataForSubcategories = function() {
-            const subcategoryListElement = document.getElementById('subcategory-list');
-            const subcategoryItems = subcategoryListElement.querySelectorAll('.subcategory-list-item');
+        // Simple CSV parser
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const data = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    data.push(line.split(',').map(cell => cell.trim()));
+                }
+            }
+            return data;
+        }
 
-            if (!spreadsheetHeaders.length || !spreadsheetDataRows.length) {
-                console.warn("Spreadsheet data not loaded or is empty.");
-                subcategoryItems.forEach(item => {
-                    let spreadsheetDataDisplay = item.querySelector('.spreadsheet-data-display');
-                    if (!spreadsheetDataDisplay) {
-                        spreadsheetDataDisplay = document.createElement('div');
-                        spreadsheetDataDisplay.classList.add('spreadsheet-data-display');
-                        item.appendChild(spreadsheetDataDisplay);
-                    }
-                    spreadsheetDataDisplay.innerHTML = '<p>Nema dostupnih podataka iz tabele.</p>';
-                });
+        // Function to display spreadsheet data based on subcategory names
+        function displaySpreadsheetDataForSubcategories(subcategories) {
+            const spreadsheetContentDiv = document.getElementById('spreadsheet-content');
+            spreadsheetContentDiv.innerHTML = ''; // Clear previous content
+
+            if (spreadsheetData.length === 0) {
+                spreadsheetContentDiv.innerHTML = '<p>Nema dostupnih podataka iz spreadsheeta ili još nisu učitani.</p>';
                 return;
             }
 
-            subcategoryItems.forEach(item => {
-                // Get subcategory name from the data-name attribute
-                const subcategoryName = item.getAttribute('data-name');
-                
-                let spreadsheetDataDisplay = item.querySelector('.spreadsheet-data-display');
-                if (!spreadsheetDataDisplay) {
-                    spreadsheetDataDisplay = document.createElement('div');
-                    spreadsheetDataDisplay.classList.add('spreadsheet-data-display');
-                    item.appendChild(spreadsheetDataDisplay);
-                } else {
-                    spreadsheetDataDisplay.innerHTML = ''; // Clear previous data
-                }
+            let foundData = false;
+            subcategories.forEach(subcategory => {
+                const subcategoryName = subcategory.name;
+                const rowNumber = parseInt(subcategoryName, 10); // Try to parse subcategory name as a number
 
-                if (!subcategoryName) {
-                    spreadsheetDataDisplay.innerHTML += '<p>Nije pronađeno ime potkategorije.</p>';
-                    return;
-                }
-
-                // Find the row where the first column matches the subcategory name
-                const matchingRow = spreadsheetDataRows.find(row => row[0] === subcategoryName);
-
-                if (matchingRow) {
-                    let displayHtml = '';
-                    matchingRow.forEach((cell, index) => {
-                        if (spreadsheetHeaders[index]) { // Ensure header exists for this column
-                            displayHtml += `<p><strong>${spreadsheetHeaders[index]}:</strong> ${cell}</p>`;
-                        }
-                    });
-                    spreadsheetDataDisplay.innerHTML = displayHtml;
-                } else {
-                    spreadsheetDataDisplay.innerHTML += `<p>Nema odgovarajućih podataka za "${subcategoryName}".</p>`;
+                if (!isNaN(rowNumber) && rowNumber > 0 && rowNumber <= spreadsheetData.length) {
+                    // Adjust for 0-based indexing if row number is 1-based
+                    const rowData = spreadsheetData[rowNumber - 1]; 
+                    if (rowData) {
+                        foundData = true;
+                        const dataHtml = `
+                            <div class="spreadsheet-data-item">
+                                <h4>Podaci za "${subcategoryName}" (Red ${rowNumber}):</h4>
+                                <p>${rowData.join(', ')}</p>
+                            </div>
+                        `;
+                        spreadsheetContentDiv.innerHTML += dataHtml;
+                    }
                 }
             });
-        };
+
+            if (!foundData) {
+                spreadsheetContentDiv.innerHTML = '<p>Nije pronađen nijedan red u spreadsheetu koji odgovara imenu potkategorije.</p>';
+            }
+        }
+        window.displaySpreadsheetDataForSubcategories = displaySpreadsheetDataForSubcategories; // Expose to app.js
 
         // UI functions moved from original script
         function updateUIForLoggedInUser(userName, userProfilePicUrl) {
@@ -435,6 +419,11 @@
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
             clearSubcategoryForm();
             document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+
+            // Load spreadsheet data and subcategories when logged in
+            fetchSpreadsheetData().then(() => {
+                window.loadSubcategoriesFromBackend();
+            });
         }
 
         function updateUIForLoggedOutUser() {
@@ -447,19 +436,19 @@
             document.getElementById('subcategory-message').textContent = "";
             window.setCurrentSubcategoryId(null); // Use setter from app.js
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategory-list').innerHTML = ''; // Clear subcategory list
+            document.getElementById('subcategory-list').innerHTML = '';
+            document.getElementById('spreadsheet-content').innerHTML = ''; // Clear spreadsheet data
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
             document.getElementById('profile-picture').src = '';
         }
 
-        window.onload = async function() {
-            await fetchSpreadsheetData(); // Fetch spreadsheet data on load
+        window.onload = function() {
             updateUIForLoggedOutUser();
         };
 
-        // --- Event Listeners ---
+        // Event Listeners
         document.getElementById('save-button').addEventListener('click', window.saveMainData);
         document.getElementById('load-button').addEventListener('click', window.loadMainData);
         document.getElementById('signout-button').addEventListener('click', window.signOutUser);
@@ -492,7 +481,7 @@
         });
 
         document.getElementById('create-subcategory-button').addEventListener('click', () => {
-            if (document.getElementById('app-content').style.display === 'none') { // Check login state indirectly
+            if (!window.getCurrentSubcategoryId() && !document.getElementById('g_id_onload').style.display === 'none') { // Check login state
                 alert("Niste prijavljeni.");
                 return;
             }
@@ -519,112 +508,30 @@
             const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
             window.deleteSubcategory(currentSubcategoryId);
         });
-        
-        // --- Critical Integration Point with app.js ---
-        // We need to ensure that when subcategories are loaded from the backend (presumably by app.js),
-        // our displaySpreadsheetDataForSubcategories function is called.
-        // We'll create a helper function that your app.js can call to render.
 
-        // THIS IS THE FUNCTION YOUR app.js SHOULD CALL TO RENDER SUBCATEGORIES
-        // It's exposed globally as `window.renderSubcategoriesAndDisplayData`
-        window.renderSubcategoriesAndDisplayData = function(subcategories) {
-            const listElement = document.getElementById('subcategory-list');
-            listElement.innerHTML = ''; // Clear existing list
+        document.getElementById('load-subcategories-button').addEventListener('click', () => window.loadSubcategoriesFromBackend());
 
-            subcategories.forEach(subcategory => {
-                const li = document.createElement('li');
-                li.className = 'subcategory-list-item';
-                li.setAttribute('data-id', subcategory.id);
-                li.setAttribute('data-name', subcategory.name); // Store name directly for easy access
-                li.innerHTML = `<span class="subcategory-name-display">${subcategory.name}</span>`; 
-                li.addEventListener('click', () => window.selectSubcategory(subcategory.id));
-                listElement.appendChild(li);
+        function loadSubcategories(reselect = false) {
+             window.loadSubcategoriesFromBackend(reselect);
+        }
+        window.loadSubcategories = loadSubcategories; // Expose to app.js
+
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
             });
-            // After all subcategories are rendered, display the spreadsheet data
-            window.displaySpreadsheetDataForSubcategories();
-        };
 
-        // You will likely have a `window.loadSubcategoriesFromBackend` in your app.js.
-        // It should fetch the subcategories and then call `window.renderSubcategoriesAndDisplayData`.
-        // If it doesn't exist or isn't structured this way, you'll need to adapt it.
-
-        // Example: If your app.js `loadSubcategoriesFromBackend` looks like this:
-        /*
-        window.loadSubcategoriesFromBackend = async function(reselect = false) {
-            try {
-                const response = await fetch('/api/subcategories'); // Replace with your actual endpoint
-                if (!response.ok) throw new Error('Failed to fetch subcategories');
-                const subcategories = await response.json();
-                
-                // Instead of rendering directly, call our helper
-                window.renderSubcategoriesAndDisplayData(subcategories);
-
-                if (reselect && subcategories.length > 0) {
-                    window.selectSubcategory(subcategories[0].id);
-                }
-            } catch (error) {
-                console.error("Error loading subcategories:", error);
-                document.getElementById('subcategory-message').textContent = "Greška pri učitavanju potkategorija.";
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                window.loadSubcategoryDetailsFromBackend(subcategoryId);
             }
-        };
-        */
-        // MAKE SURE YOUR app.js IS UPDATED TO CALL `window.renderSubcategoriesAndDisplayData`
-
-        // Initial call for loading subcategories when the app content is shown (after login)
-        // This is handled in updateUIForLoggedInUser, it should trigger loadSubcategoriesFromBackend
-        // which then calls renderSubcategoriesAndDisplayData.
-
-        // Dummy `selectSubcategory` and `loadSubcategoryDetailsFromBackend` for completeness if not in app.js
-        if (!window.selectSubcategory) {
-            window.selectSubcategory = function(subcategoryId) {
-                console.log("Selected subcategory:", subcategoryId);
-                document.querySelectorAll('.subcategory-list-item').forEach(item => {
-                    item.classList.remove('selected');
-                });
-                const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
-                if (selectedItem) {
-                    selectedItem.classList.add('selected');
-                    // In a real app, this would fetch details from your backend
-                    // window.loadSubcategoryDetailsFromBackend(subcategoryId);
-                    document.getElementById('current-subcategory-id').textContent = subcategoryId;
-                    document.getElementById('subcategory-message').textContent = `Učitani detalji za potkategoriju ID: ${subcategoryId}`;
-                    // For demo, populate form with dummy data or from spreadsheet if available
-                    const subcategoryName = selectedItem.getAttribute('data-name');
-                    document.getElementById('subcategory-name').value = subcategoryName;
-                    document.getElementById('subcategory-short-desc').value = "Kratak opis za " + subcategoryName;
-                    document.getElementById('subcategory-long-desc').value = "Dugačak opis za " + subcategoryName + ". Ovo je samo primer.";
-                    document.getElementById('subcategory-checkbox').checked = (parseInt(subcategoryId) % 2 === 0); // Example active status
-                    showSubcategoryForm({ id: subcategoryId, name: subcategoryName, short_description: "Kratak opis za " + subcategoryName, long_description: "Dugačak opis za " + subcategoryName + ". Ovo je samo primer.", is_active: (parseInt(subcategoryId) % 2 === 0)});
-                }
-            };
         }
+        window.selectSubcategory = selectSubcategory; // Expose to app.js
 
-        // Dummy `loadSubcategoryDetailsFromBackend` if not present in app.js
-        if (!window.loadSubcategoryDetailsFromBackend) {
-            window.loadSubcategoryDetailsFromBackend = async function(subcategoryId) {
-                console.log(`Fetching details for subcategory ID: ${subcategoryId}`);
-                // Simulate fetching details
-                const subcategory = {
-                    id: subcategoryId,
-                    name: `Potkategorija ${subcategoryId}`,
-                    short_description: `Kratak opis za ${subcategoryId}`,
-                    long_description: `Ovo je detaljan opis za potkategoriju ${subcategoryId}.`,
-                    is_active: (parseInt(subcategoryId) % 2 === 0)
-                };
-                window.showSubcategoryForm(subcategory);
-                document.getElementById('subcategory-message').textContent = `Detalji za potkategoriju "${subcategory.name}" učitani.`;
-            };
-        }
-
-        // Dummy for `window.getCurrentSubcategoryId`, `saveMainData`, `loadMainData`, `signOutUser`, `saveSubcategory`, `deleteSubcategory` if not in app.js
-        if (!window.getCurrentSubcategoryId) window.getCurrentSubcategoryId = () => { /* implement in app.js */ return null; };
-        if (!window.saveMainData) window.saveMainData = () => { console.log("Main data saved (dummy)"); document.getElementById('message').textContent = "Glavni podaci sačuvani!"; };
-        if (!window.loadMainData) window.loadMainData = () => { console.log("Main data loaded (dummy)"); document.getElementById('message').textContent = "Glavni podaci učitani!"; };
-        if (!window.signOutUser) window.signOutUser = () => { console.log("User signed out (dummy)"); updateUIForLoggedOutUser(); };
-        if (!window.saveSubcategory) window.saveSubcategory = (data, isNew, id) => { console.log("Subcategory saved (dummy)", data, isNew, id); document.getElementById('subcategory-message').textContent = `Potkategorija "${data.name}" ${isNew ? 'kreirana' : 'sačuvana'}!`; window.loadSubcategories(); };
-        if (!window.deleteSubcategory) window.deleteSubcategory = (id) => { console.log("Subcategory deleted (dummy)", id); document.getElementById('subcategory-message').textContent = `Potkategorija ID "${id}" obrisana!`; window.loadSubcategories(); };
-        if (!window.setCurrentSubcategoryId) window.setCurrentSubcategoryId = (id) => { console.log("Set current subcategory ID (dummy):", id); /* actual implementation in app.js */ };
-
+        // Initial load for authentication status after app.js has loaded
+        // This is handled by window.onload = updateUIForLoggedOutUser;
+        // The GSI client will automatically call handleCredentialResponse if a session exists.
     </script>
 </body>
 </html>
