@@ -64,13 +64,6 @@
             box-sizing: border-box;
         }
 
-        #subcategory-name[readonly],
-        #subcategory-short-desc[readonly],
-        #subcategory-long-desc[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-        }
-
         textarea {
             resize: vertical;
             min-height: 100px;
@@ -128,45 +121,6 @@
             flex-grow: 1;
         }
 
-        .subcategory-list-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            text-align: left;
-            transition: background-color 0.2s ease;
-            display: flex;
-            flex-direction: column; 
-            align-items: flex-start; 
-        }
-
-        .subcategory-list-item:last-child {
-            border-bottom: none;
-        }
-
-        .subcategory-list-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .subcategory-list-item.selected {
-            background-color: #e0f2ff;
-            border-left: 3px solid #007bff;
-            font-weight: bold;
-        }
-
-        .subcategory-item-name {
-            font-weight: bold;
-            margin-bottom: 5px; 
-        }
-
-        .subcategory-item-spreadsheet-content {
-            font-size: 0.9em;
-            color: #555;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%; 
-        }
-
         .sidebar-header {
             display: flex;
             justify-content: space-between;
@@ -192,12 +146,13 @@
             border: 2px solid #ddd;
         }
 
+        /* New styles for individual spreadsheet rows */
         .spreadsheet-row-container {
             background-color: #f9f9f9;
             border: 1px solid #e0e0e0;
             border-radius: 5px;
             padding: 8px 12px;
-            margin-bottom: 8px; 
+            margin-bottom: 8px; /* Space between rows */
             font-size: 0.9em;
             color: #444;
             cursor: pointer;
@@ -220,9 +175,8 @@
     <div class="main-wrapper">
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
-                <h2>Potkategorije</h2>
+                <h2>Podaci sa Tabela</h2>
             </div>
-            <ul id="subcategory-list" class="subcategory-list"></ul>
             <div id="spreadsheet-rows-display" class="subcategory-list">
                 <!-- Spreadsheet rows will be dynamically inserted here -->
             </div>
@@ -300,32 +254,37 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
+                // Parse CSV - simple split by new line and then by comma
                 spreadsheetData = csvText.split('\n').map(row => row.split(','));
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
-                renderSpreadsheetRows();
+                renderSpreadsheetRows(); // Render rows after fetching
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
+                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka sa tabele.";
             }
         }
 
         function renderSpreadsheetRows() {
             const spreadsheetDisplayElement = document.getElementById('spreadsheet-rows-display');
-            spreadsheetDisplayElement.innerHTML = ''; 
+            spreadsheetDisplayElement.innerHTML = ''; // Clear previous rows
 
             if (spreadsheetData.length > 0) {
-                const startIndex = 1;
+                // Skip header row if present, assuming first row is header
+                const startIndex = 1; // Start from second row if first is header
                 for (let i = startIndex; i < spreadsheetData.length; i++) {
-                    const rowContent = spreadsheetData[i].join(', '); 
+                    const rowContent = spreadsheetData[i].join(', '); // Join all columns for the row
                     const rowElement = document.createElement('div');
                     rowElement.className = 'spreadsheet-row-container';
-                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; 
-                    rowElement.dataset.rowNumber = i + 1; 
+                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; // Display row number and content
+                    rowElement.dataset.rowNumber = i + 1; // Store original row number
 
                     rowElement.addEventListener('click', () => {
+                        // Optional: Highlight selected spreadsheet row
                         document.querySelectorAll('.spreadsheet-row-container').forEach(item => {
                             item.classList.remove('selected');
                         });
                         rowElement.classList.add('selected');
+                        // You could add logic here to use the selected spreadsheet row data
                         console.log("Selected spreadsheet row:", rowElement.dataset.rowNumber, rowContent);
                     });
 
@@ -357,7 +316,6 @@
             .then(data => {
                 if (data.status === 'success') {
                     updateUIForLoggedInUser();
-                    loadSubcategories();
                     loadMainData();
                 } else {
                     alert("Login failed: " + data.message);
@@ -406,8 +364,7 @@
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
 
-            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
-            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected'));
+            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); // Clear spreadsheet row selection
         }
 
         function updateUIForLoggedOutUser() {
@@ -421,8 +378,7 @@
             userName = null;
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategory-list').innerHTML = '';
-            document.getElementById('spreadsheet-rows-display').innerHTML = '';
+            document.getElementById('spreadsheet-rows-display').innerHTML = ''; // Clear spreadsheet rows on logout
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
@@ -522,82 +478,9 @@
             });
         });
 
-        function loadSubcategories() {
-            if (!googleIdToken) {
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/subcategories`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                const subcategoryListElement = document.getElementById('subcategory-list');
-                subcategoryListElement.innerHTML = '';
-                
-                if (data.status === 'success' && data.subcategories.length > 0) {
-                    data.subcategories.forEach(sub => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'subcategory-list-item';
-                        listItem.dataset.id = sub.id;
-
-                        const subcategoryNameSpan = document.createElement('span');
-                        subcategoryNameSpan.className = 'subcategory-item-name';
-                        subcategoryNameSpan.textContent = sub.name;
-                        listItem.appendChild(subcategoryNameSpan);
-
-                        // Display short description if available
-                        if (sub.short_description) {
-                            const shortDescSpan = document.createElement('span');
-                            shortDescSpan.className = 'subcategory-item-spreadsheet-content'; // Reusing style for consistency
-                            shortDescSpan.textContent = sub.short_description;
-                            listItem.appendChild(shortDescSpan);
-                        }
-                        
-                        // Display long description if available
-                        if (sub.long_description) {
-                            const longDescSpan = document.createElement('span');
-                            longDescSpan.className = 'subcategory-item-spreadsheet-content'; 
-                            longDescSpan.textContent = sub.long_description;
-                            listItem.appendChild(longDescSpan);
-                        }
-
-                        // Display active status
-                        const activeStatusSpan = document.createElement('span');
-                        activeStatusSpan.className = 'subcategory-item-spreadsheet-content';
-                        activeStatusSpan.textContent = `Aktivna: ${sub.is_active ? 'Da' : 'Ne'}`;
-                        listItem.appendChild(activeStatusSpan);
-
-                        listItem.addEventListener('click', () => {
-                            selectSubcategory(sub.id);
-                        });
-                        subcategoryListElement.appendChild(listItem);
-                    });
-                }
-            })
-            .catch(error => { 
-                console.error("Error loading subcategories:", error); 
-            });
-        }
-
-        function selectSubcategory(subcategoryId) {
-            document.querySelectorAll('.subcategory-list-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-
-            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
-                // No further details to load or display in a form, just highlighting
-            }
-        }
+        // The following functions related to subcategories (create, load, select, save, delete)
+        // are removed as per your request to simplify the sidebar to only show spreadsheet data.
+        // If you need to re-introduce subcategory management in the future, please add the relevant code back.
     </script>
 </body>
 </html>
