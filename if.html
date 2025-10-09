@@ -64,6 +64,15 @@
             box-sizing: border-box;
         }
 
+        /* Make subcategory form fields readonly and styled */
+        #subcategory-name,
+        #subcategory-short-desc,
+        #subcategory-long-desc,
+        #subcategory-checkbox {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
         textarea {
             resize: vertical;
             min-height: 100px;
@@ -113,14 +122,81 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 300px;
+            max-height: 300px; /* Adjusted for better visibility */
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 4px;
             margin-bottom: 15px;
             flex-grow: 1;
         }
-        
+
+        .subcategory-list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
+        .subcategory-item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subcategory-item-spreadsheet-content {
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        #subcategory-form {
+            text-align: left;
+        }
+
         .sidebar-header {
             display: flex;
             justify-content: space-between;
@@ -152,7 +228,7 @@
             border: 1px solid #e0e0e0;
             border-radius: 5px;
             padding: 8px 12px;
-            margin-bottom: 8px; /* Space between rows */
+            margin-bottom: 8px;
             font-size: 0.9em;
             color: #444;
             cursor: pointer;
@@ -169,14 +245,20 @@
             border-left: 3px solid #007bff;
             font-weight: bold;
         }
+        /* Hide subcategory action buttons */
+        #save-subcategory-button,
+        #cancel-subcategory-edit-button {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="main-wrapper">
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
-                <h2>Podaci sa tabele</h2>
+                <h2>Potkategorije</h2>
             </div>
+            <!-- Removed dynamic subcategory list, keeping only spreadsheet display -->
             <div id="spreadsheet-rows-display" class="subcategory-list">
                 <!-- Spreadsheet rows will be dynamically inserted here -->
             </div>
@@ -204,7 +286,24 @@
 
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <!-- Subcategory details section, now read-only and always visible when logged in -->
+                <div id="subcategory-details-section">
+                    <h2>Detalji Potkategorije</h2>
+                    <div id="subcategory-form" style="padding-top: 10px;">
+                        <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
+                        <input type="text" id="subcategory-short-desc" placeholder="Kratak opis" readonly>
+                        <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..." readonly></textarea>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="subcategory-checkbox" disabled> <!-- Disabled for read-only -->
+                            <label for="subcategory-checkbox">Aktivna potkategorija</label>
+                        </div>
+                        <!-- Removed save and cancel buttons for subcategory -->
+                    </div>
+                </div>
                 
+                <!-- Removed subcategory-message as it's no longer relevant for a read-only display -->
+
                 <div class="section-separator"></div>
 
                 <h2>Glavni Podaci</h2>
@@ -254,13 +353,12 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                // Parse CSV - simple split by new line and then by comma
                 spreadsheetData = csvText.split('\n').map(row => row.split(','));
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
-                renderSpreadsheetRows(); // Render rows after fetching
+                renderSpreadsheetRows();
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
-                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka sa tabele.";
+                // Removed subcategory-message as per request
             }
         }
 
@@ -269,23 +367,32 @@
             spreadsheetDisplayElement.innerHTML = ''; // Clear previous rows
 
             if (spreadsheetData.length > 0) {
-                // Skip header row if present, assuming first row is header
-                const startIndex = 1; // Start from second row if first is header
+                const startIndex = 1; // Assuming the first row is a header
                 for (let i = startIndex; i < spreadsheetData.length; i++) {
-                    const rowContent = spreadsheetData[i].join(', '); // Join all columns for the row
+                    const rowContent = spreadsheetData[i].join(', ');
                     const rowElement = document.createElement('div');
                     rowElement.className = 'spreadsheet-row-container';
-                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; // Display row number and content
-                    rowElement.dataset.rowNumber = i + 1; // Store original row number
+                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`;
+                    rowElement.dataset.rowNumber = i + 1;
 
                     rowElement.addEventListener('click', () => {
-                        // Optional: Highlight selected spreadsheet row
                         document.querySelectorAll('.spreadsheet-row-container').forEach(item => {
                             item.classList.remove('selected');
                         });
                         rowElement.classList.add('selected');
-                        // You could add logic here to use the selected spreadsheet row data
                         console.log("Selected spreadsheet row:", rowElement.dataset.rowNumber, rowContent);
+                        
+                        // Populate subcategory details section with selected spreadsheet row data
+                        // Assuming spreadsheet columns map to subcategory details:
+                        // [0] = Subcategory Name
+                        // [1] = Short Description
+                        // [2] = Long Description
+                        // [3] = Is Active (e.g., "TRUE" or "FALSE")
+                        const selectedRow = spreadsheetData[i];
+                        document.getElementById('subcategory-name').value = selectedRow[0] || '';
+                        document.getElementById('subcategory-short-desc').value = selectedRow[1] || '';
+                        document.getElementById('subcategory-long-desc').value = selectedRow[2] || '';
+                        document.getElementById('subcategory-checkbox').checked = (selectedRow[3] && selectedRow[3].toUpperCase() === 'TRUE');
                     });
 
                     spreadsheetDisplayElement.appendChild(rowElement);
@@ -364,7 +471,8 @@
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
 
-            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); // Clear spreadsheet row selection
+            clearSubcategoryForm(); // Clears subcategory display fields
+            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected'));
         }
 
         function updateUIForLoggedOutUser() {
@@ -378,11 +486,13 @@
             userName = null;
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('spreadsheet-rows-display').innerHTML = ''; // Clear spreadsheet rows on logout
+            document.getElementById('spreadsheet-rows-display').innerHTML = '';
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
             document.getElementById('profile-picture').src = '';
+
+            clearSubcategoryForm(); // Clear subcategory display on logout
         }
 
         window.onload = function() {
@@ -478,6 +588,12 @@
             });
         });
 
+        function clearSubcategoryForm() {
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('subcategory-checkbox').checked = false;
+        }
     </script>
 </body>
 </html>
