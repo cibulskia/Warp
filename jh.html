@@ -315,7 +315,7 @@
 
             // Očisti polja sekcije sa podacima
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`data-field-${i}`).innerHTML = '';
+                document.getElementById(`data-field-${i}`).innerHTML = ''; // Koristi innerHTML
             }
         }
 
@@ -338,7 +338,7 @@
 
             // Očisti polja sekcije sa podacima
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`data-field-${i}`).innerHTML = '';
+                document.getElementById(`data-field-${i}`).innerHTML = ''; // Koristi innerHTML
             }
         }
 
@@ -359,19 +359,19 @@
             }
         }
 
-        // Funkcija za prikaz redova u sekciji sa podacima - IZMENJENO
+        // Funkcija za prikaz redova u sekciji sa podacima - IZMENJENO: Koristi innerHTML
         function displayDataSectionRows() {
             const input5Value = document.getElementById('input5').value;
             const rowNumbers = input5Value.split(',').map(num => parseInt(num.trim(), 10)).filter(num => !isNaN(num) && num > 0);
 
             for (let i = 1; i <= 4; i++) {
                 const dataField = document.getElementById(`data-field-${i}`);
-                dataField.innerHTML = ''; // Očisti polje pre popunjavanja
+                dataField.innerHTML = ''; // Očisti polje pre popunjavanja (koristi innerHTML)
 
                 const rowIndex = rowNumbers[i - 1]; // Uzmi broj reda za i-to polje (1-bazirano)
                 if (rowIndex && spreadsheetData[rowIndex - 1]) { // rowIndex je 1-baziran, array je 0-baziran
                     const rowData = spreadsheetData[rowIndex - 1];
-                    // Prikazujemo svaki element reda u novom redu
+                    // Prikazujemo svaki element reda u novom redu koristeći <br> i innerHTML
                     dataField.innerHTML = `<strong>Red ${rowIndex}:</strong><br>` + rowData.map(item => `<span>${item.trim()}</span>`).join('<br>');
                 } else if (rowIndex) {
                     dataField.innerHTML = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
