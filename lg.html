@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Integrisana Aplikacija</title>
+  <link rel="stylesheet" href="stylesl.css" />
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="oath.js" defer></script> <!-- JS fajl -->
+</head>
+<body>
+  <div class="app-section">
+    <h1>CSV Prikaz sa Inputom i Dugmetom</h1>
+
+    <div class="sheet-buttons">
+      <button data-sheet="0">Sheet 1</button>
+      <button data-sheet="1">Sheet 2</button>
+      <button data-sheet="2">Sheet 3</button>
+      <button data-sheet="3">Sheet 4</button>
+      <button data-sheet="4">Sheet 5</button>
+    </div>
+
+    <div id="grid"></div>
+  </div>
+
+  <div class="oauth-app-container">
+    <div class="data-section">
+      <h2>Sadržaj Tabela</h2>
+      <div id="data-field-1" class="data-field"></div>
+      <div id="data-field-2" class="data-field"></div>
+      <div id="data-field-3" class="data-field"></div>
+      <div id="data-field-4" class="data-field"></div>
+    </div>
+
+    <div class="main-content">
+      <div class="app-section">
+        <h1>Moja Aplikacija</h1>
+
+        <div id="g_id_onload"
+             data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+             data-auto_select="true"
+             data-callback="handleCredentialResponse"
+             data-ux_mode="popup"
+             data-cancel_on_tap_outside="false"
+             data-context="use">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+
+        <div id="app-content" style="display: none;">
+          <img id="user-profile-pic" src="" alt="Profilna slika korisnika" style="display: none;">
+          <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+          <input type="text" id="input1" placeholder="Prvo polje za tekst">
+          <input type="text" id="input2" placeholder="Drugo polje za tekst">
+
+          <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+
+          <input type="text" id="input3" placeholder="Treće polje za tekst">
+          <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
+          <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
+
+          <select id="dropdown-input">
+            <option value="">Odaberite opciju</option>
+            <option value="opcija1">Opcija 1</option>
+            <option value="opcija2">Opcija 2</option>
+            <option value="opcija3">Opcija 3</option>
+          </select>
+
+          <button id="save-button">Sačuvaj Podatke</button>
+          <button id="load-button">Učitaj Podatke</button>
+          <p id="message"></p>
+          <button id="signout-button">Odjavi se</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
