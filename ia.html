@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth App (All in One)</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            max-width: 800px;
+        }
+
+        .subcategory-sidebar {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            flex-shrink: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* Onemogući uređivanje tekstualnih polja za potkategorije */
+        #subcategory-name[readonly],
+        #subcategory-short-desc[readonly],
+        #subcategory-long-desc[readonly] {
+            background-color: #e9ecef; /* Svetlosiva pozadina za readonly polja */
+            cursor: not-allowed;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #message, #subcategory-message {
+            margin-top: 20px;
+            color: #333;
+            min-height: 20px;
+        }
+
+        #user-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #signout-button {
+            background-color: #dc3545;
+        }
+
+        #signout-button:hover {
+            background-color: #c82333;
+        }
+
+        .section-separator {
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .subcategory-list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        #subcategory-form {
+            text-align: left;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+        }
+
+        #profile-picture-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- Subcategory Sidebar -->
+        <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2>Potkategorije</h2>
+            </div>
+            <ul id="subcategory-list" class="subcategory-list">
+                <!-- Potkategorije će biti dinamički dodate ovde -->
+            </ul>
+            <div class="subcategory-buttons">
+                <button id="load-subcategories-button">Učitaj Listu</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1>Moja Aplikacija</h1>
+
+            <!-- Google One Tap / Sign In Button -->
+            <div id="g_id_onload"
+                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                 data-auto_select="true"
+                 data-callback="handleCredentialResponse"
+                 data-ux_mode="popup"
+                 data-cancel_on_tap_outside="false"
+                 data-context="use">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+
+            <div id="app-content" style="display: none;">
+                <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <!-- Subcategory Details Section - Hidden -->
+                <div id="subcategory-details-section" style="display: none;">
+                    <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
+                    <div id="subcategory-form" style="padding-top: 10px;">
+                        <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
+                        <input type="text" id="subcategory-short-desc" placeholder="Kratak opis" readonly>
+                        <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..." readonly></textarea>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="subcategory-checkbox">
+                            <label for="subcategory-checkbox">Aktivna potkategorija</label>
+                        </div>
+                        
+                        <button id="save-subcategory-button">Sačuvaj Potkategoriju</button>
+                        <button id="cancel-subcategory-edit-button">Odustani</button>
+                    </div>
+                </div>
+                
+                <p id="subcategory-message"></p>
+
+                <div class="section-separator"></div>
+
+                <!-- Original Data Section -->
+                <h2>Glavni Podaci</h2>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
+                </div>
+                <input type="text" id="input1" placeholder="Prvo polje za tekst">
+                <input type="text" id="input2" placeholder="Drugo polje za tekst">
+                <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+                <input type="text" id="input3" placeholder="Treće polje za tekst">
+                <input type="text" id="input4" placeholder="Četvrto polje za tekst">
+                <input type="text" id="input5" placeholder="Peto polje za tekst">
+                <select id="dropdown-input">
+                    <option value="">Odaberite opciju</option>
+                    <option value="opcija1">Opcija 1</option>
+                    <option value="opcija2">Opcija 2</option>
+                    <option value="opcija3">Opcija 3</option>
+                </select>
+
+                <!-- Dodatna dva velika tekstualna polja -->
+                <textarea id="large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..."></textarea>
+                <textarea id="large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..."></textarea>
+
+                <button id="save-button">Sačuvaj Glavne Podatke</button>
+                <button id="load-button">Učitaj Glavne Podatke</button>
+                <p id="message"></p>
+
+                <div class="section-separator"></div>
+
+                <button id="signout-button">Odjavi se</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
+
+        let googleIdToken = null;
+        let userName = null;
+        let userProfilePicUrl = null; // Nova promenljiva za URL profilne slike
+        let currentSubcategoryId = null;
+
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+            googleIdToken = response.credential;
+
+            // Parsiranje JWT tokena za dobijanje podataka o korisniku, uključujući sliku
+            const tokenParts = googleIdToken.split('.');
+            const payload = JSON.parse(atob(tokenParts[1]));
+            userName = payload.name;
+            userProfilePicUrl = payload.picture; // Preuzimanje URL-a profilne slike
+
+            fetch(`${BACKEND_URL}/verify-google-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: googleIdToken })
+            })
+            .then(response => {
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log("Login successful on backend:", data);
+                    updateUIForLoggedInUser();
+                    loadSubcategories();
+                } else {
+                    console.error("Backend login failed:", data.message);
+                    alert("Login failed: " + data.message);
+                    googleIdToken = null;
+                    userName = null;
+                    userProfilePicUrl = null;
+                    updateUIForLoggedOutUser();
+                }
+            })
+            .catch(error => {
+                console.error("Error during backend login verification:", error);
+                alert("An error occurred during login. Please try again.");
+                googleIdToken = null;
+                userName = null;
+                userProfilePicUrl = null;
+                updateUIForLoggedOutUser();
+            });
+        }
+
+        function updateUIForLoggedInUser() {
+            document.getElementById('g_id_onload').style.display = 'none';
+            document.querySelector('.g_id_signin').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('subcategory-sidebar').style.display = 'flex';
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('message').textContent = "";
+            document.getElementById('subcategory-message').textContent = "";
+            
+            // Prikaz profilne slike
+            const profilePicElement = document.getElementById('profile-picture');
+            const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
+                profilePicElement.style.display = 'block';
+                profilePicPlaceholder.style.display = 'none';
+            } else {
+                profilePicElement.style.display = 'none';
+                profilePicPlaceholder.style.display = 'block';
+            }
+            
+            // Očisti sva polja prilikom prijave (glavni podaci)
+            document.getElementById('input1').value = "";
+            document.getElementById('input2').value = "";
+            document.getElementById('large-text-input').value = "";
+            document.getElementById('input3').value = "";
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = "";
+            document.getElementById('dropdown-input').value = "";
+            document.getElementById('large-text-input-2').value = ""; // Novo polje
+            document.getElementById('large-text-input-3').value = ""; // Novo polje
+
+
+            // Sakrij formu za potkategorije
+            document.getElementById('subcategory-details-section').style.display = 'none'; // SAKRIVEN CEO DEO
+            currentSubcategoryId = null;
+            document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            clearSubcategoryForm();
+            // Očisti selekciju u sidebar-u
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('g_id_onload').style.display = 'block';
+            document.querySelector('.g_id_signin').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+            document.getElementById('subcategory-sidebar').style.display = 'none';
+            document.getElementById('user-name').textContent = "";
+            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
+            document.getElementById('subcategory-message').textContent = "";
+            googleIdToken = null;
+            userName = null;
+            userProfilePicUrl = null; // Resetuj URL profilne slike
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
+
+            // Sakrij profilnu sliku i prikaži placeholder
+            document.getElementById('profile-picture').style.display = 'none';
+            document.getElementById('profile-picture-placeholder').style.display = 'block';
+            document.getElementById('profile-picture').src = '';
+        }
+
+        window.onload = function() {
+            updateUIForLoggedOutUser();
+        };
+
+        // --- Glavni podaci (postojeće funkcije, ažurirane za nova polja) ---
+        document.getElementById('save-button').addEventListener('click', () => {
+            if (!googleIdToken) {
+                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+                return;
+            }
+
+            const dataToSave = {
+                input1: document.getElementById('input1').value,
+                input2: document.getElementById('input2').value,
+                largeText: document.getElementById('large-text-input').value,
+                input3: document.getElementById('input3').value,
+                input4: document.getElementById('input4').value,
+                input5: document.getElementById('input5').value,
+                dropdown: document.getElementById('dropdown-input').value,
+                largeText2: document.getElementById('large-text-input-2').value, // Novo polje
+                largeText3: document.getElementById('large-text-input-3').value  // Novo polje
+            };
+
+            fetch(`${BACKEND_URL}/save-data`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
+                body: JSON.stringify(dataToSave)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => { document.getElementById('message').textContent = data.message; })
+            .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
+        });
+
+        document.getElementById('load-button').addEventListener('click', () => {
+            if (!googleIdToken) {
+                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+                return;
+            }
+
+            fetch(`${BACKEND_URL}/load-data`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('input1').value = data.input1 || '';
+                document.getElementById('input2').value = data.input2 || '';
+                document.getElementById('large-text-input').value = data.largeText || '';
+                document.getElementById('input3').value = data.input3 || '';
+                document.getElementById('input4').value = data.input4 || '';
+                document.getElementById('input5').value = data.input5 || '';
+                document.getElementById('dropdown-input').value = data.dropdown || '';
+                document.getElementById('large-text-input-2').value = data.largeText2 || ''; // Novo polje
+                document.getElementById('large-text-input-3').value = data.largeText3 || ''; // Novo polje
+                
+                document.getElementById('message').textContent = data.message;
+            })
+            .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
+        });
+
+        document.getElementById('signout-button').addEventListener('click', () => {
+            googleIdToken = null;
+            userName = null;
+            userProfilePicUrl = null; // Resetuj URL profilne slike
+            updateUIForLoggedOutUser();
+
+            fetch(`${BACKEND_URL}/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Backend logout response:", data.message);
+                alert("Uspešno ste se odjavili.");
+            })
+            .catch(error => {
+                console.error("Error during backend logout:", error);
+                alert("Došlo je do greške prilikom odjave sa servera.");
+            });
+        });
+
+        // --- Funkcije za potkategorije (prilagođene da se detalji ne prikazuju direktno) ---
+
+        function clearSubcategoryForm() {
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('subcategory-checkbox').checked = false;
+        }
+
+        // Ova funkcija više neće prikazivati formu, već će samo učitati podatke u pozadini
+        function showSubcategoryForm(subcategory = {}) {
+            // Document.getElementById('subcategory-form').style.display = 'block'; // Ovo se više ne koristi za prikaz
+            currentSubcategoryId = subcategory.id;
+            document.getElementById('current-subcategory-id').textContent = subcategory.id;
+            document.getElementById('subcategory-name').value = subcategory.name || '';
+            document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
+            document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
+            document.getElementById('subcategory-checkbox').checked = subcategory.is_active;
+            // Ne prikazuj formu ovde
+        }
+
+        document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
+            document.getElementById('subcategory-details-section').style.display = 'none'; // SAKRIJ ceo deo
+            clearSubcategoryForm();
+            currentSubcategoryId = null;
+            document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            document.getElementById('subcategory-message').textContent = "";
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected')); // Ukloni selekciju
+        });
+
+        document.getElementById('save-subcategory-button').addEventListener('click', () => {
+            if (!googleIdToken) {
+                alert("Niste prijavljeni.");
+                return;
+            }
+            if (!currentSubcategoryId) {
+                alert("Nije odabrana potkategorija za čuvanje.");
+                return;
+            }
+
+            const subcategoryData = {
+                id: currentSubcategoryId,
+                name: document.getElementById('subcategory-name').value, 
+                short_description: document.getElementById('subcategory-short-desc').value,
+                long_description: document.getElementById('subcategory-long-desc').value,
+                is_active: document.getElementById('subcategory-checkbox').checked
+            };
+
+            const url = `${BACKEND_URL}/subcategories/${currentSubcategoryId}`;
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
+                body: JSON.stringify(subcategoryData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('subcategory-message').textContent = data.message;
+                loadSubcategories(true); // Ponovo učitaj listu i re-selektuj
+                // Opcionalno, možete sakriti detalje nakon čuvanja
+                document.getElementById('subcategory-details-section').style.display = 'none';
+                clearSubcategoryForm();
+            })
+            .catch(error => { 
+                console.error("Error saving subcategory:", error); 
+                document.getElementById('subcategory-message').textContent = "Greška prilikom čuvanja potkategorije."; 
+            });
+        });
+
+        document.getElementById('load-subcategories-button').addEventListener('click', () => loadSubcategories());
+
+        function loadSubcategories(reselect = false) {
+            if (!googleIdToken) {
+                alert("Niste prijavljeni.");
+                return;
+            }
+
+            fetch(`${BACKEND_URL}/subcategories`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const subcategoryListElement = document.getElementById('subcategory-list');
+                subcategoryListElement.innerHTML = '';
+                
+                let newlySelectedId = currentSubcategoryId; // Sačuvaj trenutno selektovani ID
+
+                if (data.status === 'success' && data.subcategories.length > 0) {
+                    data.subcategories.forEach(sub => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'subcategory-list-item';
+                        listItem.dataset.id = sub.id;
+                        listItem.textContent = sub.name;
+                        listItem.addEventListener('click', () => {
+                            selectSubcategory(sub.id);
+                        });
+                        subcategoryListElement.appendChild(listItem);
+                    });
+                    document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
+                } else {
+                    document.getElementById('subcategory-message').textContent = "Nema sačuvanih potkategorija.";
+                }
+
+                if (reselect && newlySelectedId) {
+                    selectSubcategory(newlySelectedId); // Ponovo selektuj istu potkategoriju
+                } else {
+                    currentSubcategoryId = null;
+                    document.getElementById('current-subcategory-id').textContent = "Nijedna";
+                    document.getElementById('subcategory-details-section').style.display = 'none'; // SAKRIJ ceo deo
+                    clearSubcategoryForm();
+                }
+            })
+            .catch(error => { 
+                console.error("Error loading subcategories:", error); 
+                document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja potkategorija."; 
+            });
+        }
+
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                loadSubcategoryDetails(subcategoryId);
+                // Prikaži detalje sekciju kada se potkategorija selektuje
+                document.getElementById('subcategory-details-section').style.display = 'block'; 
+            }
+        }
+
+        function loadSubcategoryDetails(subcategoryId) {
+            if (!googleIdToken) {
+                alert("Niste prijavljeni.");
+                return;
+            }
+
+            fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success' && data.subcategory) {
+                    showSubcategoryForm(data.subcategory); // Ova funkcija samo popunjava, ne prikazuje
+                    document.getElementById('subcategory-message').textContent = `Potkategorija "${data.subcategory.name}" učitana.`;
+                } else {
+                    document.getElementById('subcategory-message').textContent = "Potkategorija nije pronađena.";
+                    document.getElementById('subcategory-details-section').style.display = 'none'; // SAKRIJ ako nije pronađena
+                    clearSubcategoryForm();
+                    currentSubcategoryId = null;
+                    document.getElementById('current-subcategory-id').textContent = "Nijedna";
+                }
+            })
+            .catch(error => { 
+                console.error("Error loading subcategory details:", error); 
+                document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja detalja potkategorije."; 
+            });
+        }
+    </script>
+</body>
+</html>
