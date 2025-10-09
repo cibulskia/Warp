@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prikaz Spreadsheet podataka</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+        .row { background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .row div { margin: 5px 0; }
+        .label { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>Podaci iz Google Spreadsheet</h1>
+
+<div id="container">
+    <!-- Redovi iz tabele će biti ubačeni ovde -->
+</div>
+
+<script>
+    // ID tvoje spreadsheet tabele (iz URL-a)
+    const spreadsheetId = '2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__';
+    
+    // Google Sheets JSON feed URL (publikovana tabela)
+    const url = `https://docs.google.com/spreadsheets/d/e/${spreadsheetId}/gviz/tq?tqx=out:json`;
+
+    fetch(url)
+        .then(res => res.text())
+        .then(data => {
+            // Google Sheets JSON je u funkciji, moramo da uklonimo početni "google.visualization.Query.setResponse(...)"
+            const json = JSON.parse(data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1));
+            
+            const rows = json.table.rows;
+            const container = document.getElementById('container');
+            
+            rows.forEach(row => {
+                const div = document.createElement('div');
+                div.className = 'row';
+                
+                row.c.forEach((cell, index) => {
+                    const cellDiv = document.createElement('div');
+                    const value = cell ? cell.v : ''; // ako je prazno
+                    cellDiv.innerHTML = `<span class="label">Kolona ${index+1}:</span> ${value}`;
+                    div.appendChild(cellDiv);
+                });
+                
+                container.appendChild(div);
+            });
+        })
+        .catch(err => console.error('Greška pri učitavanju podataka:', err));
+</script>
+
+</body>
+</html>
