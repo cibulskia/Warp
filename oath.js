@@ -1,368 +1,268 @@
-const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
+/* oath.js
+   Sadrži:
+   - Google One Tap / GSI inicijalizaciju i handler za credential response
+   - Funkcije koje komuniciraju sa backendom (placeholders / primeri sa fetch)
+   - Funkcije koje upravljaju trenutnim ID-jem potkategorije (get/set)
+   - Izvodi (exports) na window namespace koji se pozivaju iz glavnog HTML/JS
+*/
 
-let googleIdToken = null;
-let userName = null;
-let userProfilePicUrl = null; 
+/* ====== CONFIG ====== */
+// Promeni na svoj backend URL kada bude spremno:
+const BACKEND_BASE_URL = "https://tvoj-backend.example.com/api"; // <-- zameni sa stvarnim
+const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"; // <-- zameni sa stvarnim
+
+/* ====== Interni state ====== */
+let authToken = null; // token dobijen od backend-a (session) ili id-token iz Google-a
 let currentSubcategoryId = null;
 
+/* ====== Google Identity Services inicijalizacija ====== */
 function handleCredentialResponse(response) {
-    console.log("Encoded JWT ID token: " + response.credential);
-    googleIdToken = response.credential;
-
-    const tokenParts = googleIdToken.split('.');
-    const payload = JSON.parse(atob(tokenParts[1]));
-    userName = payload.name;
-    userProfilePicUrl = payload.picture;
-
-    fetch(`${BACKEND_URL}/verify-google-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_token: googleIdToken })
-    })
-    .then(response => {
-        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-        return response.json();
-    })
-    .then(data => {
-        if (data.status === 'success') {
-            console.log("Login successful on backend:", data);
-            updateUIForLoggedInUser();
-            loadSubcategories();
-            loadMainData(); 
-        } else {
-            console.error("Backend login failed:", data.message);
-            alert("Login failed: " + data.message);
-            googleIdToken = null;
-            userName = null;
-            userProfilePicUrl = null;
-            updateUIForLoggedOutUser();
-        }
-    })
-    .catch(error => {
-        console.error("Error during backend login verification:", error);
-        alert("An error occurred during login. Please try again.");
-        googleIdToken = null;
-        userName = null;
-        userProfilePicUrl = null;
-        updateUIForLoggedOutUser();
-    });
-}
-
-function updateUIForLoggedInUser() {
-    document.getElementById('g_id_onload').style.display = 'none';
-    document.querySelector('.g_id_signin').style.display = 'none';
-    document.getElementById('app-content').style.display = 'block';
-    document.getElementById('subcategory-sidebar').style.display = 'flex';
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('message').textContent = "";
-    document.getElementById('subcategory-message').textContent = "";
-    
-    const profilePicElement = document.getElementById('profile-picture');
-    const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
-    if (userProfilePicUrl) {
-        profilePicElement.src = userProfilePicUrl;
-        profilePicElement.style.display = 'block';
-        profilePicPlaceholder.style.display = 'none';
-    } else {
-        profilePicElement.style.display = 'none';
-        profilePicPlaceholder.style.display = 'block';
-    }
-    
-    document.getElementById('input1').value = "";
-    document.getElementById('input2').value = "";
-    document.getElementById('large-text-input').value = "";
-    document.getElementById('input3').value = "";
-    document.getElementById('input4').value = "";
-    document.getElementById('input5').value = "";
-    document.getElementById('dropdown-input').value = "";
-    document.getElementById('large-text-input-2').value = ""; 
-    document.getElementById('large-text-input-3').value = ""; 
-
-    document.getElementById('subcategory-details-section').style.display = 'none'; 
-    currentSubcategoryId = null;
-    document.getElementById('current-subcategory-id').textContent = "Nijedna";
-    clearSubcategoryForm();
-    document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
-}
-
-function updateUIForLoggedOutUser() {
-    document.getElementById('g_id_onload').style.display = 'block';
-    document.querySelector('.g_id_signin').style.display = 'block';
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('subcategory-sidebar').style.display = 'none';
-    document.getElementById('user-name').textContent = "";
-    document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-    document.getElementById('subcategory-message').textContent = "";
-    googleIdToken = null;
-    userName = null;
-    userProfilePicUrl = null; 
-    document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.getElementById('subcategory-list').innerHTML = '';
-
-    document.getElementById('profile-picture').style.display = 'none';
-    document.getElementById('profile-picture-placeholder').style.display = 'block';
-    document.getElementById('profile-picture').src = '';
-}
-
-window.onload = function() {
-    updateUIForLoggedOutUser();
-};
-
-// --- Glavni podaci ---
-document.getElementById('save-button').addEventListener('click', () => {
-    if (!googleIdToken) {
-        alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+    // response.credential sadrži JWT ID token od Google-a
+    // Pošaljemo ga backendu da ga backend verifikuje i otvori session
+    if (!response || !response.credential) {
+        console.warn("Nema credential-a od GSI.");
         return;
     }
 
-    const dataToSave = {
-        input1: document.getElementById('input1').value,
-        input2: document.getElementById('input2').value,
-        largeText: document.getElementById('large-text-input').value,
-        input3: document.getElementById('input3').value,
-        input4: document.getElementById('input4').value,
-        input5: document.getElementById('input5').value,
-        dropdown: document.getElementById('dropdown-input').value,
-        largeText2: document.getElementById('large-text-input-2').value, 
-        largeText3: document.getElementById('large-text-input-3').value  
+    // Example: pogodak na backend za prijavu
+    fetch(`${BACKEND_BASE_URL}/auth/google`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id_token: response.credential })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Autentikacija nije uspela na backendu.");
+        return res.json();
+    })
+    .then(data => {
+        // backend može vratiti svoj session token (npr. JWT)
+        authToken = data.token || null;
+
+        // backend može vratiti i ime / profil: u ovom primeru pretpostavljamo da
+        // vratni objekat ima { user: { name, picture } }
+        const userName = data.user?.name || "Nepoznati";
+        const userPicture = data.user?.picture || null;
+
+        // Pozovemo UI funkciju iz glavnog fajla koja će prikazati aplikaciju
+        if (window.updateUIForLoggedInUser) {
+            window.updateUIForLoggedInUser(userName, userPicture);
+        } else {
+            console.warn("updateUIForLoggedInUser nije pronađen na window-u.");
+        }
+    })
+    .catch(err => {
+        console.error("Greška pri autentikaciji:", err);
+        alert("Greška pri prijavi. Proverite konzolu za detalje.");
+    });
+}
+
+function initGSI() {
+    if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
+        console.warn("GSI (google.accounts.id) nije dostupan. Proveri da li je uključen <script src=\"https://accounts.google.com/gsi/client\" async defer></script> u HTML-u.");
+        return;
+    }
+
+    google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        // opcije: auto_select, cancel_on_tap_outside, itd.
+    });
+
+    // Prikaži dugme za sign-in (možeš ciljano promeniti element ID)
+    google.accounts.id.renderButton(
+        document.getElementById("g_id_signin_button") || document.querySelector(".g_id_signin"),
+        { theme: "outline", size: "large" }
+    );
+
+    // Option: prikaz One Tap
+    // google.accounts.id.prompt(); // aktiviraj ako želiš One Tap
+}
+
+/* ====== Backend komunikacione funkcije (primeri) ====== */
+
+// Helper za autorizovani fetch
+function authFetch(path, opts = {}) {
+    const headers = opts.headers || {};
+    headers["Content-Type"] = headers["Content-Type"] || "application/json";
+    if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+    const newOpts = Object.assign({}, opts, { headers });
+    return fetch(`${BACKEND_BASE_URL}${path}`, newOpts)
+        .then(res => {
+            if (!res.ok) {
+                // pokušaj parsirati JSON grešku
+                return res.json().then(j => { throw j; }).catch(() => { throw new Error("Network error"); });
+            }
+            return res.json();
+        });
+}
+
+// Primer: sačuvaj glavne podatke (poziv iz UI)
+function saveMainData() {
+    // U praksi prikupi podatke iz DOM-a pre slanja.
+    const payload = {
+        // primer podataka
+        timestamp: Date.now()
     };
 
-    fetch(`${BACKEND_URL}/save-data`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
-        body: JSON.stringify(dataToSave)
+    return authFetch("/main/save", {
+        method: "POST",
+        body: JSON.stringify(payload)
     })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
+    .then(r => {
+        console.log("Sačuvano na backendu:", r);
+        alert("Podaci uspešno sačuvani.");
+        return r;
     })
-    .then(data => { document.getElementById('message').textContent = data.message; })
-    .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
-});
+    .catch(e => {
+        console.error("Greška pri čuvanju:", e);
+        alert("Greška pri čuvanju podataka.");
+        throw e;
+    });
+}
 
+// Primer: učitaj podatke
 function loadMainData() {
-    if (!googleIdToken) {
-        return;
-    }
-
-    fetch(`${BACKEND_URL}/load-data`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${googleIdToken}` }
+    return authFetch("/main/load", { method: "GET" })
+    .then(r => {
+        console.log("Učitano sa backend-a:", r);
+        // Prosledi podatke UI-ju ako treba
+        // Možeš pozvati window.someHandler(...) ovde
+        return r;
     })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        document.getElementById('input1').value = data.input1 || '';
-        document.getElementById('input2').value = data.input2 || '';
-        document.getElementById('large-text-input').value = data.largeText || '';
-        document.getElementById('input3').value = data.input3 || '';
-        document.getElementById('input4').value = data.input4 || '';
-        document.getElementById('input5').value = data.input5 || '';
-        document.getElementById('dropdown-input').value = data.dropdown || '';
-        document.getElementById('large-text-input-2').value = data.largeText2 || ''; 
-        document.getElementById('large-text-input-3').value = data.largeText3 || ''; 
-        
-        document.getElementById('message').textContent = data.message;
-    })
-    .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
-}
-
-document.getElementById('signout-button').addEventListener('click', () => {
-    googleIdToken = null;
-    userName = null;
-    userProfilePicUrl = null; 
-    updateUIForLoggedOutUser();
-
-    fetch(`${BACKEND_URL}/logout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Backend logout response:", data.message);
-        alert("Uspešno ste se odjavili.");
-    })
-    .catch(error => {
-        console.error("Error during backend logout:", error);
-        alert("Došlo je do greške prilikom odjave sa servera.");
+    .catch(e => {
+        console.error("Greška pri učitavanju:", e);
+        alert("Greška pri učitavanju podataka.");
+        throw e;
     });
-});
-
-// --- Funkcije za potkategorije ---
-
-function clearSubcategoryForm() {
-    document.getElementById('subcategory-name').value = '';
-    document.getElementById('subcategory-short-desc').value = '';
-    document.getElementById('subcategory-long-desc').value = '';
-    document.getElementById('subcategory-checkbox').checked = false;
 }
 
-function showSubcategoryForm(subcategory = {}) {
-    currentSubcategoryId = subcategory.id;
-    document.getElementById('current-subcategory-id').textContent = subcategory.id;
-    document.getElementById('subcategory-name').value = subcategory.name || '';
-    document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
-    document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
-    document.getElementById('subcategory-checkbox').checked = subcategory.is_active;
+// Sign out
+function signOutUser() {
+    // Pozovi backend da ugasi session, ako postoji
+    if (authToken) {
+        return fetch(`${BACKEND_BASE_URL}/auth/logout`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({})
+        }).catch(err => console.warn("Greška pri logout pozivu:", err));
+    } else {
+        // ako nema tokena, jednostavno resetuj UI state
+        if (window.updateUIForLoggedOutUser) window.updateUIForLoggedOutUser();
+        return Promise.resolve();
+    }
 }
 
-document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
-    document.getElementById('subcategory-details-section').style.display = 'none'; 
-    clearSubcategoryForm();
-    currentSubcategoryId = null;
-    document.getElementById('current-subcategory-id').textContent = "Nijedna";
-    document.getElementById('subcategory-message').textContent = "";
-    document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected')); 
-});
+/* ====== Potkategorije: save / delete / load ====== */
 
-document.getElementById('save-subcategory-button').addEventListener('click', () => {
-    if (!googleIdToken) {
-        alert("Niste prijavljeni.");
-        return;
-    }
-    if (!currentSubcategoryId) {
-        alert("Nije odabrana potkategorija za čuvanje.");
-        return;
-    }
-
-    const subcategoryData = {
-        id: currentSubcategoryId,
-        name: document.getElementById('subcategory-name').value, 
-        short_description: document.getElementById('subcategory-short-desc').value,
-        long_description: document.getElementById('subcategory-long-desc').value,
-        is_active: document.getElementById('subcategory-checkbox').checked
-    };
-
-    const url = `${BACKEND_URL}/subcategories/${currentSubcategoryId}`;
-
-    fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
+function saveSubcategory(subcategoryData, isNew = true, id = null) {
+    const path = isNew ? "/subcategories" : `/subcategories/${id}`;
+    const method = isNew ? "POST" : "PUT";
+    return authFetch(path, {
+        method,
         body: JSON.stringify(subcategoryData)
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        document.getElementById('subcategory-message').textContent = data.message;
-        loadSubcategories(true); 
-        document.getElementById('subcategory-details-section').style.display = 'none';
-        clearSubcategoryForm();
-    })
-    .catch(error => { 
-        console.error("Error saving subcategory:", error); 
-        document.getElementById('subcategory-message').textContent = "Greška prilikom čuvanja potkategorije."; 
+    }).then(res => {
+        console.log("saveSubcategory:", res);
+        if (window.loadSubcategoriesFromBackend) window.loadSubcategoriesFromBackend(false);
+        return res;
+    }).catch(err => {
+        console.error("Greška pri čuvanju potkategorije:", err);
+        alert("Greška pri čuvanju potkategorije.");
+        throw err;
     });
-});
+}
 
-function loadSubcategories(reselect = false) {
-    if (!googleIdToken) {
-        return;
+function deleteSubcategory(id) {
+    if (!id) {
+        alert("Nije selektovana potkategorija za brisanje.");
+        return Promise.reject(new Error("No id"));
     }
+    return authFetch(`/subcategories/${id}`, { method: "DELETE" })
+    .then(res => {
+        console.log("deleteSubcategory:", res);
+        if (window.loadSubcategoriesFromBackend) window.loadSubcategoriesFromBackend(false);
+        return res;
+    }).catch(err => {
+        console.error("Greška pri brisanju:", err);
+        alert("Greška pri brisanju potkategorije.");
+        throw err;
+    });
+}
 
-    fetch(`${BACKEND_URL}/subcategories`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${googleIdToken}` }
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        const subcategoryListElement = document.getElementById('subcategory-list');
-        subcategoryListElement.innerHTML = '';
-        
-        let newlySelectedId = currentSubcategoryId; 
-
-        if (data.status === 'success' && data.subcategories.length > 0) {
-            data.subcategories.forEach(sub => {
-                const listItem = document.createElement('li');
-                listItem.className = 'subcategory-list-item';
-                listItem.dataset.id = sub.id;
-                listItem.textContent = sub.name;
-                listItem.addEventListener('click', () => {
-                    selectSubcategory(sub.id);
+function loadSubcategoriesFromBackend(reselect = false) {
+    return authFetch("/subcategories", { method: "GET" })
+    .then(res => {
+        // očekujemo niz potkategorija
+        const list = res.subcategories || res; // fallback
+        // renderuj u DOM (ako u UI postoji handler)
+        if (window.renderSubcategoryList) {
+            window.renderSubcategoryList(list, reselect);
+        } else {
+            // fallback rendering ako nema renderSubcategoryList
+            const container = document.getElementById('subcategory-list');
+            if (container) {
+                container.innerHTML = '';
+                list.forEach(s => {
+                    const li = document.createElement('div');
+                    li.className = 'subcategory-list-item';
+                    li.dataset.id = s.id;
+                    li.textContent = s.name || `Potkategorija ${s.id}`;
+                    li.addEventListener('click', () => {
+                        if (window.selectSubcategory) window.selectSubcategory(s.id);
+                    });
+                    container.appendChild(li);
                 });
-                subcategoryListElement.appendChild(listItem);
-            });
-            document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
-        } else {
-            document.getElementById('subcategory-message').textContent = "Nema sačuvanih potkategorija.";
+            }
         }
-
-        if (reselect && newlySelectedId) {
-            selectSubcategory(newlySelectedId); 
-        } else {
-            currentSubcategoryId = null;
-            document.getElementById('current-subcategory-id').textContent = "Nijedna";
-            document.getElementById('subcategory-details-section').style.display = 'none'; 
-            clearSubcategoryForm();
-        }
+        return list;
     })
-    .catch(error => { 
-        console.error("Error loading subcategories:", error); 
-        document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja potkategorija."; 
+    .catch(err => {
+        console.error("Greška pri učitavanju potkategorija:", err);
+        throw err;
     });
 }
 
-function selectSubcategory(subcategoryId) {
-    document.querySelectorAll('.subcategory-list-item').forEach(item => {
-        item.classList.remove('selected');
-    });
-
-    const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
-    if (selectedItem) {
-        selectedItem.classList.add('selected');
-        loadSubcategoryDetails(subcategoryId);
-        document.getElementById('subcategory-details-section').style.display = 'block'; 
-    }
-}
-
-function loadSubcategoryDetails(subcategoryId) {
-    if (!googleIdToken) {
-        return;
-    }
-
-    fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${googleIdToken}` }
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-            throw new Error(`HTTP error! status: ${response.status}`);
+function loadSubcategoryDetailsFromBackend(subcategoryId) {
+    if (!subcategoryId) return Promise.reject(new Error("subcategoryId required"));
+    return authFetch(`/subcategories/${subcategoryId}`, { method: "GET" })
+    .then(res => {
+        if (window.showSubcategoryForm) {
+            window.showSubcategoryForm(res);
         }
-        return response.json();
+        return res;
     })
-    .then(data => {
-        if (data.status === 'success' && data.subcategory) {
-            showSubcategoryForm(data.subcategory); 
-            document.getElementById('subcategory-message').textContent = `Potkategorija "${data.subcategory.name}" učitana.`;
-        } else {
-            document.getElementById('subcategory-message').textContent = "Potkategorija nije pronađena.";
-            document.getElementById('subcategory-details-section').style.display = 'none'; 
-            clearSubcategoryForm();
-            currentSubcategoryId = null;
-            document.getElementById('current-subcategory-id').textContent = "Nijedna";
-        }
-    })
-    .catch(error => { 
-        console.error("Error loading subcategory details:", error); 
-        document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja detalja potkategorije."; 
+    .catch(err => {
+        console.error("Greška pri učitavanju detalja:", err);
+        throw err;
     });
 }
+
+/* ====== Current subcategory getters/setters (window API) ====== */
+function setCurrentSubcategoryId(id) {
+    currentSubcategoryId = id;
+}
+function getCurrentSubcategoryId() {
+    return currentSubcategoryId;
+}
+
+/* ====== Expose to window so glavni HTML/JS može da ih pozove ====== */
+window.initGSI = initGSI;
+window.saveMainData = saveMainData;
+window.loadMainData = loadMainData;
+window.signOutUser = function() {
+    // lokalni cleanup UI i token
+    authToken = null;
+    currentSubcategoryId = null;
+    if (window.updateUIForLoggedOutUser) window.updateUIForLoggedOutUser();
+    // pokušaj backend logout
+    signOutUser();
+};
+window.saveSubcategory = saveSubcategory;
+window.deleteSubcategory = deleteSubcategory;
+window.loadSubcategoriesFromBackend = loadSubcategoriesFromBackend;
+window.loadSubcategoryDetailsFromBackend = loadSubcategoryDetailsFromBackend;
+window.setCurrentSubcategoryId = setCurrentSubcategoryId;
+window.getCurrentSubcategoryId = getCurrentSubcategoryId;
+
+/* ====== Auto inicijalizacija ako je potrebno - pozovi iz HTML-a posle učitavanja google script-a ====== */
