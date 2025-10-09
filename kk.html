@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CSV prikaz sa inputom, checkbox-om i dugmetom</title>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <style>
+    body { 
+      font-family: Arial, sans-serif;
+      padding: 20px; 
+      background-color: #f4f4f4; 
+      margin: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .sheet-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-buttons button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .sheet-buttons button:hover {
+      background-color: #218838;
+    }
+
+    #grid { 
+      display: grid; 
+      grid-template-columns: repeat(6, 1fr); /* 5 kolona + input + checkbox + dugme */
+      gap: 12px; 
+      align-items: center;
+    }
+
+    .header-cell {
+      font-weight: bold;
+      text-align: center;
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .cell, .input-cell, .checkbox-cell, .button-cell { 
+      background-color: #f8f9fa; 
+      padding: 12px;
+      border-radius: 8px;
+      word-break: break-word; 
+      border: 1px solid #ddd;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    .cell {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .cell a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .cell a:hover {
+      text-decoration: underline;
+    }
+
+    .input-cell input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .checkbox-cell input[type="checkbox"] {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-cell button {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-cell button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 900px) {
+      #grid { grid-template-columns: repeat(1, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CSV Prikaz sa Inputom, Checkbox-om i Dugmetom</h1>
+
+    <div class="sheet-buttons">
+      <button data-sheet="0">Sheet 1</button>
+      <button data-sheet="1">Sheet 2</button>
+      <button data-sheet="2">Sheet 3</button>
+      <button data-sheet="3">Sheet 4</button>
+      <button data-sheet="4">Sheet 5</button>
+    </div>
+
+    <div id="grid"></div>
+  </div>
+
+  <script>
+    const SHEETS = [
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET2/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET3/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET4/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET5/pub?output=csv"
+    ];
+
+    const gridEl = document.getElementById('grid');
+    const sheetButtons = document.querySelectorAll('.sheet-buttons button');
+    let currentSheetIndex = 0;
+
+    async function loadCSV(sheetIndex) {
+      const CSV_URL = SHEETS[sheetIndex];
+      gridEl.innerHTML = ''; // očisti prethodni grid
+      try {
+        const res = await fetch(CSV_URL, { cache: "no-store" });
+        const text = await res.text();
+        const parsed = Papa.parse(text, { skipEmptyLines: true });
+        const rows = parsed.data;
+
+        if (rows.length === 0) return;
+
+        const fragment = document.createDocumentFragment();
+
+        // Dodaj naslove kolona (prvih 5 kolona)
+        for (let i = 0; i < 5; i++) {
+          const headerCell = document.createElement('div');
+          headerCell.className = 'header-cell';
+          headerCell.textContent = rows[0][i] || `Kolona ${i+1}`;
+          fragment.appendChild(headerCell);
+        }
+
+        // Naslov za input, checkbox i dugme
+        const inputHeader = document.createElement('div');
+        inputHeader.className = 'header-cell';
+        inputHeader.textContent = 'Unos';
+        fragment.appendChild(inputHeader);
+
+        const checkboxHeader = document.createElement('div');
+        checkboxHeader.className = 'header-cell';
+        checkboxHeader.textContent = 'Izaberi';
+        fragment.appendChild(checkboxHeader);
+
+        const buttonHeader = document.createElement('div');
+        buttonHeader.className = 'header-cell';
+        buttonHeader.textContent = 'Akcija';
+        fragment.appendChild(buttonHeader);
+
+        // Ostale redove
+        for (let r = 1; r < rows.length; r++) { // preskoči header
+          const row = rows[r];
+          for (let i = 0; i < 5; i++) {
+            const div = document.createElement('div');
+            div.className = 'cell';
+            const cellValue = row[i] || '';
+            const urlPattern = /^https?:\/\//i;
+            if (urlPattern.test(cellValue.trim())) {
+              const link = document.createElement('a');
+              link.href = cellValue.trim();
+              link.textContent = "PDF";
+              link.target = "_blank";
+              div.appendChild(link);
+            } else {
+              div.textContent = cellValue;
+            }
+            fragment.appendChild(div);
+          }
+
+          // Input polje
+          const inputDiv = document.createElement('div');
+          inputDiv.className = 'input-cell';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Unesi tekst...';
+          inputDiv.appendChild(input);
+          fragment.appendChild(inputDiv);
+
+          // Checkbox
+          const checkboxDiv = document.createElement('div');
+          checkboxDiv.className = 'checkbox-cell';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.name = 'redCheckbox'; // svi checkbox-ovi imaju isti name
+          checkboxDiv.appendChild(checkbox);
+          fragment.appendChild(checkboxDiv);
+
+          // Dugme
+          const buttonDiv = document.createElement('div');
+          buttonDiv.className = 'button-cell';
+          const button = document.createElement('button');
+          button.textContent = 'Potvrdi';
+          button.addEventListener('click', () => {
+            alert(`Red: ${row.join(', ')}\nUneto: ${input.value}\nCheckbox: ${checkbox.checked}`);
+          });
+          buttonDiv.appendChild(button);
+          fragment.appendChild(buttonDiv);
+        }
+
+        gridEl.appendChild(fragment);
+      } catch (error) {
+        console.error("Greška pri učitavanju CSV-a:", error);
+      }
+    }
+
+    // Dugmad za menjanje sheet-a
+    sheetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.sheet);
+        currentSheetIndex = index;
+        loadCSV(currentSheetIndex);
+      });
+    });
+
+    window.addEventListener('load', () => loadCSV(currentSheetIndex));
+  </script>
+</body>
+</html>
