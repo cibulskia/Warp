@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheet Red Viewer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 80px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #output {
+            margin-top: 20px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .data-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            background-color: #f9f9f9;
+            border-radius: 3px;
+        }
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        .data-item strong {
+            color: #555;
+            min-width: 100px; /* Može pomoći poravnanju ako su imena kolona različitih dužina */
+            display: inline-block;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Podaci iz Google Sheeta</h1>
+    <div>
+        <label for="rowNumber">Unesite broj reda (počevši od 1, prvi red su zaglavlja):</label>
+        <input type="number" id="rowNumber" value="2" min="1">
+        <button id="loadRowButton">Učitaj red</button>
+    </div>
+    <div id="output">
+        <!-- Ovdje će biti prikazani podaci -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
+            const outputDiv = document.getElementById('output');
+            const rowNumberInput = document.getElementById('rowNumber');
+            const loadRowButton = document.getElementById('loadRowButton');
+
+            // Funkcija za dohvaćanje CSV podataka
+            async function fetchCsvData(url) {
+                const response = await fetch(url);
+                // Provera da li je odgovor uspešan
+                if (!response.ok) {
+                    throw new Error(`HTTP greška! Status: ${response.status}`);
+                }
+                const text = await response.text();
+                return text;
+            }
+
+            // Funkcija za parsiranje CSV teksta u niz objekata
+            function parseCsv(csvText) {
+                const lines = csvText.split('\n').filter(line => line.trim() !== ''); // Podijeli po redovima i ukloni prazne
+                if (lines.length === 0) return [];
+
+                // Razdvoji zaglavlja, obraćajući pažnju na potencijalne navodnike i zareze unutar polja
+                const headerLine = lines[0];
+                const headers = parseCsvLine(headerLine); // Koristimo pomoćnu funkciju za robustnije parsiranje
+                
+                const data = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = parseCsvLine(lines[i]); // Koristimo pomoćnu funkciju
+                    const rowObject = {};
+                    headers.forEach((header, index) => {
+                        rowObject[header] = values[index] !== undefined ? values[index] : ''; // Dodeli vrednost ili prazan string
+                    });
+                    data.push(rowObject);
+                }
+                return data;
+            }
+
+            // Pomoćna funkcija za parsiranje pojedinačne CSV linije koja uzima u obzir navodnike
+            function parseCsvLine(line) {
+                const result = [];
+                let inQuote = false;
+                let currentField = '';
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+
+                    if (char === '"') {
+                        // Ako je navodnik, prebacujemo stanje inQuote
+                        if (i + 1 < line.length && line[i + 1] === '"') {
+                            // Dva navodnika znače escape-ovan navodnik unutar polja
+                            currentField += '"';
+                            i++; // Preskoči sledeći navodnik
+                        } else {
+                            inQuote = !inQuote;
+                        }
+                    } else if (char === ',' && !inQuote) {
+                        // Ako je zarez i nismo unutar navodnika, završili smo polje
+                        result.push(currentField.trim());
+                        currentField = '';
+                    } else {
+                        // Normalan karakter
+                        currentField += char;
+                    }
+                }
+                result.push(currentField.trim()); // Dodaj poslednje polje
+                return result;
+            }
+
+            // Funkcija za prikaz odabranog reda
+            async function displayRow() {
+                outputDiv.innerHTML = '<p>Učitavam podatke...</p>';
+                // Korisnik unosi red od 1, prvi red su zaglavlja.
+                // Ako želimo drugi red podataka, to je indeks 1 u parsiranom nizu.
+                // Zato: (uneseni_broj_reda - 1)
+                const rowIndex = parseInt(rowNumberInput.value, 10) - 1; 
+
+                if (isNaN(rowIndex) || rowIndex < 0) {
+                    outputDiv.innerHTML = '<p class="error-message">Molimo unesite validan broj reda (pozitivan ceo broj).</p>';
+                    return;
+                }
+                
+                // Upozorenje da je prvi red zaglavlje
+                if (parseInt(rowNumberInput.value, 10) === 1) {
+                    outputDiv.innerHTML = '<p class="error-message">Prvi red u spreadsheetu su obično zaglavlja. Ako želite videti podatke, unesite 2 ili veći broj.</p>';
+                    return;
+                }
+
+
+                try {
+                    const csvText = await fetchCsvData(sheetUrl);
+                    const parsedData = parseCsv(csvText);
+
+                    if (parsedData.length === 0) {
+                        outputDiv.innerHTML = '<p>Nema dostupnih podataka u spreadsheetu (osim zaglavlja).</p>';
+                        return;
+                    }
+
+                    // Parsirani podaci *ne uključuju* red zaglavlja u nizu `data`.
+                    // Stoga, ako je korisnik tražio red 2, to je indeks 0 u `parsedData`.
+                    // Ako je tražio red N, to je indeks N-2 u `parsedData`.
+                    // Indeks za dohvaćanje iz `parsedData` je `rowIndex` (koji je već uneti_broj_reda - 1),
+                    // ali se odnosi na redove *podataka*.
+                    // Redovi u spreadsheetu su: 1 (zaglavlja), 2 (prvi red podataka), 3 (drugi red podataka)...
+                    // Ako korisnik unese 2, on želi prvi red podataka (parsedData[0]).
+                    // `rowIndex` (koji je uneti_broj_reda - 1) će biti 1 za unos 2.
+                    // Stoga, treba nam `rowIndex - 1` da dobijemo indeks u `parsedData`.
+                    const dataIndex = rowIndex - 1;
+
+
+                    if (dataIndex >= 0 && dataIndex < parsedData.length) {
+                        const selectedRow = parsedData[dataIndex];
+                        outputDiv.innerHTML = ''; // Očisti prethodni sadržaj
+
+                        // Prikaz svakog polja iz reda jedan ispod drugog
+                        for (const key in selectedRow) {
+                            if (Object.prototype.hasOwnProperty.call(selectedRow, key)) {
+                                const itemDiv = document.createElement('div');
+                                itemDiv.classList.add('data-item');
+                                itemDiv.innerHTML = `<strong>${key}:</strong> ${selectedRow[key]}`;
+                                outputDiv.appendChild(itemDiv);
+                            }
+                        }
+                    } else {
+                        outputDiv.innerHTML = `<p class="error-message">Red broj ${rowIndex + 1} ne postoji u spreadsheetu. Dostupno je ${parsedData.length} redova podataka (nakon zaglavlja).</p>`;
+                    }
+                } catch (error) {
+                    console.error('Došlo je do greške prilikom učitavanja ili parsiranja podataka:', error);
+                    outputDiv.innerHTML = `<p class="error-message">Greška pri učitavanju podataka: ${error.message}. Proverite konzolu (F12) za više detalja.</p>`;
+                }
+            }
+
+            // Dodaj event listener na dugme
+            loadRowButton.addEventListener('click', displayRow);
+
+            // Učitaj prvi red podataka (koji je red 2 u spreadsheetu) automatski pri učitavanju stranice
+            displayRow();
+        });
+    </script>
+</body>
+</html>
