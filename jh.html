@@ -315,7 +315,7 @@
 
             // Očisti polja sekcije sa podacima
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`data-field-${i}`).textContent = '';
+                document.getElementById(`data-field-${i}`).innerHTML = '';
             }
         }
 
@@ -338,7 +338,7 @@
 
             // Očisti polja sekcije sa podacima
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`data-field-${i}`).textContent = '';
+                document.getElementById(`data-field-${i}`).innerHTML = '';
             }
         }
 
@@ -351,7 +351,7 @@
                 }
                 const csvText = await response.text();
                 // Jednostavno parsiranje CSV-a po linijama
-                spreadsheetData = csvText.split('\n').map(row => row.split(', '));
+                spreadsheetData = csvText.split('\n').map(row => row.split(','));
                 console.log("Spreadsheet data loaded:", spreadsheetData);
             } catch (error) {
                 console.error("Error loading spreadsheet data:", error);
@@ -359,20 +359,22 @@
             }
         }
 
-        // Funkcija za prikaz redova u sekciji sa podacima
+        // Funkcija za prikaz redova u sekciji sa podacima - IZMENJENO
         function displayDataSectionRows() {
             const input5Value = document.getElementById('input5').value;
             const rowNumbers = input5Value.split(',').map(num => parseInt(num.trim(), 10)).filter(num => !isNaN(num) && num > 0);
 
             for (let i = 1; i <= 4; i++) {
                 const dataField = document.getElementById(`data-field-${i}`);
-                dataField.textContent = ''; // Očisti polje pre popunjavanja
+                dataField.innerHTML = ''; // Očisti polje pre popunjavanja
 
                 const rowIndex = rowNumbers[i - 1]; // Uzmi broj reda za i-to polje (1-bazirano)
                 if (rowIndex && spreadsheetData[rowIndex - 1]) { // rowIndex je 1-baziran, array je 0-baziran
-                    dataField.textContent = `Red ${rowIndex}: ${spreadsheetData[rowIndex - 1].join('<br> ')}`;
+                    const rowData = spreadsheetData[rowIndex - 1];
+                    // Prikazujemo svaki element reda u novom redu
+                    dataField.innerHTML = `<strong>Red ${rowIndex}:</strong><br>` + rowData.map(item => `<span>${item.trim()}</span>`).join('<br>');
                 } else if (rowIndex) {
-                    dataField.textContent = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
+                    dataField.innerHTML = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
                 }
             }
         }
@@ -380,13 +382,6 @@
         // Pozovi ovu funkciju na početku da osiguraš ispravan UI
         window.onload = function() {
             updateUIForLoggedOutUser();
-            // Spreadsheet podaci se sada učitavaju nakon uspešne prijave, 
-            // ali je dobro da se učitaju i pri prvom učitavanju stranice 
-            // ako želimo da omogucimo sidebar i pre prijave.
-            // Međutim, ako je namera da se sidebar prikazuje tek nakon prijave
-            // i učitavanja korisničkih podataka, onda ova linija ovde nije neophodna.
-            // Za sada je uklanjam jer je logika da se sve pokreće nakon prijave.
-            // loadSpreadsheetData(); 
         };
 
         // Event listener za "Sačuvaj Podatke"
