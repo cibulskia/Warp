@@ -370,7 +370,7 @@
 
                 const rowIndex = rowNumbers[i - 1]; // Uzmi broj reda za i-to polje (1-bazirano)
                 if (rowIndex && spreadsheetData[rowIndex - 1]) { // rowIndex je 1-baziran, array je 0-baziran
-                    dataField.textContent = `Red ${rowIndex}: ${spreadsheetData[rowIndex - 1].join('<br> ')}`;
+                    dataField.textContent = `Red ${rowIndex}: ${spreadsheetData[rowIndex - 1].join(', ')}`;
                 } else if (rowIndex) {
                     dataField.textContent = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
                 }
