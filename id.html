@@ -299,7 +299,8 @@
     </div>
 
     <script src="oath.js"></script>
-        <script>
+    <script>
+        // Define the spreadsheet URL globally
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv";
         let spreadsheetData = []; // To store the parsed CSV data
 
@@ -372,6 +373,202 @@
         // Expose globally if app.js needs to call it, though current approach reads from DOM
         window.displaySpreadsheetDataFromDOMSubcategories = displaySpreadsheetDataFromDOMSubcategories; 
 
-        </script>
+        // UI functions moved from original script
+        function updateUIForLoggedInUser(userName, userProfilePicUrl) {
+            document.getElementById('g_id_onload').style.display = 'none';
+            document.querySelector('.g_id_signin').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('subcategory-sidebar').style.display = 'flex';
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('message').textContent = "";
+            document.getElementById('subcategory-message').textContent = "";
+            
+            const profilePicElement = document.getElementById('profile-picture');
+            const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
+                profilePicElement.style.display = 'block';
+                profilePicPlaceholder.style.display = 'none';
+            } else {
+                profilePicElement.style.display = 'none';
+                profilePicPlaceholder.style.display = 'block';
+            }
+            
+            document.getElementById('input1').value = "";
+            document.getElementById('input2').value = "";
+            document.getElementById('large-text-input').value = "";
+            document.getElementById('input3').value = "";
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = "";
+            document.getElementById('dropdown-input').value = "";
+            document.getElementById('sidebar-large-text-input-2').value = "";
+            document.getElementById('sidebar-large-text-input-3').value = "";
+
+            document.getElementById('subcategory-form').style.display = 'none';
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            clearSubcategoryForm();
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+
+            // Load spreadsheet data and then initiate subcategory loading
+            fetchSpreadsheetData().then(() => {
+                // Call the original function from app.js to load subcategories.
+                // After it potentially updates the DOM, we will run our display function.
+                // We use setTimeout to ensure app.js has time to render its content.
+                if (window.loadSubcategoriesFromBackend) { // Check if it exists in app.js
+                    window.loadSubcategoriesFromBackend(false);
+                    setTimeout(displaySpreadsheetDataFromDOMSubcategories, 150); // Small delay to allow DOM to update
+                } else if (window.loadSubcategories) { // Fallback if it's named differently
+                     window.loadSubcategories(false);
+                     setTimeout(displaySpreadsheetDataFromDOMSubcategories, 150); // Small delay to allow DOM to update
+                } else {
+                    console.warn("Could not find window.loadSubcategoriesFromBackend or window.loadSubcategories in app.js");
+                    displaySpreadsheetDataFromDOMSubcategories(); // Still try to display if no subcategories loaded
+                }
+            });
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('g_id_onload').style.display = 'block';
+            document.querySelector('.g_id_signin').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+            document.getElementById('subcategory-sidebar').style.display = 'none';
+            document.getElementById('user-name').textContent = "";
+            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
+            document.getElementById('subcategory-message').textContent = "";
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
+            document.getElementById('spreadsheet-content').innerHTML = ''; // Clear spreadsheet data
+
+            document.getElementById('profile-picture').style.display = 'none';
+            document.getElementById('profile-picture-placeholder').style.display = 'block';
+            document.getElementById('profile-picture').src = '';
+        }
+
+        window.onload = function() {
+            updateUIForLoggedOutUser();
+        };
+
+        // Event Listeners
+        document.getElementById('save-button').addEventListener('click', window.saveMainData);
+        document.getElementById('load-button').addEventListener('click', window.loadMainData);
+        document.getElementById('signout-button').addEventListener('click', window.signOutUser);
+
+        function clearSubcategoryForm() {
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('subcategory-checkbox').checked = false;
+        }
+        window.clearSubcategoryForm = clearSubcategoryForm; // Expose to app.js
+
+        function showSubcategoryForm(subcategory = {}) {
+            document.getElementById('subcategory-form').style.display = 'block';
+            window.setCurrentSubcategoryId(subcategory.id); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = subcategory.id || 'Nijedna';
+            document.getElementById('subcategory-name').value = subcategory.name || '';
+            document.getElementById('subcategory-short-desc').value = subcategory.short_description || ''; 
+            document.getElementById('subcategory-long-desc').value = subcategory.long_description || ''; 
+            document.getElementById('subcategory-checkbox').checked = subcategory.is_active || false;
+        }
+        window.showSubcategoryForm = showSubcategoryForm; // Expose to app.js
+
+        document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
+            document.getElementById('subcategory-form').style.display = 'none';
+            clearSubcategoryForm();
+            window.setCurrentSubcategoryId(null); // Use setter from app.js
+            document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            document.getElementById('subcategory-message').textContent = "";
+        });
+
+        document.getElementById('create-subcategory-button').addEventListener('click', () => {
+            if (!window.getCurrentSubcategoryId() && !document.getElementById('g_id_onload').style.display === 'none') { // Check login state
+                alert("Niste prijavljeni.");
+                return;
+            }
+            clearSubcategoryForm();
+            showSubcategoryForm({ id: 'Nova' }); // Indicate that it's a new subcategory
+            document.getElementById('subcategory-message').textContent = "Unesite detalje za novu potkategoriju.";
+            window.setCurrentSubcategoryId(null); // Clear current ID for creation
+            document.getElementById('current-subcategory-id').textContent = "Nova";
+        });
+
+        document.getElementById('save-subcategory-button').addEventListener('click', () => {
+            const subcategoryData = {
+                name: document.getElementById('subcategory-name').value,
+                short_description: document.getElementById('subcategory-short-desc').value,
+                long_description: document.getElementById('subcategory-long-desc').value,
+                is_active: document.getElementById('subcategory-checkbox').checked
+            };
+            const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
+            const isNew = (!currentSubcategoryId || currentSubcategoryId === 'Nova');
+            window.saveSubcategory(subcategoryData, isNew, isNew ? null : currentSubcategoryId);
+        });
+
+        document.getElementById('delete-subcategory-button').addEventListener('click', () => {
+            const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
+            window.deleteSubcategory(currentSubcategoryId);
+        });
+
+        // Modified event listener for "Učitaj Listu" button
+        document.getElementById('load-subcategories-button').addEventListener('click', () => {
+            // First, call the app.js function to load and render subcategories
+            if (window.loadSubcategoriesFromBackend) {
+                window.loadSubcategoriesFromBackend(false);
+                // Then, after a short delay, read from the DOM and display spreadsheet data
+                setTimeout(displaySpreadsheetDataFromDOMSubcategories, 150); 
+            } else if (window.loadSubcategories) {
+                window.loadSubcategories(false);
+                setTimeout(displaySpreadsheetDataFromDOMSubcategories, 150); 
+            } else {
+                console.warn("Could not find subcategory loading function in app.js. Displaying spreadsheet data directly if possible.");
+                displaySpreadsheetDataFromDOMSubcategories();
+            }
+        });
+
+        // Original loadSubcategories function (from your app.js) exposed globally.
+        // We're keeping this as it was in your original HTML,
+        // but its calls in updateUIForLoggedInUser and the button click are now wrapped.
+        function loadSubcategories(reselect = false) {
+             // This function would be in app.js and ideally would trigger the rendering
+             // of subcategories to #subcategory-list.
+             // If you need it to also trigger the spreadsheet data, you could add:
+             // setTimeout(window.displaySpreadsheetDataFromDOMSubcategories, 150);
+             // right after app.js has finished rendering.
+             // For now, we rely on the wrapping calls in updateUIForLoggedInUser and the button click.
+             if (window.loadSubcategoriesFromBackend) {
+                 window.loadSubcategoriesFromBackend(reselect);
+             } else {
+                 console.warn("window.loadSubcategoriesFromBackend not found. Please ensure app.js exposes it.");
+             }
+        }
+        window.loadSubcategories = loadSubcategories; // Expose to app.js, potentially as an alias
+
+        // This is a placeholder for `window.loadSubcategoriesFromBackend`
+        // which might be the actual name in app.js.
+        // We ensure it exists if app.js uses it.
+        if (typeof window.loadSubcategoriesFromBackend === 'undefined') {
+            window.loadSubcategoriesFromBackend = window.loadSubcategories; // Alias it if only loadSubcategories exists
+        }
+        
+        // This is the function that handles selecting a subcategory (from app.js)
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                window.loadSubcategoryDetailsFromBackend(subcategoryId);
+            }
+        }
+        window.selectSubcategory = selectSubcategory; // Expose to app.js
+
+        // Initial load for authentication status after app.js has loaded
+        // This is handled by window.onload = updateUIForLoggedOutUser;
+        // The GSI client will automatically call handleCredentialResponse if a session exists.
+    </script>
 </body>
 </html>
