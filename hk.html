@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth App (All in One)</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            max-width: 800px;
+        }
+
+        .subcategory-sidebar {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            flex-shrink: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #message, #subcategory-message {
+            margin-top: 20px;
+            min-height: 20px;
+        }
+
+        #user-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #signout-button {
+            background-color: #dc3545;
+        }
+
+        #signout-button:hover {
+            background-color: #c82333;
+        }
+
+        .section-separator {
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .subcategory-list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        #subcategory-form {
+            text-align: left;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+        }
+
+        #profile-picture-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+        }
+
+        .spreadsheet-data-display {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            text-align: left;
+        }
+        .spreadsheet-data-display h3 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .spreadsheet-data-item {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .independent-spreadsheet-display {
+            margin-bottom: 30px;
+            background-color: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            border: 1px solid #cceeff;
+        }
+
+        .independent-spreadsheet-display h2 {
+            color: #1a73e8;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .independent-spreadsheet-form .form-group {
+            margin-bottom: 10px;
+            display: inline-block;
+            width: 24%; /* Approx quarter width for four fields */
+            padding-right: 1%;
+            box-sizing: border-box;
+        }
+
+        .independent-spreadsheet-form .form-group.full-width {
+             width: 100%;
+             padding-right: 0;
+        }
+
+        .independent-spreadsheet-form label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .independent-spreadsheet-form input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #a8d7fa;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+            background-color: #ffffff;
+        }
+
+        .independent-spreadsheet-form .row-separator {
+            border-top: 1px dashed #cceeff;
+            margin: 15px 0;
+            clear: both;
+        }
+
+        .independent-spreadsheet-form .button-group {
+            margin-top: 20px;
+            clear: both;
+            display: flex;
+            gap: 10px;
+        }
+
+        .independent-spreadsheet-form button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .independent-spreadsheet-form button:hover {
+            background-color: #155bb5;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2>Potkategorije</h2>
+            </div>
+            <ul id="subcategory-list" class="subcategory-list"></ul>
+            
+            <div class="spreadsheet-data-display">
+                <h3>Podaci iz Spreadsheeta:</h3>
+                <div id="spreadsheet-content">
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1>Moja Aplikacija</h1>
+
+            <div id="g_id_onload"
+                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                 data-auto_select="true"
+                 data-callback="handleCredentialResponse"
+                 data-ux_mode="popup"
+                 data-cancel_on_tap_outside="false"
+                 data-context="use">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+
+            <div id="app-content" style="display: none;">
+                <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <div class="independent-spreadsheet-display">
+                    <h2>Nezavisni Spreadsheet Podaci</h2>
+                    <div id="independent-spreadsheet-content" class="independent-spreadsheet-form">
+                        <p>Učitavanje podataka...</p>
+                    </div>
+                    <p id="independent-data-message" style="margin-top: 10px;"></p>
+                </div>
+
+                <p id="subcategory-message"></p>
+
+                <div class="section-separator"></div>
+
+                <h2>Glavni Podaci</h2>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
+                </div>
+                <input type="text" id="input1" placeholder="Prvo polje za tekst">
+                <input type="text" id="input2" placeholder="Drugo polje za tekst">
+                <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+                <input type="text" id="input3" placeholder="Treće polje za tekst">
+                <input type="text" id="input4" placeholder="Četvrto polje za tekst">
+                <input type="text" id="input5" placeholder="Peto polje za tekst">
+                <select id="dropdown-input">
+                    <option value="">Odaberite opciju</option>
+                    <option value="opcija1">Opcija 1</option>
+                    <option value="opcija2">Opcija 2</option>
+                    <option value="opcija3">Opcija 3</option>
+                </select>
+
+                <button id="save-button">Sačuvaj Glavne Podatke</button>
+                <p id="message"></p>
+
+                <div class="section-separator"></div>
+
+                <button id="signout-button">Odjavi se</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const SPREADSHEET_URL_SIDEBAR = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv";
+        let spreadsheetDataSidebar = [];
+
+        const SPREADSHEET_URL_INDEPENDENT = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv";
+        let spreadsheetDataIndependent = [];
+
+        async function fetchCSVData(url) {
+            try {
+                const response = await fetch(url);
+                const csvText = await response.text();
+                return parseCSV(csvText);
+            } catch (error) {
+                console.error("Error fetching or parsing spreadsheet data from " + url + ":", error);
+                return null;
+            }
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const data = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    data.push(line.split(',').map(cell => cell.trim()));
+                }
+            }
+            return data;
+        }
+
+        async function displaySpreadsheetDataForSidebar() {
+            const spreadsheetContentDiv = document.getElementById('spreadsheet-content');
+            spreadsheetContentDiv.innerHTML = '';
+
+            spreadsheetDataSidebar = await fetchCSVData(SPREADSHEET_URL_SIDEBAR);
+            if (!spreadsheetDataSidebar || spreadsheetDataSidebar.length === 0) {
+                spreadsheetContentDiv.innerHTML = '<p style="color: red;">Greška pri učitavanju ili nema podataka iz spreadsheeta za sidebar.</p>';
+                return;
+            }
+
+            const subcategoryListItems = document.querySelectorAll('#subcategory-list .subcategory-list-item');
+            let foundData = false;
+
+            if (subcategoryListItems.length === 0) {
+                spreadsheetContentDiv.innerHTML = '<p>Nema učitanih potkategorija za prikaz podataka iz spreadsheeta.</p>';
+                return;
+            }
+
+            subcategoryListItems.forEach(item => {
+                const subcategoryName = item.textContent.trim();
+                const rowNumber = parseInt(subcategoryName, 10);
+
+                if (!isNaN(rowNumber) && rowNumber > 0 && rowNumber <= spreadsheetDataSidebar.length) {
+                    const rowData = spreadsheetDataSidebar[rowNumber - 1];
+                    if (rowData) {
+                        foundData = true;
+                        const dataHtml = `
+                            <div class="spreadsheet-data-item">
+                                <p>${rowData.join('<br>')}</p>
+                            </div>
+                        `;
+                        spreadsheetContentDiv.innerHTML += dataHtml;
+                    }
+                }
+            });
+
+            if (!foundData) {
+                spreadsheetContentDiv.innerHTML = '<p>Nije pronađen nijedan red u spreadsheetu koji odgovara imenu potkategorije.</p>';
+            }
+        }
+        window.displaySpreadsheetDataForSidebar = displaySpreadsheetDataForSidebar;
+
+        async function displayIndependentSpreadsheetData() {
+            const independentSpreadsheetContentDiv = document.getElementById('independent-spreadsheet-content');
+            independentSpreadsheetContentDiv.innerHTML = '<p>Učitavanje podataka...</p>';
+
+            spreadsheetDataIndependent = await fetchCSVData(SPREADSHEET_URL_INDEPENDENT);
+            if (!spreadsheetDataIndependent || spreadsheetDataIndependent.length < 2) {
+                independentSpreadsheetContentDiv.innerHTML = '<p style="color: red;">Greška pri učitavanju ili nema dovoljno podataka iz nezavisnog spreadsheeta.</p>';
+                return;
+            }
+
+            let htmlContent = '';
+            const headers = spreadsheetDataIndependent[0];
+            const relevantColumnIndices = [0, 1, 2, 4]; // Corresponds to A1, B1, C1, E1 if 0-indexed
+
+            for (let i = 1; i < spreadsheetDataIndependent.length; i++) {
+                const dataRow = spreadsheetDataIndependent[i];
+                if (dataRow.length > Math.max(...relevantColumnIndices)) {
+                    htmlContent += '<div class="data-row">';
+                    
+                    if (relevantColumnIndices[0] !== undefined) {
+                        htmlContent += `
+                            <div class="form-group">
+                                <label for="independent-input-${i}-0">${headers[0] || 'Polje A'}:</label>
+                                <input type="text" id="independent-input-${i}-0" value="${dataRow[relevantColumnIndices[0]] || ''}" placeholder="Unesite ${headers[0] || 'polje A'}">
+                            </div>
+                        `;
+                    }
+                    if (relevantColumnIndices[1] !== undefined) {
+                        htmlContent += `
+                            <div class="form-group">
+                                <label for="independent-input-${i}-1">${headers[1] || 'Polje B'}:</label>
+                                <input type="text" id="independent-input-${i}-1" value="${dataRow[relevantColumnIndices[1]] || ''}" placeholder="Unesite ${headers[1] || 'polje B'}">
+                            </div>
+                        `;
+                    }
+                    if (relevantColumnIndices[2] !== undefined) {
+                        htmlContent += `
+                            <div class="form-group">
+                                <label for="independent-input-${i}-2">${headers[2] || 'Polje C'}:</label>
+                                <input type="text" id="independent-input-${i}-2" value="${dataRow[relevantColumnIndices[2]] || ''}" placeholder="Unesite ${headers[2] || 'polje C'}">
+                            </div>
+                        `;
+                    }
+                    if (relevantColumnIndices[3] !== undefined) {
+                        htmlContent += `
+                            <div class="form-group">
+                                <label for="independent-input-${i}-3">${headers[4] || 'Polje E'}:</label>
+                                <input type="text" id="independent-input-${i}-3" value="${dataRow[relevantColumnIndices[3]] || ''}" placeholder="Unesite ${headers[4] || 'polje E'}">
+                            </div>
+                        `;
+                    }
+                    
+                    htmlContent += '</div>';
+                    if (i < spreadsheetDataIndependent.length - 1) {
+                        htmlContent += '<div class="row-separator"></div>';
+                    }
+                }
+            }
+            independentSpreadsheetContentDiv.innerHTML = htmlContent;
+        }
+
+        function saveIndependentData() {
+            const independentData = [];
+            const independentContentDiv = document.getElementById('independent-spreadsheet-content');
+            const dataRows = independentContentDiv.querySelectorAll('.data-row');
+            
+            dataRows.forEach((row, rowIndex) => {
+                const rowValues = {};
+                const inputFields = row.querySelectorAll('input[type="text"]');
+                inputFields.forEach((input, inputIndex) => {
+                    const label = input.previousElementSibling ? input.previousElementSibling.textContent.replace(':', '').trim() : `Polje ${inputIndex}`;
+                    rowValues[label] = input.value;
+                });
+                independentData.push(rowValues);
+            });
+
+            console.log("Saving independent data:", independentData);
+            document.getElementById('independent-data-message').textContent = "Pokušaj snimanja nezavisnih podataka (potrebna backend integracija)!";
+        }
+
+        function loadIndependentData() {
+            console.log("Loading independent data (re-fetching from URL for demonstration)...");
+            document.getElementById('independent-data-message').textContent = "Pokušaj učitavanja nezavisnih podataka...";
+            displayIndependentSpreadsheetData();
+            document.getElementById('independent-data-message').textContent = "Nezavisni podaci ponovo učitani.";
+        }
+
+        function updateUIForLoggedInUser(userName, userProfilePicUrl) {
+            document.getElementById('g_id_onload').style.display = 'none';
+            document.querySelector('.g_id_signin').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('subcategory-sidebar').style.display = 'flex';
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('message').textContent = "";
+            document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('independent-data-message').textContent = "";
+            
+            const profilePicElement = document.getElementById('profile-picture');
+            const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
+                profilePicElement.style.display = 'block';
+                profilePicPlaceholder.style.display = 'none';
+            } else {
+                profilePicElement.style.display = 'none';
+                profilePicPlaceholder.style.display = 'block';
+            }
+            
+            document.getElementById('input1').value = "";
+            document.getElementById('input2').value = "";
+            document.getElementById('large-text-input').value = "";
+            document.getElementById('input3').value = "";
+            document.getElementById('input4').value = "";
+            document.getElementById('input5').value = "";
+            document.getElementById('dropdown-input').value = "";
+            // Uklonjena su podešavanja za sidebar-large-text-input-2 i sidebar-large-text-input-3
+
+            window.setCurrentSubcategoryId(null);
+            clearSubcategoryForm();
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+
+            displaySpreadsheetDataForSidebar().then(() => {
+                if (window.loadSubcategoriesFromBackend) {
+                    window.loadSubcategoriesFromBackend(false);
+                } else if (window.loadSubcategories) {
+                     window.loadSubcategories(false);
+                } else {
+                    console.warn("Could not find window.loadSubcategoriesFromBackend or window.loadSubcategories in app.js");
+                }
+            });
+
+            displayIndependentSpreadsheetData();
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('g_id_onload').style.display = 'block';
+            document.querySelector('.g_id_signin').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+            document.getElementById('subcategory-sidebar').style.display = 'none';
+            document.getElementById('user-name').textContent = "";
+            document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
+            document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('independent-data-message').textContent = "";
+            window.setCurrentSubcategoryId(null);
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
+            document.getElementById('spreadsheet-content').innerHTML = '';
+            document.getElementById('independent-spreadsheet-content').innerHTML = '<p>Nezavisni podaci će se pojaviti nakon prijave.</p>';
+
+            document.getElementById('profile-picture').style.display = 'none';
+            document.getElementById('profile-picture-placeholder').style.display = 'block';
+            document.getElementById('profile-picture').src = '';
+        }
+
+        window.onload = function() {
+            updateUIForLoggedOutUser();
+        };
+
+        document.getElementById('save-button').addEventListener('click', window.saveMainData);
+        document.getElementById('signout-button').addEventListener('click', window.signOutUser);
+
+        function clearSubcategoryForm() {
+            // This function is kept for potential future use or if app.js relies on it,
+            // even though the form itself is removed from HTML.
+        }
+        window.clearSubcategoryForm = clearSubcategoryForm;
+
+        function showSubcategoryForm(subcategory = {}) {
+            // This function is kept for potential future use or if app.js relies on it,
+            // even though the form itself is removed from HTML.
+        }
+        window.showSubcategoryForm = showSubcategoryForm;
+        
+        function loadSubcategories(reselect = false) {
+             if (window.loadSubcategoriesFromBackend) {
+                 window.loadSubcategoriesFromBackend(reselect);
+             } else {
+                 // Uklonjena poruka o grešci "Greška prilikom učitavanja potkategorija."
+                 console.warn("window.loadSubcategoriesFromBackend not found. Please ensure app.js exposes it.");
+             }
+        }
+        window.loadSubcategories = loadSubcategories;
+
+        if (typeof window.loadSubcategoriesFromBackend === 'undefined') {
+            window.loadSubcategoriesFromBackend = window.loadSubcategories;
+        }
+        
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                // The details display section for subcategories has been removed,
+                // so no action is needed here to display details.
+            }
+        }
+        window.selectSubcategory = selectSubcategory;
+    </script>
+</body>
+</html>
