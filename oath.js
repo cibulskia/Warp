@@ -19,7 +19,6 @@ async function loadCSV(sheetIndex) {
     const text = await res.text();
     const parsed = Papa.parse(text, { skipEmptyLines: true });
     const rows = parsed.data;
-
     if (rows.length === 0) return;
 
     const fragment = document.createDocumentFragment();
@@ -75,13 +74,9 @@ async function loadCSV(sheetIndex) {
       button.addEventListener('click', async () => {
         const firstCell = row[0] || '';
         const newEntry = `${firstCell} - ${input.value}`;
-
-        if (input4El.value) {
-          input4El.value += ', ';
-        }
+        if (input4El.value) input4El.value += ', ';
         input4El.value += newEntry;
         input.value = '';
-
         await saveUserData();
       });
       buttonDiv.appendChild(button);
@@ -96,13 +91,13 @@ async function loadCSV(sheetIndex) {
 
 sheetButtons.forEach(btn => {
   btn.addEventListener('click', () => {
-    const index = parseInt(btn.dataset.sheet);
-    currentSheetIndex = index;
+    currentSheetIndex = parseInt(btn.dataset.sheet);
     loadCSV(currentSheetIndex);
     input4El.value = '';
   });
 });
 
+// Backend i Google Login
 const BACKEND_URL = 'https://botanica.ngrok.app';
 const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
 
@@ -114,16 +109,12 @@ let spreadsheetData = [];
 function decodeJwtResponse(token) {
   let base64Url = token.split('.')[1];
   let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  let jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
+  let jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
   return JSON.parse(jsonPayload);
 }
 
 async function handleCredentialResponse(response) {
-  console.log("Encoded JWT ID token: " + response.credential);
   googleIdToken = response.credential;
-
   const payload = decodeJwtResponse(response.credential);
   userName = payload.name;
   userProfilePicUrl = payload.picture;
@@ -139,20 +130,18 @@ async function handleCredentialResponse(response) {
     const verifyData = await verifyResponse.json();
 
     if (verifyData.status === 'success') {
-      console.log("Login successful on backend:", verifyData);
       updateUIForLoggedInUser();
-
       const loadResponse = await fetch(`${BACKEND_URL}/load-data`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${googleIdToken}` }
       });
 
       if (!loadResponse.ok) {
-        if (loadResponse.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+        if (loadResponse.status === 401) { alert("Vaša sesija je istekla."); updateUIForLoggedOutUser(); }
         throw new Error(`HTTP error! status: ${loadResponse.status}`);
       }
-      const userData = await loadResponse.json();
 
+      const userData = await loadResponse.json();
       document.getElementById('input1').value = userData.input1 || '';
       document.getElementById('input2').value = userData.input2 || '';
       document.getElementById('large-text-input').value = userData.largeText || '';
@@ -161,23 +150,18 @@ async function handleCredentialResponse(response) {
       document.getElementById('input5').value = userData.input5 || '';
       document.getElementById('dropdown-input').value = userData.dropdown || '';
       document.getElementById('message').textContent = userData.message || "Podaci uspešno učitani.";
-
       await loadSpreadsheetData();
       displayDataSectionRows();
+
     } else {
-      console.error("Backend login failed:", verifyData.message);
       alert("Login failed: " + verifyData.message);
-      googleIdToken = null;
-      userName = null;
-      userProfilePicUrl = null;
+      googleIdToken = null; userName = null; userProfilePicUrl = null;
       updateUIForLoggedOutUser();
     }
   } catch (error) {
     console.error("Error during login process:", error);
-    alert("Došlo je do greške prilikom prijave. Molimo pokušajte ponovo.");
-    googleIdToken = null;
-    userName = null;
-    userProfilePicUrl = null;
+    alert("Došlo je do greške prilikom prijave.");
+    googleIdToken = null; userName = null; userProfilePicUrl = null;
     updateUIForLoggedOutUser();
   }
 }
@@ -187,27 +171,9 @@ function updateUIForLoggedInUser() {
   document.querySelector('.g_id_signin').style.display = 'none';
   document.getElementById('app-content').style.display = 'block';
   document.getElementById('user-name').textContent = userName;
-  document.getElementById('message').textContent = "";
-
   const profilePicElement = document.getElementById('user-profile-pic');
-  if (userProfilePicUrl) {
-    profilePicElement.src = userProfilePicUrl;
-    profilePicElement.style.display = 'block';
-  } else {
-    profilePicElement.style.display = 'none';
-  }
-
-  document.getElementById('input1').value = "";
-  document.getElementById('input2').value = "";
-  document.getElementById('large-text-input').value = "";
-  document.getElementById('input3').value = "";
-  input4El.value = "";
-  document.getElementById('input5').value = "";
-  document.getElementById('dropdown-input').value = "";
-
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById(`data-field-${i}`).textContent = '';
-  }
+  if (userProfilePicUrl) { profilePicElement.src = userProfilePicUrl; profilePicElement.style.display = 'block'; }
+  else profilePicElement.style.display = 'none';
 }
 
 function updateUIForLoggedOutUser() {
@@ -216,19 +182,11 @@ function updateUIForLoggedOutUser() {
   document.getElementById('app-content').style.display = 'none';
   document.getElementById('user-name').textContent = "";
   document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-
   const profilePicElement = document.getElementById('user-profile-pic');
   profilePicElement.src = "";
   profilePicElement.style.display = 'none';
-
-  googleIdToken = null;
-  userName = null;
-  userProfilePicUrl = null;
+  googleIdToken = null; userName = null; userProfilePicUrl = null;
   document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById(`data-field-${i}`).textContent = '';
-  }
 }
 
 async function loadSpreadsheetData() {
@@ -237,10 +195,9 @@ async function loadSpreadsheetData() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const csvText = await response.text();
     spreadsheetData = csvText.split('\n').map(row => row.split(','));
-    console.log("Spreadsheet data loaded:", spreadsheetData);
   } catch (error) {
     console.error("Error loading spreadsheet data:", error);
-    document.getElementById('message').textContent = "Greška prilikom učitavanja podataka iz tabele.";
+    document.getElementById('message').textContent = "Greška pri učitavanju podataka iz tabele.";
   }
 }
 
@@ -251,7 +208,6 @@ function displayDataSectionRows() {
   for (let i = 1; i <= 4; i++) {
     const dataField = document.getElementById(`data-field-${i}`);
     dataField.textContent = '';
-
     const rowIndex = rowNumbers[i - 1];
     if (rowIndex && spreadsheetData[rowIndex - 1]) {
       dataField.textContent = `Red ${rowIndex}:\n${spreadsheetData[rowIndex - 1].join('\n')}`;
@@ -262,11 +218,7 @@ function displayDataSectionRows() {
 }
 
 async function saveUserData() {
-  if (!googleIdToken) {
-    alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-    return;
-  }
-
+  if (!googleIdToken) { alert("Niste prijavljeni."); return; }
   const dataToSave = {
     input1: document.getElementById('input1').value,
     input2: document.getElementById('input2').value,
@@ -276,18 +228,13 @@ async function saveUserData() {
     input5: document.getElementById('input5').value,
     dropdown: document.getElementById('dropdown-input').value
   };
-
   try {
     const response = await fetch(`${BACKEND_URL}/save-data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
       body: JSON.stringify(dataToSave)
     });
-
-    if (!response.ok) {
-      if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     document.getElementById('message').textContent = data.message;
     displayDataSectionRows();
@@ -303,25 +250,15 @@ window.addEventListener('load', () => {
 });
 
 document.getElementById('save-button').addEventListener('click', saveUserData);
-
 document.getElementById('load-button').addEventListener('click', async () => {
-  if (!googleIdToken) {
-    alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
-    return;
-  }
-
+  if (!googleIdToken) { alert("Niste prijavljeni."); return; }
   try {
     const response = await fetch(`${BACKEND_URL}/load-data`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${googleIdToken}` }
     });
-
-    if (!response.ok) {
-      if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-
     document.getElementById('input1').value = data.input1 || '';
     document.getElementById('input2').value = data.input2 || '';
     document.getElementById('large-text-input').value = data.largeText || '';
@@ -329,9 +266,7 @@ document.getElementById('load-button').addEventListener('click', async () => {
     input4El.value = data.input4 || '';
     document.getElementById('input5').value = data.input5 || '';
     document.getElementById('dropdown-input').value = data.dropdown || '';
-
     document.getElementById('message').textContent = data.message;
-
     await loadSpreadsheetData();
     displayDataSectionRows();
   } catch (error) {
@@ -343,29 +278,11 @@ document.getElementById('load-button').addEventListener('click', async () => {
 document.getElementById('input5').addEventListener('input', displayDataSectionRows);
 
 document.getElementById('signout-button').addEventListener('click', () => {
-  if (google.accounts.id) {
-    google.accounts.id.disableAutoSelect();
-    google.accounts.id.revoke(userName, done => {
-      console.log('consent revoked', done);
-    });
-  }
-
-  googleIdToken = null;
-  userName = null;
-  userProfilePicUrl = null;
+  if (google.accounts.id) { google.accounts.id.disableAutoSelect(); }
+  googleIdToken = null; userName = null; userProfilePicUrl = null;
   updateUIForLoggedOutUser();
-
-  fetch(`${BACKEND_URL}/logout`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Backend logout response:", data.message);
-      alert("Uspešno ste se odjavili.");
-    })
-    .catch(error => {
-      console.error("Error during backend logout:", error);
-      alert("Došlo je do greške prilikom odjave sa servera.");
-    });
+  fetch(`${BACKEND_URL}/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }})
+    .then(res => res.json()).then(data => alert("Uspešno ste se odjavili."))
+    .catch(err => { console.error("Error during logout:", err); alert("Greška pri odjavi."); });
 });
+
