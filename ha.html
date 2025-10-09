@@ -1,54 +1,155 @@
 <!DOCTYPE html>
-<html lang="sr">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Podaci iz Google Spreadsheet</title>
-<style>
-    body { font-family: Arial,sans-serif; padding: 20px; background: #f4f4f4; }
-    .row { background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .row div { margin: 5px 0; }
-    .label { font-weight: bold; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Podaci na GitHubu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .data-row {
+            border: 1px solid #e0e0e0;
+            background-color: #fdfdfd;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid for fields */
+            gap: 10px; /* Space between fields */
+        }
+        .data-row:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+        .data-field {
+            margin: 0;
+            padding: 5px 0;
+        }
+        .data-field strong {
+            color: #34495e;
+            margin-right: 8px;
+        }
+        #loading {
+            text-align: center;
+            font-style: italic;
+            color: #7f8c8d;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        .error-message {
+            color: #e74c3c;
+            background-color: #fdeded;
+            border: 1px solid #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Podaci iz Google Sheets Tabele</h1>
+        <p id="loading">Učitavanje podataka...</p>
+        <div id="data-container">
+            <!-- Podaci iz tabele će biti dinamički dodati ovde -->
+        </div>
+    </div>
 
-<h1>Podaci iz Google Spreadsheet</h1>
-<div id="container">Učitavanje podataka...</div>
+    <script>
+        // ##################################################################################
+        // # VAŽNO: ZAMENI OVAJ URL SA TVOJIM JAVNO OBJAVLJENIM CSV LINKOM!               #
+        // # Kako dobiti ovaj URL:                                                      #
+        // # 1. Otvori svoju Google Sheet tabelu.                                       #
+        // # 2. Idi na File > Share > Publish to web.                                   #
+        // # 3. U padajućem meniju "Link" izaberi "Comma-separated values (.csv)".      #
+        // # 4. Klikni na Publish i kopiraj dobijeni URL.                               #
+        // ##################################################################################
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?output=csv'; 
+        // Primer URL-a, ZAMENI GA SA SVOJIM!
 
-<script>
-const spreadsheetId = '2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__';
-const url = `https://docs.google.com/spreadsheets/d/e/${spreadsheetId}/gviz/tq?tqx=out:json`;
+        async function fetchAndDisplayData() {
+            const dataContainer = document.getElementById('data-container');
+            const loadingMessage = document.getElementById('loading');
+            loadingMessage.style.display = 'block'; // Prikazi poruku o učitavanju
 
-fetch(url)
-.then(res => res.text())
-.then(text => {
-    // uklanjamo wrapper google JSON feed-a
-    const jsonText = text.replace(/^.*?\(/, '').slice(0, -2);
-    const data = JSON.parse(jsonText);
+            try {
+                const response = await fetch(CSV_URL);
 
-    const rows = data.table.rows;
-    const container = document.getElementById('container');
-    container.innerHTML = '';
+                // Proveri da li je HTTP status kod OK (200)
+                if (!response.ok) {
+                    throw new Error(`HTTP greška! Status: ${response.status}. Proveri da li je CSV_URL ispravan i da li je tabela javno objavljena.`);
+                }
 
-    rows.forEach(row => {
-        const div = document.createElement('div');
-        div.className = 'row';
-        row.c.forEach(cell => {
-            const value = cell ? cell.v : '';
-            const cellDiv = document.createElement('div');
-            cellDiv.textContent = value;
-            div.appendChild(cellDiv);
-        });
-        container.appendChild(div);
-    });
-})
-.catch(err => {
-    document.getElementById('container').textContent = 'Greška pri učitavanju podataka';
-    console.error(err);
-});
-</script>
+                const csvText = await response.text();
+                // Filterujemo prazne redove i trimujemo whitespace
+                const rows = csvText.split('\n').filter(row => row.trim() !== '');
 
+                if (rows.length === 0) {
+                    dataContainer.innerHTML = '<p class="error-message">Nema podataka za prikaz u tabeli.</p>';
+                    return;
+                }
+
+                // Pretpostavljamo da je prvi red zaglavlje (header)
+                // Mapiramo i trimujemo svaki header
+                const headers = rows[0].split(',').map(header => header.trim());
+
+                // Prolazimo kroz ostale redove (podatke)
+                for (let i = 1; i < rows.length; i++) {
+                    // Mapiramo i trimujemo svaku vrednost
+                    const values = rows[i].split(',').map(value => value.trim());
+
+                    // Dodatna provera za neusklađen broj kolona
+                    if (values.length !== headers.length) {
+                        console.warn(`Red ${i+1} ima neusklađen broj kolona (očekivano: ${headers.length}, dobijeno: ${values.length}). Preskačem ovaj red.`);
+                        continue; // Preskoči ovaj red i nastavi sa sledećim
+                    }
+
+                    const rowDiv = document.createElement('div');
+                    rowDiv.classList.add('data-row');
+
+                    headers.forEach((header, index) => {
+                        const p = document.createElement('p');
+                        p.classList.add('data-field');
+                        // Prikazuje header i odgovarajuću vrednost; ako vrednost ne postoji, prikaže prazan string
+                        p.innerHTML = `<strong>${header}:</strong> ${values[index] || ''}`; 
+                        rowDiv.appendChild(p);
+                    });
+                    dataContainer.appendChild(rowDiv);
+                }
+
+            } catch (error) {
+                console.error('Došlo je do greške prilikom dohvaćanja podataka:', error);
+                dataContainer.innerHTML = `<p class="error-message">Greška prilikom učitavanja podataka: ${error.message}. <br>Proveri da li je CSV_URL ispravan i da li je tvoja Google Sheets tabela javno objavljena kao CSV.</p>`;
+            } finally {
+                loadingMessage.style.display = 'none'; // Sakrij poruku o učitavanju, bez obzira na ishod
+            }
+        }
+
+        // Pozovi funkciju za dohvaćanje i prikaz podataka kada se cela HTML stranica učita
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayData);
+    </script>
 </body>
 </html>
-
