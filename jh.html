@@ -51,6 +51,7 @@
             min-height: 80px;
             overflow: auto;
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            white-space: pre-line; /* Omogući prikaz u novim redovima */
         }
 
         .main-content {
@@ -315,7 +316,7 @@
 
             // Očisti polja sekcije sa podacima
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`data-field-${i}`).innerHTML = ''; // Koristi innerHTML
+                document.getElementById(`data-field-${i}`).textContent = '';
             }
         }
 
@@ -338,7 +339,7 @@
 
             // Očisti polja sekcije sa podacima
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`data-field-${i}`).innerHTML = ''; // Koristi innerHTML
+                document.getElementById(`data-field-${i}`).textContent = '';
             }
         }
 
@@ -359,22 +360,21 @@
             }
         }
 
-        // Funkcija za prikaz redova u sekciji sa podacima - IZMENJENO: Koristi innerHTML
+        // Funkcija za prikaz redova u sekciji sa podacima
         function displayDataSectionRows() {
             const input5Value = document.getElementById('input5').value;
             const rowNumbers = input5Value.split(',').map(num => parseInt(num.trim(), 10)).filter(num => !isNaN(num) && num > 0);
 
             for (let i = 1; i <= 4; i++) {
                 const dataField = document.getElementById(`data-field-${i}`);
-                dataField.innerHTML = ''; // Očisti polje pre popunjavanja (koristi innerHTML)
+                dataField.textContent = ''; // Očisti polje pre popunjavanja
 
                 const rowIndex = rowNumbers[i - 1]; // Uzmi broj reda za i-to polje (1-bazirano)
-                if (rowIndex && spreadsheetData[rowIndex - 1]) { // rowIndex je 1-baziran, array je 0-baziran
-                    const rowData = spreadsheetData[rowIndex - 1];
-                    // Prikazujemo svaki element reda u novom redu koristeći <br> i innerHTML
-                    dataField.innerHTML = `<strong>Red ${rowIndex}:</strong><br>` + rowData.map(item => `<span>${item.trim()}</span>`).join('<br>');
+                if (rowIndex && spreadsheetData[rowIndex - 1]) { 
+                    // Umesto spajanja sa zarezima -> svaki element u novom redu
+                    dataField.textContent = `Red ${rowIndex}:\n${spreadsheetData[rowIndex - 1].join('\n')}`;
                 } else if (rowIndex) {
-                    dataField.innerHTML = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
+                    dataField.textContent = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
                 }
             }
         }
