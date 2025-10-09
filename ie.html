@@ -223,14 +223,28 @@
             border: 2px solid #ddd;
         }
 
-        .spreadsheet-input-group {
-            margin-bottom: 15px;
+        /* New styles for individual spreadsheet rows */
+        .spreadsheet-row-container {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin-bottom: 8px; /* Space between rows */
+            font-size: 0.9em;
+            color: #444;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
-        .spreadsheet-input-group label {
-            display: block;
-            margin-bottom: 5px;
+
+        .spreadsheet-row-container:hover {
+            background-color: #f0f0f0;
+            border-color: #c0c0c0;
+        }
+
+        .spreadsheet-row-container.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
             font-weight: bold;
-            color: #555;
         }
     </style>
 </head>
@@ -241,6 +255,9 @@
                 <h2>Potkategorije</h2>
             </div>
             <ul id="subcategory-list" class="subcategory-list"></ul>
+            <div id="spreadsheet-rows-display" class="subcategory-list">
+                <!-- Spreadsheet rows will be dynamically inserted here -->
+            </div>
         </div>
 
         <div class="container">
@@ -272,10 +289,6 @@
                         <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
                         <input type="text" id="subcategory-short-desc" placeholder="Kratak opis" readonly>
                         <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..." readonly></textarea>
-                        
-                        <!-- Dynamic spreadsheet inputs will be inserted here -->
-                        <div id="spreadsheet-data-inputs"></div>
-
                         <div class="checkbox-container">
                             <input type="checkbox" id="subcategory-checkbox">
                             <label for="subcategory-checkbox">Aktivna potkategorija</label>
@@ -330,7 +343,6 @@
         let userProfilePicUrl = null;
         let currentSubcategoryId = null;
         let spreadsheetData = []; // To store parsed spreadsheet data
-        let spreadsheetHeaders = []; // To store spreadsheet headers
 
         async function fetchSpreadsheetData() {
             try {
@@ -339,27 +351,56 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                const rows = csvText.split('\n');
-                if (rows.length > 0) {
-                    spreadsheetHeaders = rows[0].split(',');
-                    spreadsheetData = rows.slice(1).map(row => row.split(','));
-                }
-                console.log("Spreadsheet Headers Loaded:", spreadsheetHeaders);
+                // Parse CSV - simple split by new line and then by comma
+                spreadsheetData = csvText.split('\n').map(row => row.split(','));
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
+                renderSpreadsheetRows(); // Render rows after fetching
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
                 document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja podataka sa tabele.";
             }
         }
 
-        function getSpreadsheetRow(rowNumber) {
-            // Spreadsheet row numbers are 1-indexed (after header), array is 0-indexed
-            // So if rowNumber is 1, it corresponds to index 0 in spreadsheetData
+        function getSpreadsheetRowContent(rowNumber) {
+            // Spreadsheet row numbers are 1-indexed, array is 0-indexed
             if (rowNumber > 0 && rowNumber <= spreadsheetData.length) {
-                return spreadsheetData[rowNumber - 1];
+                // Join all columns for the given row
+                return spreadsheetData[rowNumber - 1].join(', ');
             }
-            return null;
+            return 'Nema podataka u tabeli';
         }
+
+        function renderSpreadsheetRows() {
+            const spreadsheetDisplayElement = document.getElementById('spreadsheet-rows-display');
+            spreadsheetDisplayElement.innerHTML = ''; // Clear previous rows
+
+            if (spreadsheetData.length > 0) {
+                // Skip header row if present, assuming first row is header
+                const startIndex = 1; // Start from second row if first is header
+                for (let i = startIndex; i < spreadsheetData.length; i++) {
+                    const rowContent = spreadsheetData[i].join(', '); // Join all columns for the row
+                    const rowElement = document.createElement('div');
+                    rowElement.className = 'spreadsheet-row-container';
+                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; // Display row number and content
+                    rowElement.dataset.rowNumber = i + 1; // Store original row number
+
+                    rowElement.addEventListener('click', () => {
+                        // Optional: Highlight selected spreadsheet row
+                        document.querySelectorAll('.spreadsheet-row-container').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        rowElement.classList.add('selected');
+                        // You could add logic here to use the selected spreadsheet row data
+                        console.log("Selected spreadsheet row:", rowElement.dataset.rowNumber, rowContent);
+                    });
+
+                    spreadsheetDisplayElement.appendChild(rowElement);
+                }
+            } else {
+                spreadsheetDisplayElement.textContent = "Nema podataka za prikaz iz tabele.";
+            }
+        }
+
 
         function handleCredentialResponse(response) {
             googleIdToken = response.credential;
@@ -436,6 +477,7 @@
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
             clearSubcategoryForm();
             document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); // Clear spreadsheet row selection
         }
 
         function updateUIForLoggedOutUser() {
@@ -451,6 +493,7 @@
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.getElementById('subcategory-list').innerHTML = '';
+            document.getElementById('spreadsheet-rows-display').innerHTML = ''; // Clear spreadsheet rows on logout
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
@@ -555,7 +598,6 @@
             document.getElementById('subcategory-short-desc').value = '';
             document.getElementById('subcategory-long-desc').value = '';
             document.getElementById('subcategory-checkbox').checked = false;
-            document.getElementById('spreadsheet-data-inputs').innerHTML = ''; // Clear dynamic inputs
         }
 
         function showSubcategoryForm(subcategory = {}) {
@@ -565,49 +607,6 @@
             document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
             document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
             document.getElementById('subcategory-checkbox').checked = subcategory.is_active;
-
-            // Populate dynamic spreadsheet inputs
-            populateSpreadsheetInputs(subcategory.name);
-        }
-
-        function populateSpreadsheetInputs(subcategoryName) {
-            const spreadsheetInputsContainer = document.getElementById('spreadsheet-data-inputs');
-            spreadsheetInputsContainer.innerHTML = ''; // Clear previous inputs
-
-            const rowNumberMatch = subcategoryName.match(/\d+/);
-            if (rowNumberMatch) {
-                const rowNumber = parseInt(rowNumberMatch[0], 10);
-                const spreadsheetRow = getSpreadsheetRow(rowNumber);
-
-                if (spreadsheetRow && spreadsheetHeaders.length === spreadsheetRow.length) {
-                    spreadsheetRow.forEach((cellValue, index) => {
-                        const header = spreadsheetHeaders[index];
-                        const div = document.createElement('div');
-                        div.className = 'spreadsheet-input-group';
-
-                        const label = document.createElement('label');
-                        label.textContent = header;
-                        div.appendChild(label);
-
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.value = cellValue;
-                        input.readOnly = true; // Make them read-only as per the request
-                        input.id = `spreadsheet-field-${index}`; // Unique ID for potential future use
-                        div.appendChild(input);
-
-                        spreadsheetInputsContainer.appendChild(div);
-                    });
-                } else {
-                    const p = document.createElement('p');
-                    p.textContent = 'Nema odgovarajućih podataka u tabeli za ovu potkategoriju.';
-                    spreadsheetInputsContainer.appendChild(p);
-                }
-            } else {
-                const p = document.createElement('p');
-                p.textContent = 'Ime potkategorije ne sadrži broj reda za tabelu.';
-                spreadsheetInputsContainer.appendChild(p);
-            }
         }
 
         document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
@@ -695,20 +694,6 @@
                         subcategoryNameSpan.className = 'subcategory-item-name';
                         subcategoryNameSpan.textContent = sub.name;
                         listItem.appendChild(subcategoryNameSpan);
-
-                        // Keep displaying the first few columns in the sidebar list item as before for summary
-                        const rowNumberMatch = sub.name.match(/\d+/);
-                        if (rowNumberMatch) {
-                            const rowNumber = parseInt(rowNumberMatch[0], 10);
-                            const spreadsheetRowContent = getSpreadsheetRow(rowNumber);
-                            if (spreadsheetRowContent && spreadsheetRowContent.length > 0) {
-                                const spreadsheetContentSpan = document.createElement('span');
-                                spreadsheetContentSpan.className = 'subcategory-item-spreadsheet-content';
-                                // Display a limited preview in the sidebar
-                                spreadsheetContentSpan.textContent = spreadsheetRowContent.slice(0, 3).join(', ') + (spreadsheetRowContent.length > 3 ? '...' : '');
-                                listItem.appendChild(spreadsheetContentSpan);
-                            }
-                        }
 
                         listItem.addEventListener('click', () => {
                             selectSubcategory(sub.id);
