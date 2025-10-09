@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google OAuth Aplikacija (All in One)</title>
+    <title>Google OAuth App (All in One)</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body {
@@ -244,7 +244,7 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <!-- Subcategory Details Section -->
+                <!-- Subcategory Details Section - Hidden -->
                 <div id="subcategory-details-section" style="display: none;">
                     <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
                     <div id="subcategory-form" style="padding-top: 10px;">
@@ -298,23 +298,24 @@
         </div>
     </div>
 
-    <script src="oauth.js"></script> <!-- Učitavanje OAuth logike -->
+    <script src="oauth.js"></script>
     <script>
-        let currentSubcategoryId = null; // Globalna varijabla za praćenje selektovane potkategorije
-
-        // Ažurira UI kada je korisnik prijavljen
+        // Varijable koje se dele između oauth.js i ovog fajla
+        let currentSubcategoryId = null; // Mora biti globalno dostupno
+        
+        // Funkcije za ažuriranje UI-a i rukovanje događajima
         function updateUIForLoggedInUser() {
             document.getElementById('g_id_onload').style.display = 'none';
             document.querySelector('.g_id_signin').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('subcategory-sidebar').style.display = 'flex';
-            document.getElementById('user-name').textContent = window.userName;
+            document.getElementById('user-name').textContent = window.userName; // Koristi globalnu varijablu iz oauth.js
             document.getElementById('message').textContent = "";
             document.getElementById('subcategory-message').textContent = "";
             
             const profilePicElement = document.getElementById('profile-picture');
             const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
-            if (window.userProfilePicUrl) {
+            if (window.userProfilePicUrl) { // Koristi globalnu varijablu iz oauth.js
                 profilePicElement.src = window.userProfilePicUrl;
                 profilePicElement.style.display = 'block';
                 profilePicPlaceholder.style.display = 'none';
@@ -323,7 +324,6 @@
                 profilePicPlaceholder.style.display = 'block';
             }
             
-            // Očisti sva polja prilikom prijave (glavni podaci)
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
@@ -334,7 +334,6 @@
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
 
-            // Sakrij formu za potkategorije
             document.getElementById('subcategory-details-section').style.display = 'none';
             currentSubcategoryId = null;
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
@@ -342,7 +341,6 @@
             document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
         }
 
-        // Ažurira UI kada je korisnik odjavljen
         function updateUIForLoggedOutUser() {
             document.getElementById('g_id_onload').style.display = 'block';
             document.querySelector('.g_id_signin').style.display = 'block';
@@ -351,6 +349,9 @@
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             document.getElementById('subcategory-message').textContent = "";
+            window.googleIdToken = null; // Resetuj globalnu varijablu iz oauth.js
+            window.userName = null;
+            window.userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.getElementById('subcategory-list').innerHTML = '';
 
@@ -359,13 +360,12 @@
             document.getElementById('profile-picture').src = '';
         }
 
-        // Inicijalno stanje UI-a
         window.onload = function() {
             updateUIForLoggedOutUser();
         };
 
         // --- Glavni podaci ---
-        document.getElementById('save-button').addEventListener('click', () => {
+        document.getElementById('save-button').addEventListener('click', async () => {
             if (!window.googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
@@ -383,31 +383,40 @@
                 largeText3: document.getElementById('large-text-input-3').value
             };
 
-            window.saveMainData(dataToSave)
-                .then(data => { document.getElementById('message').textContent = data.message; })
-                .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
+            const response = await window.saveMainData(dataToSave); // Pozivamo funkciju iz oauth.js
+            if (response.status === 'success') {
+                document.getElementById('message').textContent = response.message;
+            } else {
+                document.getElementById('message').textContent = response.message || "Greška prilikom čuvanja podataka.";
+            }
         });
 
-        function loadMainData() {
-            window.loadMainData()
-                .then(data => {
-                    document.getElementById('input1').value = data.input1 || '';
-                    document.getElementById('input2').value = data.input2 || '';
-                    document.getElementById('large-text-input').value = data.largeText || '';
-                    document.getElementById('input3').value = data.input3 || '';
-                    document.getElementById('input4').value = data.input4 || '';
-                    document.getElementById('input5').value = data.input5 || '';
-                    document.getElementById('dropdown-input').value = data.dropdown || '';
-                    document.getElementById('large-text-input-2').value = data.largeText2 || '';
-                    document.getElementById('large-text-input-3').value = data.largeText3 || '';
-                    
-                    document.getElementById('message').textContent = data.message;
-                })
-                .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
+        // Učitavanje glavnih podataka (poziva se nakon uspešne prijave u oauth.js)
+        async function loadMainDataToUI() {
+            const data = await window.loadMainData(); // Pozivamo funkciju iz oauth.js
+            if (data && data.status === 'success') {
+                document.getElementById('input1').value = data.input1 || '';
+                document.getElementById('input2').value = data.input2 || '';
+                document.getElementById('large-text-input').value = data.largeText || '';
+                document.getElementById('input3').value = data.input3 || '';
+                document.getElementById('input4').value = data.input4 || '';
+                document.getElementById('input5').value = data.input5 || '';
+                document.getElementById('dropdown-input').value = data.dropdown || '';
+                document.getElementById('large-text-input-2').value = data.largeText2 || '';
+                document.getElementById('large-text-input-3').value = data.largeText3 || '';
+                
+                document.getElementById('message').textContent = data.message;
+            } else if (data) {
+                document.getElementById('message').textContent = data.message || "Greška prilikom učitavanja podataka.";
+            } else {
+                 document.getElementById('message').textContent = "Greška prilikom učitavanja podataka.";
+            }
         }
 
-        document.getElementById('signout-button').addEventListener('click', () => {
-            window.signOut();
+        document.getElementById('signout-button').addEventListener('click', async () => {
+            await window.signOut(); // Pozivamo funkciju iz oauth.js
+            updateUIForLoggedOutUser();
+            alert("Uspešno ste se odjavili.");
         });
 
         // --- Funkcije za potkategorije ---
@@ -419,9 +428,9 @@
             document.getElementById('subcategory-checkbox').checked = false;
         }
 
-        function fillSubcategoryForm(subcategory = {}) {
+        function showSubcategoryForm(subcategory = {}) {
             currentSubcategoryId = subcategory.id;
-            document.getElementById('current-subcategory-id').textContent = subcategory.id || "Nijedna";
+            document.getElementById('current-subcategory-id').textContent = subcategory.id;
             document.getElementById('subcategory-name').value = subcategory.name || '';
             document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
             document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
@@ -437,7 +446,7 @@
             document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
         });
 
-        document.getElementById('save-subcategory-button').addEventListener('click', () => {
+        document.getElementById('save-subcategory-button').addEventListener('click', async () => {
             if (!window.googleIdToken) {
                 alert("Niste prijavljeni.");
                 return;
@@ -455,56 +464,51 @@
                 is_active: document.getElementById('subcategory-checkbox').checked
             };
 
-            window.saveSubcategoryAPI(currentSubcategoryId, subcategoryData)
-                .then(data => {
-                    document.getElementById('subcategory-message').textContent = data.message;
-                    loadSubcategories(true); // Ponovo učitaj listu i re-selektuj
-                    document.getElementById('subcategory-details-section').style.display = 'none';
-                    clearSubcategoryForm();
-                })
-                .catch(error => { 
-                    console.error("Error saving subcategory:", error); 
-                    document.getElementById('subcategory-message').textContent = "Greška prilikom čuvanja potkategorije."; 
-                });
+            const response = await window.saveSubcategory(currentSubcategoryId, subcategoryData); // Pozivamo funkciju iz oauth.js
+            if (response.status === 'success') {
+                document.getElementById('subcategory-message').textContent = response.message;
+                loadSubcategoriesToUI(true); // Ponovo učitaj listu i re-selektuj
+                document.getElementById('subcategory-details-section').style.display = 'none';
+                clearSubcategoryForm();
+            } else {
+                document.getElementById('subcategory-message').textContent = response.message || "Greška prilikom čuvanja potkategorije.";
+            }
         });
 
-        function loadSubcategories(reselect = false) {
-            window.loadSubcategoriesAPI()
-                .then(data => {
-                    const subcategoryListElement = document.getElementById('subcategory-list');
-                    subcategoryListElement.innerHTML = '';
-                    
-                    let newlySelectedId = currentSubcategoryId;
+        // Funkcija za učitavanje potkategorija u UI
+        async function loadSubcategoriesToUI(reselect = false) {
+            const data = await window.loadSubcategories(); // Pozivamo funkciju iz oauth.js
+            const subcategoryListElement = document.getElementById('subcategory-list');
+            subcategoryListElement.innerHTML = '';
+            
+            let newlySelectedId = currentSubcategoryId;
 
-                    if (data.status === 'success' && data.subcategories.length > 0) {
-                        data.subcategories.forEach(sub => {
-                            const listItem = document.createElement('li');
-                            listItem.className = 'subcategory-list-item';
-                            listItem.dataset.id = sub.id;
-                            listItem.textContent = sub.name;
-                            listItem.addEventListener('click', () => {
-                                selectSubcategory(sub.id);
-                            });
-                            subcategoryListElement.appendChild(listItem);
-                        });
-                        document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
-                    } else {
-                        document.getElementById('subcategory-message').textContent = "Nema sačuvanih potkategorija.";
-                    }
-
-                    if (reselect && newlySelectedId) {
-                        selectSubcategory(newlySelectedId);
-                    } else {
-                        currentSubcategoryId = null;
-                        document.getElementById('current-subcategory-id').textContent = "Nijedna";
-                        document.getElementById('subcategory-details-section').style.display = 'none';
-                        clearSubcategoryForm();
-                    }
-                })
-                .catch(error => { 
-                    console.error("Error loading subcategories:", error); 
-                    document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja potkategorija."; 
+            if (data && data.status === 'success' && data.subcategories && data.subcategories.length > 0) {
+                data.subcategories.forEach(sub => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'subcategory-list-item';
+                    listItem.dataset.id = sub.id;
+                    listItem.textContent = sub.name;
+                    listItem.addEventListener('click', () => {
+                        selectSubcategory(sub.id);
+                    });
+                    subcategoryListElement.appendChild(listItem);
                 });
+                document.getElementById('subcategory-message').textContent = "Potkategorije uspešno učitane.";
+            } else if (data) {
+                document.getElementById('subcategory-message').textContent = data.message || "Nema sačuvanih potkategorija.";
+            } else {
+                document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja potkategorija.";
+            }
+
+            if (reselect && newlySelectedId) {
+                selectSubcategory(newlySelectedId);
+            } else {
+                currentSubcategoryId = null;
+                document.getElementById('current-subcategory-id').textContent = "Nijedna";
+                document.getElementById('subcategory-details-section').style.display = 'none';
+                clearSubcategoryForm();
+            }
         }
 
         function selectSubcategory(subcategoryId) {
@@ -515,30 +519,40 @@
             const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
             if (selectedItem) {
                 selectedItem.classList.add('selected');
-                loadSubcategoryDetails(subcategoryId);
+                loadSubcategoryDetailsToUI(subcategoryId);
                 document.getElementById('subcategory-details-section').style.display = 'block'; 
             }
         }
 
-        function loadSubcategoryDetails(subcategoryId) {
-            window.loadSubcategoryDetailsAPI(subcategoryId)
-                .then(data => {
-                    if (data.status === 'success' && data.subcategory) {
-                        fillSubcategoryForm(data.subcategory);
-                        document.getElementById('subcategory-message').textContent = `Potkategorija "${data.subcategory.name}" učitana.`;
-                    } else {
-                        document.getElementById('subcategory-message').textContent = "Potkategorija nije pronađena.";
-                        document.getElementById('subcategory-details-section').style.display = 'none';
-                        clearSubcategoryForm();
-                        currentSubcategoryId = null;
-                        document.getElementById('current-subcategory-id').textContent = "Nijedna";
-                    }
-                })
-                .catch(error => { 
-                    console.error("Error loading subcategory details:", error); 
-                    document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja detalja potkategorije."; 
-                });
+        // Funkcija za učitavanje detalja potkategorije u UI
+        async function loadSubcategoryDetailsToUI(subcategoryId) {
+            const data = await window.loadSubcategoryDetails(subcategoryId); // Pozivamo funkciju iz oauth.js
+            if (data && data.status === 'success' && data.subcategory) {
+                showSubcategoryForm(data.subcategory);
+                document.getElementById('subcategory-message').textContent = `Potkategorija "${data.subcategory.name}" učitana.`;
+            } else if (data) {
+                document.getElementById('subcategory-message').textContent = data.message || "Potkategorija nije pronađena.";
+                document.getElementById('subcategory-details-section').style.display = 'none';
+                clearSubcategoryForm();
+                currentSubcategoryId = null;
+                document.getElementById('current-subcategory-id').textContent = "Nijedna";
+            } else {
+                 document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja detalja potkategorije.";
+            }
         }
+
+        // Ove funkcije će biti pozvane iz oauth.js nakon uspešne prijave
+        window.onLoginSuccess = function() {
+            updateUIForLoggedInUser();
+            loadSubcategoriesToUI();
+            loadMainDataToUI();
+        };
+
+        window.onLoginFailure = function(message) {
+            console.error("Login failed:", message);
+            alert("Login failed: " + message);
+            updateUIForLoggedOutUser();
+        };
     </script>
 </body>
 </html>
