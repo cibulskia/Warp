@@ -84,6 +84,96 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            margin: 5px;<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth App</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            max-width: 800px;
+        }
+
+        .subcategory-sidebar {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            flex-shrink: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* All subcategory detail fields are now always readonly and styled as such */
+        #subcategory-name,
+        #subcategory-short-desc,
+        #subcategory-long-desc,
+        #new-subcategory-field-1,
+        #new-subcategory-field-2,
+        #new-subcategory-field-3 {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
             margin: 5px;
             transition: background-color 0.3s ease;
         }
@@ -120,7 +210,7 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 500px; /* Povećana visina za više pravougaonika */
+            max-height: 300px;
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 4px;
@@ -141,12 +231,18 @@
             border-bottom: none;
         }
 
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
         .subcategory-item-name {
             font-weight: bold;
             margin-bottom: 5px; 
-            color: #007bff; /* Boja za ime podkategorije */
         }
 
+        /* Styles for individual spreadsheet data boxes */
         .spreadsheet-data-box {
             background-color: #f8f9fa;
             border: 1px solid #e2e6ea;
@@ -161,6 +257,10 @@
         }
         .spreadsheet-data-box:last-child {
             margin-bottom: 0;
+        }
+
+        .checkbox-container {
+            display: none; /* Hide checkbox container completely */
         }
         
         #subcategory-form {
@@ -200,6 +300,29 @@
                 <h2>Potkategorije</h2>
             </div>
             <ul id="subcategory-list" class="subcategory-list"></ul>
+
+            <div class="section-separator"></div>
+
+            <h3>Detalji Potkategorije</h3>
+            <form id="subcategory-form">
+                <label for="subcategory-name">Ime Potkategorije:</label>
+                <input type="text" id="subcategory-name" readonly>
+
+                <label for="subcategory-short-desc">Kratak Opis:</label>
+                <input type="text" id="subcategory-short-desc" readonly>
+
+                <label for="subcategory-long-desc">Dugačak Opis:</label>
+                <textarea id="subcategory-long-desc" readonly></textarea>
+
+                <label for="new-subcategory-field-1">Novo Polje 1:</label>
+                <input type="text" id="new-subcategory-field-1" readonly>
+
+                <label for="new-subcategory-field-2">Novo Polje 2:</label>
+                <input type="text" id="new-subcategory-field-2" readonly>
+
+                <label for="new-subcategory-field-3">Novo Polje 3:</label>
+                <input type="text" id="new-subcategory-field-3" readonly>
+            </form>
         </div>
 
         <div class="container">
@@ -274,11 +397,11 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                // Split by newline, then each row by comma. Trim whitespace from cells.
                 spreadsheetData = csvText.split('\n').map(row => row.split(',').map(cell => cell.trim())); 
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
+                // Removed specific subcategory-message element, rely on console for errors here if needed.
             }
         }
 
@@ -349,7 +472,6 @@
                 profilePicPlaceholder.style.display = 'block';
             }
             
-            // Clear main data fields on login/refresh if they were previously filled
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
@@ -359,6 +481,14 @@
             document.getElementById('dropdown-input').value = "";
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
+
+            // Clear subcategory detail fields on login
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('new-subcategory-field-1').value = '';
+            document.getElementById('new-subcategory-field-2').value = '';
+            document.getElementById('new-subcategory-field-3').value = '';
         }
 
         function updateUIForLoggedOutUser() {
@@ -371,18 +501,25 @@
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null;
-            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Clear session cookie
-            document.getElementById('subcategory-list').innerHTML = ''; // Clear subcategory list
+            document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.getElementById('subcategory-list').innerHTML = '';
 
-            // Clear profile picture
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
             document.getElementById('profile-picture').src = '';
+
+            // Clear subcategory detail fields on logout
+            document.getElementById('subcategory-name').value = '';
+            document.getElementById('subcategory-short-desc').value = '';
+            document.getElementById('subcategory-long-desc').value = '';
+            document.getElementById('new-subcategory-field-1').value = '';
+            document.getElementById('new-subcategory-field-2').value = '';
+            document.getElementById('new-subcategory-field-3').value = '';
         }
 
         window.onload = function() {
             fetchSpreadsheetData().then(() => {
-                updateUIForLoggedOutUser(); // Ensure UI is logged out initially
+                updateUIForLoggedOutUser();
             });
         };
 
@@ -508,11 +645,9 @@
                             const rowNumber = parseInt(rowNumberMatch[0], 10);
                             const rowData = getSpreadsheetRowData(rowNumber); 
 
-                            // Display each non-empty cell from the row (excluding the first if it's the name)
                             rowData.forEach((cellContent, index) => {
-                                // Assuming the first column in the spreadsheet might also be the subcategory name
-                                // We display all cells, letting the user define what's important.
-                                if (cellContent) { 
+                                // Skip empty cells and the first cell (which might be the "name" already in sub.name)
+                                if (cellContent && index > 0) { 
                                     const dataBox = document.createElement('div');
                                     dataBox.className = 'spreadsheet-data-box';
                                     dataBox.textContent = cellContent;
@@ -522,14 +657,10 @@
                         }
                         subcategoryListElement.appendChild(listItem);
                     });
-                } else {
-                    // If no subcategories or an error, clear the list
-                    subcategoryListElement.innerHTML = '<li>Nema pronađenih potkategorija.</li>';
-                }
+                } 
             })
             .catch(error => { 
                 console.error("Error loading subcategories:", error); 
-                document.getElementById('subcategory-list').innerHTML = '<li>Greška prilikom učitavanja potkategorija.</li>';
             });
         }
     </script>
