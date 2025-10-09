@@ -1,1 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth App (All in One)</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            max-width: 800px;
+        }
+
+        .subcategory-sidebar {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            flex-shrink: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* Onemogući uređivanje tekstualnih polja za potkategorije */
+        #subcategory-name[readonly],
+        #subcategory-short-desc[readonly],
+        #subcategory-long-desc[readonly] {
+            background-color: #e9ecef; /* Svetlosiva pozadina za readonly polja */
+            cursor: not-allowed;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #message, #subcategory-message {
+            margin-top: 20px;
+            color: #333;
+            min-height: 20px;
+        }
+
+        #user-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #signout-button {
+            background-color: #dc3545;
+        }
+
+        #signout-button:hover {
+            background-color: #c82333;
+        }
+
+        .section-separator {
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .subcategory-list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .subcategory-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .subcategory-buttons button {
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        #subcategory-form {
+            text-align: left;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+        }
+
+        #profile-picture-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- Subcategory Sidebar -->
+        <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2>Potkategorije</h2>
+            </div>
+            <ul id="subcategory-list" class="subcategory-list">
+                <!-- Potkategorije će biti dinamički dodate ovde -->
+            </ul>
+        </div>
+
+        <div class="container">
+            <h1>Moja Aplikacija</h1>
+
+            <!-- Google One Tap / Sign In Button -->
+            <div id="g_id_onload"
+                 data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+                 data-auto_select="true"
+                 data-callback="handleCredentialResponse"
+                 data-ux_mode="popup"
+                 data-cancel_on_tap_outside="false"
+                 data-context="use">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+
+            <div id="app-content" style="display: none;">
+                <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+                <!-- Subcategory Details Section - Hidden -->
+                <div id="subcategory-details-section" style="display: none;">
+                    <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
+                    <div id="subcategory-form" style="padding-top: 10px;">
+                        <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
+                        <input type="text" id="subcategory-short-desc" placeholder="Kratak opis" readonly>
+                        <textarea id="subcategory-long-desc" placeholder="Detaljan opis potkategorije..." readonly></textarea>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="subcategory-checkbox">
+                            <label for="subcategory-checkbox">Aktivna potkategorija</label>
+                        </div>
+                        
+                        <button id="save-subcategory-button">Sačuvaj Potkategoriju</button>
+                        <button id="cancel-subcategory-edit-button">Odustani</button>
+                    </div>
+                </div>
+                
+                <p id="subcategory-message"></p>
+
+                <div class="section-separator"></div>
+
+                <!-- Original Data Section -->
+                <h2>Glavni Podaci</h2>
+                <div id="profile-picture-container">
+                    <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
+                    <p id="profile-picture-placeholder">Profilna slika će biti prikazana ovde</p>
+                </div>
+                <input type="text" id="input1" placeholder="Prvo polje za tekst">
+                <input type="text" id="input2" placeholder="Drugo polje za tekst">
+                <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+                <input type="text" id="input3" placeholder="Treće polje za tekst">
+                <input type="text" id="input4" placeholder="Četvrto polje za tekst">
+                <input type="text" id="input5" placeholder="Peto polje za tekst">
+                <select id="dropdown-input">
+                    <option value="">Odaberite opciju</option>
+                    <option value="opcija1">Opcija 1</option>
+                    <option value="opcija2">Opcija 2</option>
+                    <option value="opcija3">Opcija 3</option>
+                </select>
+
+                <!-- Dodatna dva velika tekstualna polja -->
+                <textarea id="large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..."></textarea>
+                <textarea id="large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..."></textarea>
+
+                <button id="save-button">Sačuvaj Glavne Podatke</button>
+                <p id="message"></p>
+
+                <div class="section-separator"></div>
+
+                <button id="signout-button">Odjavi se</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="oath.js"></script>
+        <script>
+        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv";
+        let spreadsheetData = []; // To store the parsed CSV data
+
+        // Function to fetch and parse the CSV data
+        async function fetchSpreadsheetData() {
+            try {
+                const response = await fetch(SPREADSHEET_URL);
+                const csvText = await response.text();
+                spreadsheetData = parseCSV(csvText);
+                console.log("Spreadsheet data loaded:", spreadsheetData);
+            } catch (error) {
+                console.error("Error fetching or parsing spreadsheet data:", error);
+                document.getElementById('spreadsheet-content').innerHTML = '<p style="color: red;">Greška pri učitavanju podataka iz spreadsheeta.</p>';
+            }
+        }
+
+        // Simple CSV parser
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const data = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    data.push(line.split(',').map(cell => cell.trim()));
+                }
+            }
+            return data;
+        }
+
+        // Function to display spreadsheet data based on subcategory names found in DOM
+        function displaySpreadsheetDataFromDOMSubcategories() {
+            const spreadsheetContentDiv = document.getElementById('spreadsheet-content');
+            spreadsheetContentDiv.innerHTML = ''; // Clear previous content
+
+            if (spreadsheetData.length === 0) {
+                spreadsheetContentDiv.innerHTML = '<p>Nema dostupnih podataka iz spreadsheeta ili još nisu učitani.</p>';
+                return;
+            }
+
+            const subcategoryListItems = document.querySelectorAll('#subcategory-list .subcategory-list-item');
+            let foundData = false;
+
+            if (subcategoryListItems.length === 0) {
+                spreadsheetContentDiv.innerHTML = '<p>Nema učitanih potkategorija za prikaz podataka iz spreadsheeta.</p>';
+                return;
+            }
+
+            subcategoryListItems.forEach(item => {
+                const subcategoryName = item.textContent.trim(); // Get subcategory name from the list item text
+                const rowNumber = parseInt(subcategoryName, 10); // Try to parse as a row number
+
+                if (!isNaN(rowNumber) && rowNumber > 0 && rowNumber <= spreadsheetData.length) {
+                    const rowData = spreadsheetData[rowNumber - 1]; // Adjust for 0-based indexing
+                    if (rowData) {
+                        foundData = true;
+                        const dataHtml = `
+                            <div class="spreadsheet-data-item">
+                                <p>${rowData.join('<br>')}</p>
+                            </div>
+                        `;
+                        spreadsheetContentDiv.innerHTML += dataHtml;
+                    }
+                }
+            });
+
+            if (!foundData) {
+                spreadsheetContentDiv.innerHTML = '<p>Nije pronađen nijedan red u spreadsheetu koji odgovara imenu potkategorije.</p>';
+            }
+        }
+        // Expose globally if app.js needs to call it, though current approach reads from DOM
+        window.displaySpreadsheetDataFromDOMSubcategories = displaySpreadsheetDataFromDOMSubcategories; 
+
+        </script>
+</body>
+</html>
