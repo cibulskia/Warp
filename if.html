@@ -64,15 +64,12 @@
             box-sizing: border-box;
         }
 
-        /* All subcategory form fields should be hidden or removed */
+        /* All subcategory detail fields are now always readonly and styled as such */
         #subcategory-name,
         #subcategory-short-desc,
-        #subcategory-long-desc,
-        .checkbox-container,
-        #save-subcategory-button,
-        #cancel-subcategory-edit-button,
-        #subcategory-details-section {
-            display: none !important; /* Force hide these elements */
+        #subcategory-long-desc {
+            background-color: #e9ecef;
+            cursor: not-allowed;
         }
 
         textarea {
@@ -120,7 +117,7 @@
             margin: 30px 0;
         }
 
-        .subcategory-list { /* This class is now primarily for spreadsheet display */
+        .subcategory-list {
             list-style: none;
             padding: 0;
             margin: 0;
@@ -132,11 +129,66 @@
             flex-grow: 1;
         }
 
-        /* Subcategory list items are completely removed from display */
         .subcategory-list-item {
-            display: none !important;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            /* Removed cursor: pointer; to indicate non-interactiveness */
+            text-align: left;
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-start; 
+        }
+
+        .subcategory-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .subcategory-list-item.selected {
+            background-color: #e0f2ff;
+            border-left: 3px solid #007bff;
+            font-weight: bold;
+        }
+
+        .subcategory-item-name {
+            font-weight: bold;
+            margin-bottom: 5px; 
+        }
+
+        /* Styles for individual spreadsheet data boxes */
+        .spreadsheet-data-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e2e6ea;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #343a40;
+            width: calc(100% - 24px); 
+            box-sizing: border-box;
+            word-wrap: break-word; 
+        }
+        .spreadsheet-data-box:last-child {
+            margin-bottom: 0;
+        }
+
+        .checkbox-container {
+            display: none; /* Hide checkbox container completely */
         }
         
+        #subcategory-form {
+            text-align: left;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+        }
+
         #profile-picture-container {
             margin-bottom: 20px;
             display: flex;
@@ -151,30 +203,6 @@
             object-fit: cover;
             border: 2px solid #ddd;
         }
-
-        /* Styles for individual spreadsheet rows */
-        .spreadsheet-row-container {
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            padding: 8px 12px;
-            margin-bottom: 8px; /* Space between rows */
-            font-size: 0.9em;
-            color: #444;
-            /* No cursor: pointer; to indicate no interaction */
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .spreadsheet-row-container:hover {
-            background-color: #f9f9f9; /* No change on hover */
-            border-color: #e0e0e0; /* No change on hover */
-        }
-
-        .spreadsheet-row-container.selected {
-            background-color: #f9f9f9; /* No selection visual */
-            border-left: 1px solid #e0e0e0; /* No selection visual */
-            font-weight: normal; /* No selection visual */
-        }
     </style>
 </head>
 <body>
@@ -183,10 +211,7 @@
             <div class="sidebar-header">
                 <h2>Potkategorije</h2>
             </div>
-            <!-- This div will now exclusively hold the spreadsheet data -->
-            <div id="spreadsheet-rows-display" class="subcategory-list">
-                <!-- Spreadsheet rows will be dynamically inserted here -->
-            </div>
+            <ul id="subcategory-list" class="subcategory-list"></ul>
         </div>
 
         <div class="container">
@@ -212,9 +237,8 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <!-- Removed the subcategory details section completely -->
-                
-                <p id="message"></p>
+                <!-- Removed subcategory-details-section entirely as it's no longer editable -->
+                <!-- Removed subcategory-message -->
 
                 <div class="section-separator"></div>
 
@@ -240,7 +264,8 @@
                 <textarea id="large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..."></textarea>
 
                 <button id="save-button">Sačuvaj Glavne Podatke</button>
-                
+                <p id="message"></p>
+
                 <div class="section-separator"></div>
 
                 <button id="signout-button">Odjavi se</button>
@@ -264,37 +289,21 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                // Parse CSV - simple split by new line and then by comma
-                spreadsheetData = csvText.split('\n').map(row => row.split(','));
+                spreadsheetData = csvText.split('\n').map(row => row.split(',').map(cell => cell.trim())); 
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
-                renderSpreadsheetRows(); // Render rows after fetching
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
+                // Removed specific subcategory-message element, rely on console for errors here if needed.
             }
         }
 
-        function renderSpreadsheetRows() {
-            const spreadsheetDisplayElement = document.getElementById('spreadsheet-rows-display');
-            spreadsheetDisplayElement.innerHTML = ''; // Clear previous rows
-
-            if (spreadsheetData.length > 0) {
-                // Skip header row if present, assuming first row is header
-                const startIndex = 1; // Start from second row if first is header
-                for (let i = startIndex; i < spreadsheetData.length; i++) {
-                    const rowContent = spreadsheetData[i].join(', '); // Join all columns for the row
-                    const rowElement = document.createElement('div');
-                    rowElement.className = 'spreadsheet-row-container';
-                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; // Display row number and content
-                    rowElement.dataset.rowNumber = i + 1; // Store original row number
-
-                    // Removed click event listener for spreadsheet rows as they should not be interactive
-                    spreadsheetDisplayElement.appendChild(rowElement);
-                }
-            } else {
-                spreadsheetDisplayElement.textContent = "Nema podataka za prikaz iz tabele.";
+        function getSpreadsheetRowData(rowNumber) {
+            // Spreadsheet row numbers are 1-indexed, array is 0-indexed
+            if (rowNumber > 0 && rowNumber <= spreadsheetData.length) {
+                return spreadsheetData[rowNumber - 1]; 
             }
+            return [];
         }
-
 
         function handleCredentialResponse(response) {
             googleIdToken = response.credential;
@@ -316,6 +325,7 @@
             .then(data => {
                 if (data.status === 'success') {
                     updateUIForLoggedInUser();
+                    loadSubcategories();
                     loadMainData();
                 } else {
                     alert("Login failed: " + data.message);
@@ -363,8 +373,6 @@
             document.getElementById('dropdown-input').value = "";
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
-
-            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); 
         }
 
         function updateUIForLoggedOutUser() {
@@ -378,7 +386,7 @@
             userName = null;
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('spreadsheet-rows-display').innerHTML = ''; // Clear spreadsheet rows on logout
+            document.getElementById('subcategory-list').innerHTML = '';
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
@@ -477,6 +485,65 @@
                 alert("Došlo je do greške prilikom odjave sa servera.");
             });
         });
+
+        function loadSubcategories() {
+            if (!googleIdToken) {
+                return;
+            }
+
+            fetch(`${BACKEND_URL}/subcategories`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const subcategoryListElement = document.getElementById('subcategory-list');
+                subcategoryListElement.innerHTML = '';
+                
+                if (data.status === 'success' && data.subcategories.length > 0) {
+                    data.subcategories.forEach(sub => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'subcategory-list-item';
+                        // No dataset.id or click listener as items are not interactive
+                        // listItem.dataset.id = sub.id; // Not needed if not clickable
+
+                        const subcategoryNameSpan = document.createElement('span');
+                        subcategoryNameSpan.className = 'subcategory-item-name';
+                        subcategoryNameSpan.textContent = sub.name;
+                        listItem.appendChild(subcategoryNameSpan);
+
+                        const rowNumberMatch = sub.name.match(/\d+/);
+                        if (rowNumberMatch) {
+                            const rowNumber = parseInt(rowNumberMatch[0], 10);
+                            const rowData = getSpreadsheetRowData(rowNumber); 
+
+                            rowData.forEach((cellContent, index) => {
+                                // Skip empty cells and the first cell (which might be the "name" already in sub.name)
+                                if (cellContent && index > 0) { 
+                                    const dataBox = document.createElement('div');
+                                    dataBox.className = 'spreadsheet-data-box';
+                                    dataBox.textContent = cellContent;
+                                    listItem.appendChild(dataBox);
+                                }
+                            });
+                        }
+                        // Removed click listener for subcategory list items
+                        subcategoryListElement.appendChild(listItem);
+                    });
+                } 
+                // Removed all subcategory-message updates
+            })
+            .catch(error => { 
+                console.error("Error loading subcategories:", error); 
+                // Removed all subcategory-message updates
+            });
+        }
     </script>
 </body>
 </html>
