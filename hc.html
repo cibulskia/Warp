@@ -130,8 +130,8 @@
             transition: background-color 0.2s ease;
             display: flex;
             flex-direction: column; /* Changed to column to stack spreadsheet data */
-            justify-content: space-between;
-            align-items: flex-start; /* Align items to start for column layout */
+            justify-content: flex-start; /* Align items to start for column layout */
+            align-items: flex-start;
         }
 
         .subcategory-list-item:last-child {
@@ -207,9 +207,19 @@
             margin-top: 5px;
             padding-left: 10px;
             border-left: 2px solid #ccc;
+            width: 100%; /* Ensure it takes full width */
+            box-sizing: border-box; /* Include padding and border in width */
         }
         .spreadsheet-data-display p {
             margin: 2px 0;
+            white-space: nowrap; /* Prevent text wrapping for single lines */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis if text overflows */
+        }
+        .subcategory-name-display {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -302,7 +312,8 @@
     <script src="app.js"></script>
     <script>
         // Global variable to store spreadsheet data
-        let spreadsheetData = [];
+        let spreadsheetHeaders = [];
+        let spreadsheetDataRows = []; // Stores data rows, excluding headers
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv";
 
         // Function to fetch and parse spreadsheet data
@@ -313,14 +324,19 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                // Parse CSV - simple split by newline and comma. Assumes no commas within data fields.
-                // The first row is usually headers, so we might skip it or use it for keys.
                 const rows = csvText.split('\n').filter(row => row.trim() !== '');
-                spreadsheetData = rows.map(row => row.split(',').map(cell => cell.trim()));
-                console.log("Spreadsheet data loaded:", spreadsheetData);
-                // The first row is headers, if you want to use it
-                // const headers = spreadsheetData[0];
-                // spreadsheetData = spreadsheetData.slice(1); // Actual data starts from second row
+                
+                if (rows.length > 0) {
+                    spreadsheetHeaders = rows[0].split(',').map(cell => cell.trim());
+                    spreadsheetDataRows = rows.slice(1).map(row => row.split(',').map(cell => cell.trim()));
+                } else {
+                    spreadsheetHeaders = [];
+                    spreadsheetDataRows = [];
+                }
+                
+                console.log("Spreadsheet headers loaded:", spreadsheetHeaders);
+                console.log("Spreadsheet data rows loaded:", spreadsheetDataRows);
+
             } catch (error) {
                 console.error("Failed to fetch spreadsheet data:", error);
             }
@@ -332,8 +348,11 @@
             const subcategoryItems = subcategoryListElement.querySelectorAll('.subcategory-list-item');
 
             subcategoryItems.forEach(item => {
-                const subcategoryName = item.querySelector('span').textContent.trim(); // Assuming subcategory name is in a span
-                const rowId = parseInt(subcategoryName, 10);
+                // Assuming the subcategory name is now directly within the .subcategory-name-display span
+                const subcategoryNameElement = item.querySelector('.subcategory-name-display');
+                if (!subcategoryNameElement) return;
+
+                const subcategoryName = subcategoryNameElement.textContent.trim();
                 
                 let spreadsheetDataDisplay = item.querySelector('.spreadsheet-data-display');
                 if (!spreadsheetDataDisplay) {
@@ -344,50 +363,29 @@
                     spreadsheetDataDisplay.innerHTML = ''; // Clear previous data
                 }
 
-                if (!isNaN(rowId) && rowId > 0 && rowId < spreadsheetData.length) {
-                    // Assuming rowId directly corresponds to the row index (1-based for spreadsheet, 0-based for array)
-                    // If rowId 10001 means 10001st row (including header), then it's spreadsheetData[rowId-1]
-                    // If rowId 10001 means 10001st data row (after header), adjust accordingly.
-                    // For simplicity, let's assume rowId directly maps to array index (plus 1 for header offset if needed)
-                    // If the first row of spreadsheetData is headers, then actual data starts from index 1.
-                    // So, a name '10001' would correspond to index 10000 in a 0-indexed array, assuming headers are at index 0.
-                    
-                    // Let's assume subcategory name '10001' refers to row 10001 in the spreadsheet (1-indexed).
-                    // If spreadsheetData includes headers, and row 1 is headers, then data row 10001 is at index 10001.
-                    // If spreadsheetData is already header-less, then data row 10001 is at index 10000.
-                    // For safety, let's try to get the row at the direct index assuming spreadsheetData[0] is data row 1, etc.
-                    // Or, if your first row IS headers, then rowId needs to be used to find the *corresponding* row.
+                if (!spreadsheetHeaders.length || !spreadsheetDataRows.length) {
+                    spreadsheetDataDisplay.innerHTML = '<p>Nema dostupnih podataka iz tabele.</p>';
+                    return;
+                }
 
-                    // A robust way to link: assume the first column of your spreadsheet data contains unique IDs/numbers
-                    // that match your subcategory names.
-                    const headerRow = spreadsheetData[0]; // Assuming first row contains headers
-                    const dataRows = spreadsheetData.slice(1); // All subsequent rows are data
+                // Find the row where the first column matches the subcategory name
+                const matchingRow = spreadsheetDataRows.find(row => row[0] === subcategoryName);
 
-                    // Find the row where the first column matches the subcategory name
-                    const matchingRow = dataRows.find(row => parseInt(row[0], 10) === rowId);
-
-                    if (matchingRow) {
-                        // Display the data from the matching row
-                        // You can customize which columns to display and how
-                        spreadsheetDataDisplay.innerHTML += `<p>Data: ${matchingRow.slice(1).join(', ')}</p>`;
-                        // Example: if you want to display specific columns by header name
-                        // let displayHtml = '';
-                        // matchingRow.forEach((cell, index) => {
-                        //     if (headers[index]) {
-                        //         displayHtml += `<p>${headers[index]}: ${cell}</p>`;
-                        //     }
-                        // });
-                        // spreadsheetDataDisplay.innerHTML = displayHtml;
-                    } else {
-                        spreadsheetDataDisplay.innerHTML += '<p>Nema odgovarajućih podataka iz tabele.</p>';
-                    }
+                if (matchingRow) {
+                    let displayHtml = '';
+                    matchingRow.forEach((cell, index) => {
+                        if (spreadsheetHeaders[index]) { // Ensure header exists for this column
+                            displayHtml += `<p>${spreadsheetHeaders[index]}: ${cell}</p>`;
+                        }
+                    });
+                    spreadsheetDataDisplay.innerHTML = displayHtml;
                 } else {
-                    spreadsheetDataDisplay.innerHTML += '<p>Ime potkategorije nije validan broj reda.</p>';
+                    spreadsheetDataDisplay.innerHTML += '<p>Nema odgovarajućih podataka iz tabele za ovu potkategoriju.</p>';
                 }
             });
         }
 
-        // UI functions moved from original script
+        // --- UI functions moved from original script ---
         function updateUIForLoggedInUser(userName, userProfilePicUrl) {
             document.getElementById('g_id_onload').style.display = 'none';
             document.querySelector('.g_id_signin').style.display = 'none';
@@ -435,7 +433,7 @@
             document.getElementById('subcategory-message').textContent = "";
             window.setCurrentSubcategoryId(null); // Use setter from app.js
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategory-list').innerHTML = '';
+            document.getElementById('subcategory-list').innerHTML = ''; // Clear subcategory list
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
@@ -447,7 +445,7 @@
             updateUIForLoggedOutUser();
         };
 
-        // Event Listeners
+        // --- Event Listeners ---
         document.getElementById('save-button').addEventListener('click', window.saveMainData);
         document.getElementById('load-button').addEventListener('click', window.loadMainData);
         document.getElementById('signout-button').addEventListener('click', window.signOutUser);
@@ -480,7 +478,7 @@
         });
 
         document.getElementById('create-subcategory-button').addEventListener('click', () => {
-            if (!window.getCurrentSubcategoryId() && document.getElementById('app-content').style.display === 'none') { // Check login state indirectly
+            if (document.getElementById('app-content').style.display === 'none') { // Check login state indirectly
                 alert("Niste prijavljeni.");
                 return;
             }
@@ -509,16 +507,77 @@
         });
 
         // Override the default loadSubcategoriesFromBackend to include displaying spreadsheet data
+        // This function needs to be exposed from app.js for us to override it correctly.
+        // Assuming app.js has a function named `renderSubcategoriesToList` or similar that populates `subcategory-list`
+        // We'll modify the `createSubcategoryListItem` if it exists, or ensure our loop is robust.
+
+        // We need to ensure that the actual subcategory name from the backend is rendered into the `subcategory-list-item`
+        // in a way that `displaySpreadsheetDataForSubcategories` can find it.
+
+        // Let's assume window.loadSubcategoriesFromBackend already populates the list.
+        // We will call displaySpreadsheetDataForSubcategories AFTER the list is populated.
+        // This means modifying the part of `app.js` that populates the subcategory list.
+
+        // If app.js contains a function like this:
+        /*
+        function renderSubcategories(subcategories) {
+            const listElement = document.getElementById('subcategory-list');
+            listElement.innerHTML = '';
+            subcategories.forEach(subcategory => {
+                const li = document.createElement('li');
+                li.className = 'subcategory-list-item';
+                li.setAttribute('data-id', subcategory.id);
+                // ORIGINAL: li.textContent = subcategory.name;
+                // NEW: Wrap name in a span to target it
+                li.innerHTML = `<span class="subcategory-name-display">${subcategory.name}</span>`;
+                li.addEventListener('click', () => selectSubcategory(subcategory.id));
+                listElement.appendChild(li);
+            });
+            displaySpreadsheetDataForSubcategories(); // Call here after rendering
+        }
+        window.renderSubcategories = renderSubcategories; // Make sure this is exposed if it's in app.js
+        */
+
+        // For now, let's assume `window.loadSubcategoriesFromBackend` will eventually update the `subcategory-list`
+        // and we will re-run the spreadsheet display after it finishes.
+
+        // Store the original load function if it exists on window
         const originalLoadSubcategoriesFromBackend = window.loadSubcategoriesFromBackend;
+        
+        // Override or enhance the loadSubcategoriesFromBackend
         window.loadSubcategoriesFromBackend = async function(reselect = false) {
-            await originalLoadSubcategoriesFromBackend(reselect);
-            displaySpreadsheetDataForSubcategories(); // Call to display spreadsheet data after subcategories are loaded
+            // Call the original function if it exists. This will populate the list.
+            if (originalLoadSubcategoriesFromBackend) {
+                await originalLoadSubcategoriesFromBackend(reselect);
+            } else {
+                console.warn("window.loadSubcategoriesFromBackend not found. Please ensure app.js exposes it.");
+                // You might need to add a direct call to the backend here if app.js doesn't
+                // properly expose or handle subcategory loading in a way we can hook into.
+            }
+            // After the list is (hopefully) populated, display the spreadsheet data
+            displaySpreadsheetDataForSubcategories();
         };
 
         function loadSubcategories(reselect = false) {
              window.loadSubcategoriesFromBackend(reselect);
         }
         window.loadSubcategories = loadSubcategories; // Expose to app.js
+
+        // IMPORTANT: The `createSubcategoryListItem` function (or wherever your list items are created)
+        // in your `app.js` needs to be modified to include a span with class `subcategory-name-display`
+        // around the subcategory name, like this:
+        /*
+        function createSubcategoryListItem(subcategory) {
+            const li = document.createElement('li');
+            li.className = 'subcategory-list-item';
+            li.setAttribute('data-id', subcategory.id);
+            li.innerHTML = `<span class="subcategory-name-display">${subcategory.name}</span>`; // Added span here
+            li.addEventListener('click', () => selectSubcategory(subcategory.id));
+            return li;
+        }
+        */
+        // If you cannot modify `app.js`, then you'll need to adjust `displaySpreadsheetDataForSubcategories`
+        // to find the subcategory name based on the current structure of `li.textContent`.
 
         function selectSubcategory(subcategoryId) {
             document.querySelectorAll('.subcategory-list-item').forEach(item => {
