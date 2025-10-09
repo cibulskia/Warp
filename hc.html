@@ -309,7 +309,9 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Existing app.js script. You might need to integrate parts of the script below into it -->
+    <script src="app.js"></script> 
+    
     <script>
         // Global variable to store spreadsheet data
         let spreadsheetHeaders = [];
@@ -324,11 +326,12 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
-                const rows = csvText.split('\n').filter(row => row.trim() !== '');
+                // Split by new line, filter out empty rows, then split each row by comma
+                const rows = csvText.split('\n').filter(row => row.trim() !== '').map(row => row.split(',').map(cell => cell.trim()));
                 
                 if (rows.length > 0) {
-                    spreadsheetHeaders = rows[0].split(',').map(cell => cell.trim());
-                    spreadsheetDataRows = rows.slice(1).map(row => row.split(',').map(cell => cell.trim()));
+                    spreadsheetHeaders = rows[0]; // First row is headers
+                    spreadsheetDataRows = rows.slice(1); // Remaining rows are data
                 } else {
                     spreadsheetHeaders = [];
                     spreadsheetDataRows = [];
@@ -343,16 +346,27 @@
         }
 
         // Function to display spreadsheet data for visible subcategories
-        function displaySpreadsheetDataForSubcategories() {
+        window.displaySpreadsheetDataForSubcategories = function() {
             const subcategoryListElement = document.getElementById('subcategory-list');
             const subcategoryItems = subcategoryListElement.querySelectorAll('.subcategory-list-item');
 
-            subcategoryItems.forEach(item => {
-                // Assuming the subcategory name is now directly within the .subcategory-name-display span
-                const subcategoryNameElement = item.querySelector('.subcategory-name-display');
-                if (!subcategoryNameElement) return;
+            if (!spreadsheetHeaders.length || !spreadsheetDataRows.length) {
+                console.warn("Spreadsheet data not loaded or is empty.");
+                subcategoryItems.forEach(item => {
+                    let spreadsheetDataDisplay = item.querySelector('.spreadsheet-data-display');
+                    if (!spreadsheetDataDisplay) {
+                        spreadsheetDataDisplay = document.createElement('div');
+                        spreadsheetDataDisplay.classList.add('spreadsheet-data-display');
+                        item.appendChild(spreadsheetDataDisplay);
+                    }
+                    spreadsheetDataDisplay.innerHTML = '<p>Nema dostupnih podataka iz tabele.</p>';
+                });
+                return;
+            }
 
-                const subcategoryName = subcategoryNameElement.textContent.trim();
+            subcategoryItems.forEach(item => {
+                // Get subcategory name from the data-name attribute
+                const subcategoryName = item.getAttribute('data-name');
                 
                 let spreadsheetDataDisplay = item.querySelector('.spreadsheet-data-display');
                 if (!spreadsheetDataDisplay) {
@@ -363,8 +377,8 @@
                     spreadsheetDataDisplay.innerHTML = ''; // Clear previous data
                 }
 
-                if (!spreadsheetHeaders.length || !spreadsheetDataRows.length) {
-                    spreadsheetDataDisplay.innerHTML = '<p>Nema dostupnih podataka iz tabele.</p>';
+                if (!subcategoryName) {
+                    spreadsheetDataDisplay.innerHTML += '<p>Nije pronađeno ime potkategorije.</p>';
                     return;
                 }
 
@@ -375,17 +389,17 @@
                     let displayHtml = '';
                     matchingRow.forEach((cell, index) => {
                         if (spreadsheetHeaders[index]) { // Ensure header exists for this column
-                            displayHtml += `<p>${spreadsheetHeaders[index]}: ${cell}</p>`;
+                            displayHtml += `<p><strong>${spreadsheetHeaders[index]}:</strong> ${cell}</p>`;
                         }
                     });
                     spreadsheetDataDisplay.innerHTML = displayHtml;
                 } else {
-                    spreadsheetDataDisplay.innerHTML += '<p>Nema odgovarajućih podataka iz tabele za ovu potkategoriju.</p>';
+                    spreadsheetDataDisplay.innerHTML += `<p>Nema odgovarajućih podataka za "${subcategoryName}".</p>`;
                 }
             });
-        }
+        };
 
-        // --- UI functions moved from original script ---
+        // UI functions moved from original script
         function updateUIForLoggedInUser(userName, userProfilePicUrl) {
             document.getElementById('g_id_onload').style.display = 'none';
             document.querySelector('.g_id_signin').style.display = 'none';
@@ -505,92 +519,112 @@
             const currentSubcategoryId = window.getCurrentSubcategoryId(); // Get from app.js
             window.deleteSubcategory(currentSubcategoryId);
         });
+        
+        // --- Critical Integration Point with app.js ---
+        // We need to ensure that when subcategories are loaded from the backend (presumably by app.js),
+        // our displaySpreadsheetDataForSubcategories function is called.
+        // We'll create a helper function that your app.js can call to render.
 
-        // Override the default loadSubcategoriesFromBackend to include displaying spreadsheet data
-        // This function needs to be exposed from app.js for us to override it correctly.
-        // Assuming app.js has a function named `renderSubcategoriesToList` or similar that populates `subcategory-list`
-        // We'll modify the `createSubcategoryListItem` if it exists, or ensure our loop is robust.
-
-        // We need to ensure that the actual subcategory name from the backend is rendered into the `subcategory-list-item`
-        // in a way that `displaySpreadsheetDataForSubcategories` can find it.
-
-        // Let's assume window.loadSubcategoriesFromBackend already populates the list.
-        // We will call displaySpreadsheetDataForSubcategories AFTER the list is populated.
-        // This means modifying the part of `app.js` that populates the subcategory list.
-
-        // If app.js contains a function like this:
-        /*
-        function renderSubcategories(subcategories) {
+        // THIS IS THE FUNCTION YOUR app.js SHOULD CALL TO RENDER SUBCATEGORIES
+        // It's exposed globally as `window.renderSubcategoriesAndDisplayData`
+        window.renderSubcategoriesAndDisplayData = function(subcategories) {
             const listElement = document.getElementById('subcategory-list');
-            listElement.innerHTML = '';
+            listElement.innerHTML = ''; // Clear existing list
+
             subcategories.forEach(subcategory => {
                 const li = document.createElement('li');
                 li.className = 'subcategory-list-item';
                 li.setAttribute('data-id', subcategory.id);
-                // ORIGINAL: li.textContent = subcategory.name;
-                // NEW: Wrap name in a span to target it
-                li.innerHTML = `<span class="subcategory-name-display">${subcategory.name}</span>`;
-                li.addEventListener('click', () => selectSubcategory(subcategory.id));
+                li.setAttribute('data-name', subcategory.name); // Store name directly for easy access
+                li.innerHTML = `<span class="subcategory-name-display">${subcategory.name}</span>`; 
+                li.addEventListener('click', () => window.selectSubcategory(subcategory.id));
                 listElement.appendChild(li);
             });
-            displaySpreadsheetDataForSubcategories(); // Call here after rendering
-        }
-        window.renderSubcategories = renderSubcategories; // Make sure this is exposed if it's in app.js
-        */
-
-        // For now, let's assume `window.loadSubcategoriesFromBackend` will eventually update the `subcategory-list`
-        // and we will re-run the spreadsheet display after it finishes.
-
-        // Store the original load function if it exists on window
-        const originalLoadSubcategoriesFromBackend = window.loadSubcategoriesFromBackend;
-        
-        // Override or enhance the loadSubcategoriesFromBackend
-        window.loadSubcategoriesFromBackend = async function(reselect = false) {
-            // Call the original function if it exists. This will populate the list.
-            if (originalLoadSubcategoriesFromBackend) {
-                await originalLoadSubcategoriesFromBackend(reselect);
-            } else {
-                console.warn("window.loadSubcategoriesFromBackend not found. Please ensure app.js exposes it.");
-                // You might need to add a direct call to the backend here if app.js doesn't
-                // properly expose or handle subcategory loading in a way we can hook into.
-            }
-            // After the list is (hopefully) populated, display the spreadsheet data
-            displaySpreadsheetDataForSubcategories();
+            // After all subcategories are rendered, display the spreadsheet data
+            window.displaySpreadsheetDataForSubcategories();
         };
 
-        function loadSubcategories(reselect = false) {
-             window.loadSubcategoriesFromBackend(reselect);
-        }
-        window.loadSubcategories = loadSubcategories; // Expose to app.js
+        // You will likely have a `window.loadSubcategoriesFromBackend` in your app.js.
+        // It should fetch the subcategories and then call `window.renderSubcategoriesAndDisplayData`.
+        // If it doesn't exist or isn't structured this way, you'll need to adapt it.
 
-        // IMPORTANT: The `createSubcategoryListItem` function (or wherever your list items are created)
-        // in your `app.js` needs to be modified to include a span with class `subcategory-name-display`
-        // around the subcategory name, like this:
+        // Example: If your app.js `loadSubcategoriesFromBackend` looks like this:
         /*
-        function createSubcategoryListItem(subcategory) {
-            const li = document.createElement('li');
-            li.className = 'subcategory-list-item';
-            li.setAttribute('data-id', subcategory.id);
-            li.innerHTML = `<span class="subcategory-name-display">${subcategory.name}</span>`; // Added span here
-            li.addEventListener('click', () => selectSubcategory(subcategory.id));
-            return li;
-        }
-        */
-        // If you cannot modify `app.js`, then you'll need to adjust `displaySpreadsheetDataForSubcategories`
-        // to find the subcategory name based on the current structure of `li.textContent`.
+        window.loadSubcategoriesFromBackend = async function(reselect = false) {
+            try {
+                const response = await fetch('/api/subcategories'); // Replace with your actual endpoint
+                if (!response.ok) throw new Error('Failed to fetch subcategories');
+                const subcategories = await response.json();
+                
+                // Instead of rendering directly, call our helper
+                window.renderSubcategoriesAndDisplayData(subcategories);
 
-        function selectSubcategory(subcategoryId) {
-            document.querySelectorAll('.subcategory-list-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-
-            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
-                window.loadSubcategoryDetailsFromBackend(subcategoryId);
+                if (reselect && subcategories.length > 0) {
+                    window.selectSubcategory(subcategories[0].id);
+                }
+            } catch (error) {
+                console.error("Error loading subcategories:", error);
+                document.getElementById('subcategory-message').textContent = "Greška pri učitavanju potkategorija.";
             }
+        };
+        */
+        // MAKE SURE YOUR app.js IS UPDATED TO CALL `window.renderSubcategoriesAndDisplayData`
+
+        // Initial call for loading subcategories when the app content is shown (after login)
+        // This is handled in updateUIForLoggedInUser, it should trigger loadSubcategoriesFromBackend
+        // which then calls renderSubcategoriesAndDisplayData.
+
+        // Dummy `selectSubcategory` and `loadSubcategoryDetailsFromBackend` for completeness if not in app.js
+        if (!window.selectSubcategory) {
+            window.selectSubcategory = function(subcategoryId) {
+                console.log("Selected subcategory:", subcategoryId);
+                document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+                if (selectedItem) {
+                    selectedItem.classList.add('selected');
+                    // In a real app, this would fetch details from your backend
+                    // window.loadSubcategoryDetailsFromBackend(subcategoryId);
+                    document.getElementById('current-subcategory-id').textContent = subcategoryId;
+                    document.getElementById('subcategory-message').textContent = `Učitani detalji za potkategoriju ID: ${subcategoryId}`;
+                    // For demo, populate form with dummy data or from spreadsheet if available
+                    const subcategoryName = selectedItem.getAttribute('data-name');
+                    document.getElementById('subcategory-name').value = subcategoryName;
+                    document.getElementById('subcategory-short-desc').value = "Kratak opis za " + subcategoryName;
+                    document.getElementById('subcategory-long-desc').value = "Dugačak opis za " + subcategoryName + ". Ovo je samo primer.";
+                    document.getElementById('subcategory-checkbox').checked = (parseInt(subcategoryId) % 2 === 0); // Example active status
+                    showSubcategoryForm({ id: subcategoryId, name: subcategoryName, short_description: "Kratak opis za " + subcategoryName, long_description: "Dugačak opis za " + subcategoryName + ". Ovo je samo primer.", is_active: (parseInt(subcategoryId) % 2 === 0)});
+                }
+            };
         }
-        window.selectSubcategory = selectSubcategory; // Expose to app.js
+
+        // Dummy `loadSubcategoryDetailsFromBackend` if not present in app.js
+        if (!window.loadSubcategoryDetailsFromBackend) {
+            window.loadSubcategoryDetailsFromBackend = async function(subcategoryId) {
+                console.log(`Fetching details for subcategory ID: ${subcategoryId}`);
+                // Simulate fetching details
+                const subcategory = {
+                    id: subcategoryId,
+                    name: `Potkategorija ${subcategoryId}`,
+                    short_description: `Kratak opis za ${subcategoryId}`,
+                    long_description: `Ovo je detaljan opis za potkategoriju ${subcategoryId}.`,
+                    is_active: (parseInt(subcategoryId) % 2 === 0)
+                };
+                window.showSubcategoryForm(subcategory);
+                document.getElementById('subcategory-message').textContent = `Detalji za potkategoriju "${subcategory.name}" učitani.`;
+            };
+        }
+
+        // Dummy for `window.getCurrentSubcategoryId`, `saveMainData`, `loadMainData`, `signOutUser`, `saveSubcategory`, `deleteSubcategory` if not in app.js
+        if (!window.getCurrentSubcategoryId) window.getCurrentSubcategoryId = () => { /* implement in app.js */ return null; };
+        if (!window.saveMainData) window.saveMainData = () => { console.log("Main data saved (dummy)"); document.getElementById('message').textContent = "Glavni podaci sačuvani!"; };
+        if (!window.loadMainData) window.loadMainData = () => { console.log("Main data loaded (dummy)"); document.getElementById('message').textContent = "Glavni podaci učitani!"; };
+        if (!window.signOutUser) window.signOutUser = () => { console.log("User signed out (dummy)"); updateUIForLoggedOutUser(); };
+        if (!window.saveSubcategory) window.saveSubcategory = (data, isNew, id) => { console.log("Subcategory saved (dummy)", data, isNew, id); document.getElementById('subcategory-message').textContent = `Potkategorija "${data.name}" ${isNew ? 'kreirana' : 'sačuvana'}!`; window.loadSubcategories(); };
+        if (!window.deleteSubcategory) window.deleteSubcategory = (id) => { console.log("Subcategory deleted (dummy)", id); document.getElementById('subcategory-message').textContent = `Potkategorija ID "${id}" obrisana!`; window.loadSubcategories(); };
+        if (!window.setCurrentSubcategoryId) window.setCurrentSubcategoryId = (id) => { console.log("Set current subcategory ID (dummy):", id); /* actual implementation in app.js */ };
+
     </script>
 </body>
 </html>
