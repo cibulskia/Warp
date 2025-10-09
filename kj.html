@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CSV prikaz sa inputom i dugmetom</title>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <style>
+    body { 
+      font-family: Arial, sans-serif;
+      padding: 20px; 
+      background-color: #f4f4f4; 
+      margin: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .sheet-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-buttons button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .sheet-buttons button:hover {
+      background-color: #0056b3;
+    }
+
+    #grid { 
+      display: grid; 
+      grid-template-columns: repeat(7, 1fr); /* 5 kolona + input + dugme */
+      gap: 12px; 
+      align-items: center;
+    }
+
+    .header-cell, .cell, .input-cell, .button-cell { 
+      padding: 12px;
+      border-radius: 8px;
+      word-break: break-word; 
+      border: 1px solid #ddd;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+      background-color: #f8f9fa;
+      text-align: center;
+    }
+
+    .header-cell {
+      font-weight: bold;
+      background-color: #e9ecef;
+    }
+
+    .cell {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .cell a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .cell a:hover {
+      text-decoration: underline;
+    }
+
+    .input-cell input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .button-cell button {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-cell button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 900px) {
+      #grid { grid-template-columns: repeat(1, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CSV Prikaz sa Inputom i Dugmetom</h1>
+
+    <div class="sheet-buttons">
+      <button data-csv="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?output=csv">Sheet 1</button>
+      <button data-csv="https://docs.google.com/spreadsheets/d/e/DRUGI_LINK/pub?output=csv">Sheet 2</button>
+      <button data-csv="https://docs.google.com/spreadsheets/d/e/TRECI_LINK/pub?output=csv">Sheet 3</button>
+      <button data-csv="https://docs.google.com/spreadsheets/d/e/CETVRTI_LINK/pub?output=csv">Sheet 4</button>
+      <button data-csv="https://docs.google.com/spreadsheets/d/e/PETI_LINK/pub?output=csv">Sheet 5</button>
+    </div>
+
+    <div id="grid"></div>
+  </div>
+
+  <script>
+    const gridEl = document.getElementById('grid');
+    let currentCSV = document.querySelector('.sheet-buttons button').getAttribute('data-csv'); // po defaultu prvi sheet
+
+    async function loadCSV(csvUrl) {
+      try {
+        const res = await fetch(csvUrl, { cache: "no-store" });
+        const text = await res.text();
+        const parsed = Papa.parse(text, { skipEmptyLines: true });
+        const rows = parsed.data;
+
+        // isprazni grid
+        gridEl.innerHTML = '';
+
+        // naslovi kolona
+        const headers = ["Kolona 1","Kolona 2","Kolona 3","Kolona 4","Kolona 5","Unos","Dugme"];
+        for (const header of headers) {
+          const div = document.createElement('div');
+          div.className = 'header-cell';
+          div.textContent = header;
+          gridEl.appendChild(div);
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        for (const row of rows) {
+          for (let i = 0; i < 5; i++) {
+            const cell = row[i] || "";
+            const div = document.createElement('div');
+            div.className = 'cell';
+
+            const urlPattern = /^https?:\/\//i;
+            if (urlPattern.test(cell.trim())) {
+              const link = document.createElement('a');
+              link.href = cell.trim();
+              link.textContent = "PDF";
+              link.target = "_blank";
+              div.appendChild(link);
+            } else {
+              div.textContent = cell;
+            }
+            fragment.appendChild(div);
+          }
+
+          // polje za unos
+          const inputDiv = document.createElement('div');
+          inputDiv.className = 'input-cell';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Unesi tekst...';
+          inputDiv.appendChild(input);
+          fragment.appendChild(inputDiv);
+
+          // dugme
+          const buttonDiv = document.createElement('div');
+          buttonDiv.className = 'button-cell';
+          const button = document.createElement('button');
+          button.textContent = 'Potvrdi';
+          button.addEventListener('click', () => {
+            alert(`Red: ${row.join(', ')}\nUneto: ${input.value}`);
+          });
+          buttonDiv.appendChild(button);
+          fragment.appendChild(buttonDiv);
+        }
+
+        gridEl.appendChild(fragment);
+
+      } catch (error) {
+        console.error("Greška pri učitavanju CSV-a:", error);
+      }
+    }
+
+    // dugmad za sheet
+    document.querySelectorAll('.sheet-buttons button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const csvLink = btn.getAttribute('data-csv');
+        currentCSV = csvLink;
+        loadCSV(csvLink);
+      });
+    });
+
+    window.addEventListener('load', () => loadCSV(currentCSV));
+  </script>
+</body>
+</html>
