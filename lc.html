@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Integrisana Aplikacija</title>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      box-sizing: border-box;
+    }
+
+    .app-section {
+      width: 100%;
+      max-width: 1200px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .sheet-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-buttons button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .sheet-buttons button:hover {
+      background-color: #218838;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .header-cell {
+      font-weight: bold;
+      text-align: center;
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .cell, .input-cell, .button-cell {
+      background-color: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      word-break: break-word;
+      border: 1px solid #ddd;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .cell {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .cell a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .cell a:hover {
+      text-decoration: underline;
+    }
+
+    .input-cell input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .button-cell button {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-cell button:hover {
+      background-color: #0056b3;
+    }
+
+    .oauth-app-container {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+      box-sizing: border-box;
+    }
+
+    .data-section {
+      flex: 0 0 300px;
+      background-color: #f8f9fa;
+      color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-self: flex-start;
+    }
+
+    .data-section h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .data-field {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      min-height: 80px;
+      overflow: auto;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+      white-space: pre-line;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .main-content .app-section {
+        width: 100%;
+        max-width: none;
+        padding: 30px;
+        text-align: center;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .oauth-app-container button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .oauth-app-container button:hover {
+      background-color: #0056b3;
+    }
+
+    #message {
+      margin-top: 20px;
+      color: #333;
+      min-height: 20px;
+    }
+
+    #user-name {
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    #user-profile-pic {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+      border: 2px solid #007bff;
+    }
+
+    #signout-button {
+      background-color: #dc3545;
+    }
+
+    #signout-button:hover {
+      background-color: #c82333;
+    }
+
+    @media (max-width: 900px) {
+      #grid { grid-template-columns: repeat(1, 1fr); }
+      .oauth-app-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .data-section {
+        width: 100%;
+        flex: auto;
+      }
+      .main-content {
+        width: 100%;
+        max-width: none;
+      }
+      .main-content .app-section {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .app-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-section">
+    <h1>CSV Prikaz sa Inputom i Dugmetom</h1>
+
+    <div class="sheet-buttons">
+      <button data-sheet="0">Sheet 1</button>
+      <button data-sheet="1">Sheet 2</button>
+      <button data-sheet="2">Sheet 3</button>
+      <button data-sheet="3">Sheet 4</button>
+      <button data-sheet="4">Sheet 5</button>
+    </div>
+
+    <div id="grid"></div>
+  </div>
+
+  <div class="oauth-app-container">
+    <div class="data-section">
+      <h2>Sadržaj Tabela</h2>
+      <div id="data-field-1" class="data-field"></div>
+      <div id="data-field-2" class="data-field"></div>
+      <div id="data-field-3" class="data-field"></div>
+      <div id="data-field-4" class="data-field"></div>
+    </div>
+
+    <div class="main-content">
+      <div class="app-section">
+        <h1>Moja Aplikacija</h1>
+
+        <div id="g_id_onload"
+             data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+             data-auto_select="true"
+             data-callback="handleCredentialResponse"
+             data-ux_mode="popup"
+             data-cancel_on_tap_outside="false"
+             data-context="use">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+
+        <div id="app-content" style="display: none;">
+          <img id="user-profile-pic" src="" alt="Profilna slika korisnika" style="display: none;">
+          <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+          <input type="text" id="input1" placeholder="Prvo polje za tekst">
+          <input type="text" id="input2" placeholder="Drugo polje za tekst">
+
+          <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+
+          <input type="text" id="input3" placeholder="Treće polje za tekst">
+          <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
+          <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
+
+          <select id="dropdown-input">
+            <option value="">Odaberite opciju</option>
+            <option value="opcija1">Opcija 1</option>
+            <option value="opcija2">Opcija 2</option>
+            <option value="opcija3">Opcija 3</option>
+          </select>
+
+          <button id="save-button">Sačuvaj Podatke</button>
+          <button id="load-button">Učitaj Podatke</button>
+          <p id="message"></p>
+          <button id="signout-button">Odjavi se</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHEETS = [
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET2/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET3/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET4/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET5/pub?output=csv"
+    ];
+
+    const gridEl = document.getElementById('grid');
+    const sheetButtons = document.querySelectorAll('.sheet-buttons button');
+    const input4El = document.getElementById('input4');
+    let currentSheetIndex = 0;
+
+    async function loadCSV(sheetIndex) {
+      const CSV_URL = SHEETS[sheetIndex];
+      gridEl.innerHTML = '';
+      try {
+        const res = await fetch(CSV_URL, { cache: "no-store" });
+        const text = await res.text();
+        const parsed = Papa.parse(text, { skipEmptyLines: true });
+        const rows = parsed.data;
+
+        if (rows.length === 0) return;
+
+        const fragment = document.createDocumentFragment();
+
+        for (let i = 0; i < 5; i++) {
+          const headerCell = document.createElement('div');
+          headerCell.className = 'header-cell';
+          headerCell.textContent = rows[0][i] || `Kolona ${i+1}`;
+          fragment.appendChild(headerCell);
+        }
+
+        const inputHeader = document.createElement('div');
+        inputHeader.className = 'header-cell';
+        inputHeader.textContent = 'Unos';
+        fragment.appendChild(inputHeader);
+
+        const buttonHeader = document.createElement('div');
+        buttonHeader.className = 'header-cell';
+        buttonHeader.textContent = 'Akcija';
+        fragment.appendChild(buttonHeader);
+
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          for (let i = 0; i < 5; i++) {
+            const div = document.createElement('div');
+            div.className = 'cell';
+            const cellValue = row[i] || '';
+            const urlPattern = /^https?:\/\//i;
+            if (urlPattern.test(cellValue.trim())) {
+              const link = document.createElement('a');
+              link.href = cellValue.trim();
+              link.textContent = "PDF";
+              link.target = "_blank";
+              div.appendChild(link);
+            } else {
+              div.textContent = cellValue;
+            }
+            fragment.appendChild(div);
+          }
+
+          const inputDiv = document.createElement('div');
+          inputDiv.className = 'input-cell';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Unesi tekst...';
+          inputDiv.appendChild(input);
+          fragment.appendChild(inputDiv);
+
+          const buttonDiv = document.createElement('div');
+          buttonDiv.className = 'button-cell';
+          const button = document.createElement('button');
+          button.textContent = 'Potvrdi';
+          button.addEventListener('click', async () => {
+            const firstCell = row[0] || '';
+            const newEntry = `${firstCell} - ${input.value}`;
+            input4El.value += (input4El.value ? '\n' : '') + newEntry;
+            input.value = '';
+
+            await saveUserData();
+          });
+          buttonDiv.appendChild(button);
+          fragment.appendChild(buttonDiv);
+        }
+
+        gridEl.appendChild(fragment);
+      } catch (error) {
+        console.error("Greška pri učitavanju CSV-a:", error);
+      }
+    }
+
+    sheetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.sheet);
+        currentSheetIndex = index;
+        loadCSV(currentSheetIndex);
+        input4El.value = '';
+      });
+    });
+
+    const BACKEND_URL = 'https://botanica.ngrok.app';
+    const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
+
+    let googleIdToken = null;
+    let userName = null;
+    let userProfilePicUrl = null;
+    let spreadsheetData = [];
+
+    function decodeJwtResponse(token) {
+        let base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    async function handleCredentialResponse(response) {
+        console.log("Encoded JWT ID token: " + response.credential);
+        googleIdToken = response.credential;
+
+        const payload = decodeJwtResponse(response.credential);
+        userName = payload.name;
+        userProfilePicUrl = payload.picture;
+
+        try {
+            const verifyResponse = await fetch(`${BACKEND_URL}/verify-google-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: googleIdToken })
+            });
+
+            if (!verifyResponse.ok) {
+                throw new Error(`HTTP error! status: ${verifyResponse.status}`);
+            }
+            const verifyData = await verifyResponse.json();
+
+            if (verifyData.status === 'success') {
+                console.log("Login successful on backend:", verifyData);
+                updateUIForLoggedInUser();
+
+                const loadResponse = await fetch(`${BACKEND_URL}/load-data`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${googleIdToken}` }
+                });
+
+                if (!loadResponse.ok) {
+                    if (loadResponse.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                    throw new Error(`HTTP error! status: ${loadResponse.status}`);
+                }
+                const userData = await loadResponse.json();
+
+                document.getElementById('input1').value = userData.input1 || '';
+                document.getElementById('input2').value = userData.input2 || '';
+                document.getElementById('large-text-input').value = userData.largeText || '';
+                document.getElementById('input3').value = userData.input3 || '';
+                input4El.value = userData.input4 || '';
+                document.getElementById('input5').value = userData.input5 || '';
+                document.getElementById('dropdown-input').value = userData.dropdown || '';
+                document.getElementById('message').textContent = userData.message || "Podaci uspešno učitani.";
+
+                await loadSpreadsheetData();
+                displayDataSectionRows();
+
+            } else {
+                console.error("Backend login failed:", verifyData.message);
+                alert("Login failed: " + verifyData.message);
+                googleIdToken = null;
+                userName = null;
+                userProfilePicUrl = null;
+                updateUIForLoggedOutUser();
+            }
+        } catch (error) {
+            console.error("Error during login process:", error);
+            alert("Došlo je do greške prilikom prijave. Molimo pokušajte ponovo.");
+            googleIdToken = null;
+            userName = null;
+            userProfilePicUrl = null;
+            updateUIForLoggedOutUser();
+        }
+    }
+
+    function updateUIForLoggedInUser() {
+        document.getElementById('g_id_onload').style.display = 'none';
+        document.querySelector('.g_id_signin').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('user-name').textContent = userName;
+        document.getElementById('message').textContent = "";
+
+        const profilePicElement = document.getElementById('user-profile-pic');
+        if (userProfilePicUrl) {
+            profilePicElement.src = userProfilePicUrl;
+            profilePicElement.style.display = 'block';
+        } else {
+            profilePicElement.style.display = 'none';
+        }
+
+        document.getElementById('input1').value = "";
+        document.getElementById('input2').value = "";
+        document.getElementById('large-text-input').value = "";
+        document.getElementById('input3').value = "";
+        input4El.value = "";
+        document.getElementById('input5').value = "";
+        document.getElementById('dropdown-input').value = "";
+
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById(`data-field-${i}`).textContent = '';
+        }
+    }
+
+    function updateUIForLoggedOutUser() {
+        document.getElementById('g_id_onload').style.display = 'block';
+        document.querySelector('.g_id_signin').style.display = 'block';
+        document.getElementById('app-content').style.display = 'none';
+        document.getElementById('user-name').textContent = "";
+        document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
+
+        const profilePicElement = document.getElementById('user-profile-pic');
+        profilePicElement.src = "";
+        profilePicElement.style.display = 'none';
+
+        googleIdToken = null;
+        userName = null;
+        userProfilePicUrl = null;
+        document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById(`data-field-${i}`).textContent = '';
+        }
+    }
+
+    async function loadSpreadsheetData() {
+        try {
+            const response = await fetch(SPREADSHEET_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const csvText = await response.text();
+            spreadsheetData = csvText.split('\n').map(row => row.split(','));
+            console.log("Spreadsheet data loaded:", spreadsheetData);
+        } catch (error) {
+            console.error("Error loading spreadsheet data:", error);
+            document.getElementById('message').textContent = "Greška prilikom učitavanja podataka iz tabele.";
+        }
+    }
+
+    function displayDataSectionRows() {
+        const input5Value = document.getElementById('input5').value;
+        const rowNumbers = input5Value.split(',').map(num => parseInt(num.trim(), 10)).filter(num => !isNaN(num) && num > 0);
+
+        for (let i = 1; i <= 4; i++) {
+            const dataField = document.getElementById(`data-field-${i}`);
+            dataField.textContent = '';
+
+            const rowIndex = rowNumbers[i - 1];
+            if (rowIndex && spreadsheetData[rowIndex - 1]) {
+                dataField.textContent = `Red ${rowIndex}:\n${spreadsheetData[rowIndex - 1].join('\n')}`;
+            } else if (rowIndex) {
+                dataField.textContent = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
+            }
+        }
+    }
+
+    async function saveUserData() {
+        if (!googleIdToken) {
+            alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+            return;
+        }
+
+        const dataToSave = {
+            input1: document.getElementById('input1').value,
+            input2: document.getElementById('input2').value,
+            largeText: document.getElementById('large-text-input').value,
+            input3: document.getElementById('input3').value,
+            input4: input4El.value,
+            input5: document.getElementById('input5').value,
+            dropdown: document.getElementById('dropdown-input').value
+        };
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/save-data`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
+                body: JSON.stringify(dataToSave)
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            document.getElementById('message').textContent = data.message;
+            displayDataSectionRows();
+        } catch (error) {
+            console.error("Error saving data:", error);
+            document.getElementById('message').textContent = "Greška prilikom čuvanja podataka.";
+        }
+    }
+
+    window.addEventListener('load', () => {
+        loadCSV(currentSheetIndex);
+        updateUIForLoggedOutUser();
+    });
+
+    document.getElementById('save-button').addEventListener('click', saveUserData);
+
+    document.getElementById('load-button').addEventListener('click', async () => {
+        if (!googleIdToken) {
+            alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/load-data`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            document.getElementById('input1').value = data.input1 || '';
+            document.getElementById('input2').value = data.input2 || '';
+            document.getElementById('large-text-input').value = data.largeText || '';
+            document.getElementById('input3').value = data.input3 || '';
+            input4El.value = data.input4 || '';
+            document.getElementById('input5').value = data.input5 || '';
+            document.getElementById('dropdown-input').value = data.dropdown || '';
+
+            document.getElementById('message').textContent = data.message;
+
+            await loadSpreadsheetData();
+            displayDataSectionRows();
+        } catch (error) {
+            console.error("Error loading data:", error);
+            document.getElementById('message').textContent = "Greška prilikom učitavanja podataka.";
+        }
+    });
+
+    document.getElementById('input5').addEventListener('input', displayDataSectionRows);
+
+    document.getElementById('signout-button').addEventListener('click', () => {
+        if (google.accounts.id) {
+             google.accounts.id.disableAutoSelect();
+             google.accounts.id.revoke(userName, done => {
+                console.log('consent revoked', done);
+             });
+        }
+
+        googleIdToken = null;
+        userName = null;
+        userProfilePicUrl = null;
+        updateUIForLoggedOutUser();
+
+        fetch(`${BACKEND_URL}/logout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Backend logout response:", data.message);
+            alert("Uspešno ste se odjavili.");
+        })
+        .catch(error => {
+            console.error("Error during backend logout:", error);
+            alert("Došlo je do greške prilikom odjave sa servera.");
+        });
+    });
+  </script>
+</body>
+</html>
