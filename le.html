@@ -163,7 +163,7 @@
       word-wrap: break-word;
       min-height: 80px;
       overflow: auto;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
       white-space: pre-line;
     }
 
@@ -242,16 +242,9 @@
       background-color: #c82333;
     }
 
-    /* CSS za skrivanje input polja, ali ih ostavlja dostupnim za JS */
+    /* Skrivena polja */
     #input4, #input5 {
-      position: absolute;
-      left: -9999px;
-      opacity: 0;
-      pointer-events: none;
-      height: 0; /* Dodatno smanjivanje visine */
-      margin: 0; /* Uklanjanje margine */
-      padding: 0; /* Uklanjanje paddinga */
-      border: 0; /* Uklanjanje border-a */
+      display: none;
     }
 
     @media (max-width: 900px) {
@@ -353,9 +346,10 @@
     </div>
   </div>
 
+
   <script>
     const SHEETS = [
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevJjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
       "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET2/pub?output=csv",
       "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET3/pub?output=csv",
       "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET4/pub?output=csv",
@@ -462,7 +456,7 @@
     });
 
     const BACKEND_URL = 'https://botanica.ngrok.app';
-    const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevJjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
+    const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
 
     let googleIdToken = null;
     let userName = null;
