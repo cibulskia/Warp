@@ -417,16 +417,35 @@
                 return;
             }
 
-            // This section assumes subcategories will be loaded and then we look for data
-            // Since subcategory management is simplified, we just display all sidebar spreadsheet data directly
-            spreadsheetDataSidebar.forEach((rowData, index) => {
-                const dataHtml = `
-                    <div class="spreadsheet-data-item">
-                        <p>Red ${index + 1}: ${rowData.join('<br>')}</p>
-                    </div>
-                `;
-                spreadsheetContentDiv.innerHTML += dataHtml;
+            const subcategoryListItems = document.querySelectorAll('#subcategory-list .subcategory-list-item');
+            let foundData = false;
+
+            if (subcategoryListItems.length === 0) {
+                spreadsheetContentDiv.innerHTML = '<p>Nema učitanih potkategorija za prikaz podataka iz spreadsheeta.</p>';
+                return;
+            }
+
+            subcategoryListItems.forEach(item => {
+                const subcategoryName = item.textContent.trim();
+                const rowNumber = parseInt(subcategoryName, 10);
+
+                if (!isNaN(rowNumber) && rowNumber > 0 && rowNumber <= spreadsheetDataSidebar.length) {
+                    const rowData = spreadsheetDataSidebar[rowNumber - 1];
+                    if (rowData) {
+                        foundData = true;
+                        const dataHtml = `
+                            <div class="spreadsheet-data-item">
+                                <p>${rowData.join('<br>')}</p>
+                            </div>
+                        `;
+                        spreadsheetContentDiv.innerHTML += dataHtml;
+                    }
+                }
             });
+
+            if (!foundData) {
+                spreadsheetContentDiv.innerHTML = '<p>Nije pronađen nijedan red u spreadsheetu koji odgovara imenu potkategorije.</p>';
+            }
         }
         window.displaySpreadsheetDataForSidebar = displaySpreadsheetDataForSidebar;
 
@@ -491,8 +510,6 @@
             independentSpreadsheetContentDiv.innerHTML = htmlContent;
         }
 
-        // The save and load independent data functions are not tied to buttons anymore,
-        // but can be called by other logic or an 'app.js' if needed.
         function saveIndependentData() {
             const independentData = [];
             const independentContentDiv = document.getElementById('independent-spreadsheet-content');
@@ -550,10 +567,21 @@
             document.getElementById('sidebar-large-text-input-2').value = "";
             document.getElementById('sidebar-large-text-input-3').value = "";
 
-            // Removed subcategory form and related logic
-            
-            displaySpreadsheetDataForSidebar(); // Always display sidebar data when logged in
-            displayIndependentSpreadsheetData(); // Always display independent data when logged in
+            window.setCurrentSubcategoryId(null);
+            clearSubcategoryForm();
+            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
+
+            displaySpreadsheetDataForSidebar().then(() => {
+                if (window.loadSubcategoriesFromBackend) {
+                    window.loadSubcategoriesFromBackend(false);
+                } else if (window.loadSubcategories) {
+                     window.loadSubcategories(false);
+                } else {
+                    console.warn("Could not find window.loadSubcategoriesFromBackend or window.loadSubcategories in app.js");
+                }
+            });
+
+            displayIndependentSpreadsheetData();
         }
 
         function updateUIForLoggedOutUser() {
@@ -565,6 +593,7 @@
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             document.getElementById('subcategory-message').textContent = "";
             document.getElementById('independent-data-message').textContent = "";
+            window.setCurrentSubcategoryId(null);
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.getElementById('subcategory-list').innerHTML = '';
             document.getElementById('spreadsheet-content').innerHTML = '';
@@ -579,12 +608,47 @@
             updateUIForLoggedOutUser();
         };
 
-        // Assumed window.saveMainData and window.signOutUser are defined in app.js
         document.getElementById('save-button').addEventListener('click', window.saveMainData);
         document.getElementById('signout-button').addEventListener('click', window.signOutUser);
+
+        function clearSubcategoryForm() {
+            // This function is kept for potential future use or if app.js relies on it,
+            // even though the form itself is removed from HTML.
+        }
+        window.clearSubcategoryForm = clearSubcategoryForm;
+
+        function showSubcategoryForm(subcategory = {}) {
+            // This function is kept for potential future use or if app.js relies on it,
+            // even though the form itself is removed from HTML.
+        }
+        window.showSubcategoryForm = showSubcategoryForm;
         
-        // Removed all subcategory-related button event listeners and functions
-        // Removed independent spreadsheet data save/load button event listeners
+        function loadSubcategories(reselect = false) {
+             if (window.loadSubcategoriesFromBackend) {
+                 window.loadSubcategoriesFromBackend(reselect);
+             } else {
+                 console.warn("window.loadSubcategoriesFromBackend not found. Please ensure app.js exposes it.");
+             }
+        }
+        window.loadSubcategories = loadSubcategories;
+
+        if (typeof window.loadSubcategoriesFromBackend === 'undefined') {
+            window.loadSubcategoriesFromBackend = window.loadSubcategories;
+        }
+        
+        function selectSubcategory(subcategoryId) {
+            document.querySelectorAll('.subcategory-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                // The details display section for subcategories has been removed,
+                // so no action is needed here to display details.
+            }
+        }
+        window.selectSubcategory = selectSubcategory;
     </script>
 </body>
 </html>
