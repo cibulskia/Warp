@@ -64,11 +64,13 @@
             box-sizing: border-box;
         }
 
+        /* Make sidebar input fields read-only and unclickable */
         #subcategory-name[readonly],
         #subcategory-short-desc[readonly],
         #subcategory-long-desc[readonly] {
             background-color: #e9ecef;
             cursor: not-allowed;
+            pointer-events: none; /* Disable click events */
         }
 
         textarea {
@@ -120,39 +122,25 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 300px; /* Adjusted to give more space if both lists are present */
+            max-height: 300px;
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 4px;
             margin-bottom: 15px;
-            flex-grow: 1; /* Allow to grow and fill space */
+            flex-grow: 1;
         }
 
         .subcategory-list-item {
             padding: 10px 15px;
             border-bottom: 1px solid #eee;
-            cursor: pointer;
             text-align: left;
-            transition: background-color 0.2s ease;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
             flex-direction: column;
             align-items: flex-start;
         }
 
         .subcategory-list-item:last-child {
             border-bottom: none;
-        }
-
-        .subcategory-list-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .subcategory-list-item.selected {
-            background-color: #e0f2ff;
-            border-left: 3px solid #007bff;
-            font-weight: bold;
         }
 
         .subcategory-item-name {
@@ -170,27 +158,9 @@
         }
 
         .checkbox-container {
-            display: none; /* Hide checkbox container completely */
+            display: none; /* Hide checkbox container */
         }
         
-        .subcategory-buttons {
-            display: none; /* Hide subcategory buttons completely */
-        }
-
-        #subcategory-form {
-            text-align: left;
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .sidebar-header h2 {
-            margin: 0;
-        }
-
         #profile-picture-container {
             margin-bottom: 20px;
             display: flex;
@@ -212,10 +182,9 @@
             border: 1px solid #e0e0e0;
             border-radius: 5px;
             padding: 8px 12px;
-            margin-bottom: 8px; /* Space between rows */
+            margin-bottom: 8px;
             font-size: 0.9em;
             color: #444;
-            cursor: pointer;
             transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
@@ -229,10 +198,6 @@
             border-left: 3px solid #007bff;
             font-weight: bold;
         }
-
-        #subcategory-details-section {
-            display: none; /* Ensure this section is hidden by default */
-        }
     </style>
 </head>
 <body>
@@ -241,7 +206,7 @@
             <div class="sidebar-header">
                 <h2>Potkategorije</h2>
             </div>
-            <ul id="subcategory-list" class="subcategory-list"></ul>
+            <!-- Removed #subcategory-list as it's no longer needed for selectable subcategories -->
             <div id="spreadsheet-rows-display" class="subcategory-list">
                 <!-- Spreadsheet rows will be dynamically inserted here -->
             </div>
@@ -270,17 +235,9 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <div id="subcategory-details-section" style="display: none;">
-                    <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
-                    <div id="subcategory-form" style="padding-top: 10px;">
-                        <input type="text" id="subcategory-name" placeholder="Ime potkategorije" readonly>
-                        <!-- Kratak opis i Detaljan opis su uklonjeni -->
-                        <!-- Checkbox je uklonjen -->
-                        <!-- Dugmad za čuvanje i odustajanje su uklonjena -->
-                    </div>
-                </div>
+                <!-- Subcategory details section is completely removed from the main content -->
                 
-                <!-- Sistemske poruke za potkategorije su uklonjene, #subcategory-message ostaje neiskorišćen -->
+                <p id="message"></p>
 
                 <div class="section-separator"></div>
 
@@ -306,8 +263,7 @@
                 <textarea id="large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..."></textarea>
 
                 <button id="save-button">Sačuvaj Glavne Podatke</button>
-                <p id="message"></p>
-
+                
                 <div class="section-separator"></div>
 
                 <button id="signout-button">Odjavi se</button>
@@ -322,7 +278,6 @@
         let googleIdToken = null;
         let userName = null;
         let userProfilePicUrl = null;
-        let currentSubcategoryId = null;
         let spreadsheetData = []; // To store parsed spreadsheet data
 
         async function fetchSpreadsheetData() {
@@ -332,42 +287,38 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const csvText = await response.text();
+                // Parse CSV - simple split by new line and then by comma
                 spreadsheetData = csvText.split('\n').map(row => row.split(','));
                 console.log("Spreadsheet Data Loaded:", spreadsheetData);
-                renderSpreadsheetRows();
+                renderSpreadsheetRows(); // Render rows after fetching
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
-                // Uklonjena poruka za potkategorije
+                // document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja podataka sa tabele."; // Removed
             }
-        }
-
-        function getSpreadsheetRowContent(rowNumber) {
-            if (rowNumber > 0 && rowNumber <= spreadsheetData.length) {
-                return spreadsheetData[rowNumber - 1].join(', ');
-            }
-            return 'Nema podataka u tabeli';
         }
 
         function renderSpreadsheetRows() {
             const spreadsheetDisplayElement = document.getElementById('spreadsheet-rows-display');
-            spreadsheetDisplayElement.innerHTML = ''; 
+            spreadsheetDisplayElement.innerHTML = ''; // Clear previous rows
 
             if (spreadsheetData.length > 0) {
-                const startIndex = 1; 
+                // Skip header row if present, assuming first row is header
+                const startIndex = 1; // Start from second row if first is header
                 for (let i = startIndex; i < spreadsheetData.length; i++) {
-                    const rowContent = spreadsheetData[i].join(', '); 
+                    const rowContent = spreadsheetData[i].join(', '); // Join all columns for the row
                     const rowElement = document.createElement('div');
                     rowElement.className = 'spreadsheet-row-container';
-                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; 
-                    rowElement.dataset.rowNumber = i + 1; 
+                    rowElement.textContent = `Red ${i + 1}: ${rowContent}`; // Display row number and content
+                    rowElement.dataset.rowNumber = i + 1; // Store original row number
 
-                    rowElement.addEventListener('click', () => {
-                        document.querySelectorAll('.spreadsheet-row-container').forEach(item => {
-                            item.classList.remove('selected');
-                        });
-                        rowElement.classList.add('selected');
-                        console.log("Selected spreadsheet row:", rowElement.dataset.rowNumber, rowContent);
-                    });
+                    // Removed click event listener for spreadsheet rows as they should not be interactive
+                    // rowElement.addEventListener('click', () => {
+                    //     document.querySelectorAll('.spreadsheet-row-container').forEach(item => {
+                    //         item.classList.remove('selected');
+                    //     });
+                    //     rowElement.classList.add('selected');
+                    //     console.log("Selected spreadsheet row:", rowElement.dataset.rowNumber, rowContent);
+                    // });
 
                     spreadsheetDisplayElement.appendChild(rowElement);
                 }
@@ -397,7 +348,7 @@
             .then(data => {
                 if (data.status === 'success') {
                     updateUIForLoggedInUser();
-                    loadSubcategories();
+                    // loadSubcategories(); // Removed as subcategories are no longer interactive
                     loadMainData();
                 } else {
                     alert("Login failed: " + data.message);
@@ -424,7 +375,7 @@
             document.getElementById('subcategory-sidebar').style.display = 'flex';
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
-            // Uklonjena referenca na subcategory-message
+            // document.getElementById('subcategory-message').textContent = ""; // Removed
             
             const profilePicElement = document.getElementById('profile-picture');
             const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
@@ -447,12 +398,12 @@
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
 
-            document.getElementById('subcategory-details-section').style.display = 'none';
-            currentSubcategoryId = null;
-            document.getElementById('current-subcategory-id').textContent = "Nijedna";
-            clearSubcategoryForm(); // Iako se forma ne koristi, resetujemo interno
-            document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
-            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); 
+            // document.getElementById('subcategory-details-section').style.display = 'none'; // Removed
+            // currentSubcategoryId = null; // Removed
+            // document.getElementById('current-subcategory-id').textContent = "Nijedna"; // Removed
+            // clearSubcategoryForm(); // Removed
+            // document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected')); // Removed
+            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); // Clear spreadsheet row selection
         }
 
         function updateUIForLoggedOutUser() {
@@ -462,13 +413,13 @@
             document.getElementById('subcategory-sidebar').style.display = 'none';
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-            // Uklonjena referenca na subcategory-message
+            // document.getElementById('subcategory-message').textContent = ""; // Removed
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.getElementById('subcategory-list').innerHTML = '';
-            document.getElementById('spreadsheet-rows-display').innerHTML = ''; 
+            // document.getElementById('subcategory-list').innerHTML = ''; // Removed
+            document.getElementById('spreadsheet-rows-display').innerHTML = ''; // Clear spreadsheet rows on logout
 
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
@@ -568,130 +519,9 @@
             });
         });
 
-        // Forma za potkategorije je samo za prikaz, pa se polja resetuju, ali se ne koriste za unos
-        function clearSubcategoryForm() {
-            document.getElementById('subcategory-name').value = '';
-            // document.getElementById('subcategory-short-desc').value = ''; // Uklonjeno
-            // document.getElementById('subcategory-long-desc').value = ''; // Uklonjeno
-            // document.getElementById('subcategory-checkbox').checked = false; // Uklonjeno
-        }
-
-        function showSubcategoryForm(subcategory = {}) {
-            currentSubcategoryId = subcategory.id;
-            document.getElementById('current-subcategory-id').textContent = subcategory.id;
-            document.getElementById('subcategory-name').value = subcategory.name || '';
-            // document.getElementById('subcategory-short-desc').value = subcategory.short_description || ''; // Uklonjeno
-            // document.getElementById('subcategory-long-desc').value = subcategory.long_description || ''; // Uklonjeno
-            // document.getElementById('subcategory-checkbox').checked = subcategory.is_active; // Uklonjeno
-        }
-
-        // Dugmad za čuvanje i odustajanje su uklonjena iz HTML-a, pa nema potrebe za listenerima
-
-        function loadSubcategories(reselect = false) {
-            if (!googleIdToken) {
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/subcategories`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                const subcategoryListElement = document.getElementById('subcategory-list');
-                subcategoryListElement.innerHTML = '';
-                
-                let newlySelectedId = currentSubcategoryId;
-
-                if (data.status === 'success' && data.subcategories.length > 0) {
-                    data.subcategories.forEach(sub => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'subcategory-list-item';
-                        listItem.dataset.id = sub.id;
-
-                        const subcategoryNameSpan = document.createElement('span');
-                        subcategoryNameSpan.className = 'subcategory-item-name';
-                        subcategoryNameSpan.textContent = sub.name;
-                        listItem.appendChild(subcategoryNameSpan);
-
-                        listItem.addEventListener('click', () => {
-                            selectSubcategory(sub.id);
-                        });
-                        subcategoryListElement.appendChild(listItem);
-                    });
-                    // Uklonjena poruka za potkategorije
-                } else {
-                    // Uklonjena poruka za potkategorije
-                }
-
-                if (reselect && newlySelectedId) {
-                    selectSubcategory(newlySelectedId);
-                } else {
-                    currentSubcategoryId = null;
-                    document.getElementById('current-subcategory-id').textContent = "Nijedna";
-                    document.getElementById('subcategory-details-section').style.display = 'none';
-                    clearSubcategoryForm();
-                }
-            })
-            .catch(error => { 
-                console.error("Error loading subcategories:", error); 
-                // Uklonjena poruka za potkategorije
-            });
-        }
-
-        function selectSubcategory(subcategoryId) {
-            document.querySelectorAll('.subcategory-list-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-
-            const selectedItem = document.querySelector(`.subcategory-list-item[data-id="${subcategoryId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
-                loadSubcategoryDetails(subcategoryId);
-                // Sekcija za detalje potkategorije je i dalje prikazana (radi prikaza imena), ali bez mogućnosti izmene
-                document.getElementById('subcategory-details-section').style.display = 'block'; 
-            }
-        }
-
-        function loadSubcategoryDetails(subcategoryId) {
-            if (!googleIdToken) {
-                return;
-            }
-
-            fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${googleIdToken}` }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) { alert("Vaša sesija je istekla. Molimo prijavite se ponovo."); updateUIForLoggedOutUser(); }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success' && data.subcategory) {
-                    showSubcategoryForm(data.subcategory);
-                    // Uklonjena poruka za potkategorije
-                } else {
-                    // Uklonjena poruka za potkategorije
-                    document.getElementById('subcategory-details-section').style.display = 'none';
-                    clearSubcategoryForm();
-                    currentSubcategoryId = null;
-                    document.getElementById('current-subcategory-id').textContent = "Nijedna";
-                }
-            })
-            .catch(error => { 
-                console.error("Error loading subcategory details:", error); 
-                // Uklonjena poruka za potkategorije
-            });
-        }
+        // All subcategory-related functions (clearSubcategoryForm, showSubcategoryForm, cancel-subcategory-edit-button, 
+        // save-subcategory-button, loadSubcategories, selectSubcategory, loadSubcategoryDetails) are removed
+        // as they are no longer needed for the simplified sidebar.
     </script>
 </body>
 </html>
