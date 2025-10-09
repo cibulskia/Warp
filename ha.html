@@ -26,6 +26,27 @@
             text-align: center;
             margin-bottom: 30px;
         }
+        .buttons-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .buttons-container button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .buttons-container button:hover {
+            background-color: #2980b9;
+        }
+        .buttons-container button.active {
+            background-color: #2ecc71;
+        }
         .data-row {
             border: 1px solid #e0e0e0;
             background-color: #fdfdfd;
@@ -57,6 +78,7 @@
             padding: 10px;
             background-color: #ecf0f1;
             border-radius: 5px;
+            display: none; /* Sakriveno po defaultu */
         }
         .error-message {
             color: #e74c3c;
@@ -72,59 +94,74 @@
 <body>
     <div class="container">
         <h1>Podaci iz Google Sheets Tabele</h1>
+        
+        <div class="buttons-container" id="sheet-buttons">
+            <!-- Dugmad će biti dinamički dodata ovde -->
+        </div>
+
         <p id="loading">Učitavanje podataka...</p>
         <div id="data-container">
             <!-- Podaci iz tabele će biti dinamički dodati ovde -->
+            <p style="text-align: center; color: #555;">Izaberi sheet za prikaz podataka.</p>
         </div>
     </div>
 
     <script>
         // ##################################################################################
-        // # VAŽNO: ZAMENI OVAJ URL SA TVOJIM JAVNO OBJAVLJENIM CSV LINKOM!               #
+        // # VAŽNO: ZAMENI OVE URL-ove SA TVOJIM JAVNO OBJAVLJENIM CSV LINKOVIMA!          #
         // # Kako dobiti ovaj URL:                                                      #
         // # 1. Otvori svoju Google Sheet tabelu.                                       #
         // # 2. Idi na File > Share > Publish to web.                                   #
         // # 3. U padajućem meniju "Link" izaberi "Comma-separated values (.csv)".      #
         // # 4. Klikni na Publish i kopiraj dobijeni URL.                               #
+        // # Ponavljaj ovaj postupak za SVAKI SHEET koji želiš da prikažeš.             #
         // ##################################################################################
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?output=csv'; 
-        // Primer URL-a, ZAMENI GA SA SVOJIM!
+        const sheets = [
+            { name: 'Sheet 1', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv' },
+            { name: 'Sheet 1', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv' },
+            { name: 'Sheet 1', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1010964438&single=true&output=csv' },
+            { name: 'Drugi Sheet', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv' }, // ZAMENI OVO
+            { name: 'Treci Sheet', url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1899576497&single=true&output=csv' }  // ZAMENI OVO
+        ];
 
-        async function fetchAndDisplayData() {
+        let activeSheetUrl = ''; // Globalna varijabla za praćenje trenutno aktivnog URL-a
+
+        async function fetchAndDisplayData(csvUrl) {
             const dataContainer = document.getElementById('data-container');
             const loadingMessage = document.getElementById('loading');
+            
+            dataContainer.innerHTML = ''; // Očisti prethodne podatke
             loadingMessage.style.display = 'block'; // Prikazi poruku o učitavanju
 
-            try {
-                const response = await fetch(CSV_URL);
+            if (!csvUrl) {
+                dataContainer.innerHTML = '<p class="error-message">Nema odabranog sheet-a za prikaz.</p>';
+                loadingMessage.style.display = 'none';
+                return;
+            }
 
-                // Proveri da li je HTTP status kod OK (200)
+            try {
+                const response = await fetch(csvUrl);
+
                 if (!response.ok) {
                     throw new Error(`HTTP greška! Status: ${response.status}. Proveri da li je CSV_URL ispravan i da li je tabela javno objavljena.`);
                 }
 
                 const csvText = await response.text();
-                // Filterujemo prazne redove i trimujemo whitespace
                 const rows = csvText.split('\n').filter(row => row.trim() !== '');
 
                 if (rows.length === 0) {
-                    dataContainer.innerHTML = '<p class="error-message">Nema podataka za prikaz u tabeli.</p>';
+                    dataContainer.innerHTML = '<p class="error-message">Nema podataka za prikaz u ovom sheet-u.</p>';
                     return;
                 }
 
-                // Pretpostavljamo da je prvi red zaglavlje (header)
-                // Mapiramo i trimujemo svaki header
                 const headers = rows[0].split(',').map(header => header.trim());
 
-                // Prolazimo kroz ostale redove (podatke)
                 for (let i = 1; i < rows.length; i++) {
-                    // Mapiramo i trimujemo svaku vrednost
                     const values = rows[i].split(',').map(value => value.trim());
 
-                    // Dodatna provera za neusklađen broj kolona
                     if (values.length !== headers.length) {
-                        console.warn(`Red ${i+1} ima neusklađen broj kolona (očekivano: ${headers.length}, dobijeno: ${values.length}). Preskačem ovaj red.`);
-                        continue; // Preskoči ovaj red i nastavi sa sledećim
+                        console.warn(`Red ${i+1} u sheet-u "${csvUrl}" ima neusklađen broj kolona (očekivano: ${headers.length}, dobijeno: ${values.length}). Preskačem ovaj red.`);
+                        continue;
                     }
 
                     const rowDiv = document.createElement('div');
@@ -133,7 +170,6 @@
                     headers.forEach((header, index) => {
                         const p = document.createElement('p');
                         p.classList.add('data-field');
-                        // Prikazuje header i odgovarajuću vrednost; ako vrednost ne postoji, prikaže prazan string
                         p.innerHTML = `<strong>${header}:</strong> ${values[index] || ''}`; 
                         rowDiv.appendChild(p);
                     });
@@ -142,14 +178,40 @@
 
             } catch (error) {
                 console.error('Došlo je do greške prilikom dohvaćanja podataka:', error);
-                dataContainer.innerHTML = `<p class="error-message">Greška prilikom učitavanja podataka: ${error.message}. <br>Proveri da li je CSV_URL ispravan i da li je tvoja Google Sheets tabela javno objavljena kao CSV.</p>`;
+                dataContainer.innerHTML = `<p class="error-message">Greška prilikom učitavanja podataka: ${error.message}. <br>Proveri da li je URL za ovaj sheet ispravan i da li je javno objavljen kao CSV.</p>`;
             } finally {
-                loadingMessage.style.display = 'none'; // Sakrij poruku o učitavanju, bez obzira na ishod
+                loadingMessage.style.display = 'none'; // Sakrij poruku o učitavanju
             }
         }
 
-        // Pozovi funkciju za dohvaćanje i prikaz podataka kada se cela HTML stranica učita
-        document.addEventListener('DOMContentLoaded', fetchAndDisplayData);
+        function createSheetButtons() {
+            const buttonsContainer = document.getElementById('sheet-buttons');
+            sheets.forEach(sheet => {
+                const button = document.createElement('button');
+                button.textContent = sheet.name;
+                button.setAttribute('data-url', sheet.url); // Dodaj URL kao data atribut
+                button.addEventListener('click', function() {
+                    // Ukloni 'active' klasu sa svih dugmadi
+                    document.querySelectorAll('.buttons-container button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    // Dodaj 'active' klasu na kliknuto dugme
+                    this.classList.add('active');
+                    activeSheetUrl = sheet.url; // Postavi aktivni URL
+                    fetchAndDisplayData(activeSheetUrl);
+                });
+                buttonsContainer.appendChild(button);
+            });
+        }
+
+        // Pozovi funkciju za kreiranje dugmića kada se cela HTML stranica učita
+        document.addEventListener('DOMContentLoaded', function() {
+            createSheetButtons();
+            // Opcionalno: Automatski učitaj prvi sheet ako želiš da nešto bude prikazano odmah
+            // if (sheets.length > 0) {
+            //     document.querySelector('.buttons-container button').click(); // Simulira klik na prvo dugme
+            // }
+        });
     </script>
 </body>
 </html>
