@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Integrisana Aplikacija</title>
   <link rel="stylesheet" href="stylesl.css" />
+
+  <!-- PapaParse -->
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <!-- Google Sign-In -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="oath.js" defer></script>
+  <!-- Naš izdvojeni JS -->
+  <script src="script.js" defer></script>
 </head>
 <body>
   <div class="app-section">
@@ -45,6 +49,7 @@
              data-cancel_on_tap_outside="false"
              data-context="use">
         </div>
+
         <div class="g_id_signin"
              data-type="standard"
              data-size="large"
