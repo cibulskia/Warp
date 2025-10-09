@@ -64,13 +64,15 @@
             box-sizing: border-box;
         }
 
-        /* Make sidebar input fields read-only and unclickable */
-        #subcategory-name[readonly],
-        #subcategory-short-desc[readonly],
-        #subcategory-long-desc[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-            pointer-events: none; /* Disable click events */
+        /* All subcategory form fields should be hidden or removed */
+        #subcategory-name,
+        #subcategory-short-desc,
+        #subcategory-long-desc,
+        .checkbox-container,
+        #save-subcategory-button,
+        #cancel-subcategory-edit-button,
+        #subcategory-details-section {
+            display: none !important; /* Force hide these elements */
         }
 
         textarea {
@@ -118,7 +120,7 @@
             margin: 30px 0;
         }
 
-        .subcategory-list {
+        .subcategory-list { /* This class is now primarily for spreadsheet display */
             list-style: none;
             padding: 0;
             margin: 0;
@@ -130,35 +132,9 @@
             flex-grow: 1;
         }
 
+        /* Subcategory list items are completely removed from display */
         .subcategory-list-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .subcategory-list-item:last-child {
-            border-bottom: none;
-        }
-
-        .subcategory-item-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .subcategory-item-spreadsheet-content {
-            font-size: 0.9em;
-            color: #555;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-        }
-
-        .checkbox-container {
-            display: none; /* Hide checkbox container */
+            display: none !important;
         }
         
         #profile-picture-container {
@@ -176,27 +152,28 @@
             border: 2px solid #ddd;
         }
 
-        /* New styles for individual spreadsheet rows */
+        /* Styles for individual spreadsheet rows */
         .spreadsheet-row-container {
             background-color: #f9f9f9;
             border: 1px solid #e0e0e0;
             border-radius: 5px;
             padding: 8px 12px;
-            margin-bottom: 8px;
+            margin-bottom: 8px; /* Space between rows */
             font-size: 0.9em;
             color: #444;
+            /* No cursor: pointer; to indicate no interaction */
             transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         .spreadsheet-row-container:hover {
-            background-color: #f0f0f0;
-            border-color: #c0c0c0;
+            background-color: #f9f9f9; /* No change on hover */
+            border-color: #e0e0e0; /* No change on hover */
         }
 
         .spreadsheet-row-container.selected {
-            background-color: #e0f2ff;
-            border-left: 3px solid #007bff;
-            font-weight: bold;
+            background-color: #f9f9f9; /* No selection visual */
+            border-left: 1px solid #e0e0e0; /* No selection visual */
+            font-weight: normal; /* No selection visual */
         }
     </style>
 </head>
@@ -206,7 +183,7 @@
             <div class="sidebar-header">
                 <h2>Potkategorije</h2>
             </div>
-            <!-- Removed #subcategory-list as it's no longer needed for selectable subcategories -->
+            <!-- This div will now exclusively hold the spreadsheet data -->
             <div id="spreadsheet-rows-display" class="subcategory-list">
                 <!-- Spreadsheet rows will be dynamically inserted here -->
             </div>
@@ -235,7 +212,7 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <!-- Subcategory details section is completely removed from the main content -->
+                <!-- Removed the subcategory details section completely -->
                 
                 <p id="message"></p>
 
@@ -293,7 +270,6 @@
                 renderSpreadsheetRows(); // Render rows after fetching
             } catch (error) {
                 console.error("Error fetching spreadsheet data:", error);
-                // document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja podataka sa tabele."; // Removed
             }
         }
 
@@ -312,14 +288,6 @@
                     rowElement.dataset.rowNumber = i + 1; // Store original row number
 
                     // Removed click event listener for spreadsheet rows as they should not be interactive
-                    // rowElement.addEventListener('click', () => {
-                    //     document.querySelectorAll('.spreadsheet-row-container').forEach(item => {
-                    //         item.classList.remove('selected');
-                    //     });
-                    //     rowElement.classList.add('selected');
-                    //     console.log("Selected spreadsheet row:", rowElement.dataset.rowNumber, rowContent);
-                    // });
-
                     spreadsheetDisplayElement.appendChild(rowElement);
                 }
             } else {
@@ -348,7 +316,6 @@
             .then(data => {
                 if (data.status === 'success') {
                     updateUIForLoggedInUser();
-                    // loadSubcategories(); // Removed as subcategories are no longer interactive
                     loadMainData();
                 } else {
                     alert("Login failed: " + data.message);
@@ -375,7 +342,6 @@
             document.getElementById('subcategory-sidebar').style.display = 'flex';
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
-            // document.getElementById('subcategory-message').textContent = ""; // Removed
             
             const profilePicElement = document.getElementById('profile-picture');
             const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
@@ -398,12 +364,7 @@
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
 
-            // document.getElementById('subcategory-details-section').style.display = 'none'; // Removed
-            // currentSubcategoryId = null; // Removed
-            // document.getElementById('current-subcategory-id').textContent = "Nijedna"; // Removed
-            // clearSubcategoryForm(); // Removed
-            // document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected')); // Removed
-            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); // Clear spreadsheet row selection
+            document.querySelectorAll('.spreadsheet-row-container').forEach(item => item.classList.remove('selected')); 
         }
 
         function updateUIForLoggedOutUser() {
@@ -413,12 +374,10 @@
             document.getElementById('subcategory-sidebar').style.display = 'none';
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
-            // document.getElementById('subcategory-message').textContent = ""; // Removed
             googleIdToken = null;
             userName = null;
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            // document.getElementById('subcategory-list').innerHTML = ''; // Removed
             document.getElementById('spreadsheet-rows-display').innerHTML = ''; // Clear spreadsheet rows on logout
 
             document.getElementById('profile-picture').style.display = 'none';
@@ -518,10 +477,6 @@
                 alert("Došlo je do greške prilikom odjave sa servera.");
             });
         });
-
-        // All subcategory-related functions (clearSubcategoryForm, showSubcategoryForm, cancel-subcategory-edit-button, 
-        // save-subcategory-button, loadSubcategories, selectSubcategory, loadSubcategoryDetails) are removed
-        // as they are no longer needed for the simplified sidebar.
     </script>
 </body>
 </html>
