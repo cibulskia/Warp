@@ -242,8 +242,16 @@
       background-color: #c82333;
     }
 
+    /* CSS za skrivanje input polja, ali ih ostavlja dostupnim za JS */
     #input4, #input5 {
-      display: none; /* Skrivanje polja za unos */
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+      pointer-events: none;
+      height: 0; /* Dodatno smanjivanje visine */
+      margin: 0; /* Uklanjanje margine */
+      padding: 0; /* Uklanjanje paddinga */
+      border: 0; /* Uklanjanje border-a */
     }
 
     @media (max-width: 900px) {
