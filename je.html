@@ -9,21 +9,53 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Promenjeno na flex-start */
             min-height: 100vh;
             background-color: #f4f4f4;
             margin: 0;
-            padding: 20px;
             box-sizing: border-box;
+            padding: 20px; /* Dodatni padding za ceo body */
+            gap: 20px; /* Razmak između sidebar-sekcije i glavnog sadržaja */
         }
 
-        .main-wrapper { /* Dodat wrapper za sidebar i container */
+        .side-section {
+            width: 300px; /* Širina bočne sekcije */
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            border-radius: 8px; /* Zaobljeni uglovi */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Izraženija senka */
             display: flex;
-            gap: 20px;
-            width: 100%;
-            max-width: 1200px; /* Povećana maksimalna širina */
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 15px; /* Razmak između polja */
+            flex-shrink: 0; /* Sprečava smanjivanje bočne sekcije */
+        }
+
+        .side-section h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .side-section-field {
+            background-color: #444;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            min-height: 70px; /* Minimalna visina polja */
+            overflow: auto; /* Dodaj scroll ako je sadržaj prevelik */
+            color: #e0e0e0;
+        }
+
+        .main-content {
+            flex-grow: 1; /* Glavni sadržaj zauzima preostali prostor */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Poravnaj na vrh */
+            padding: 0; /* Ukloni padding jer container ima svoj */
         }
 
         .container {
@@ -32,52 +64,21 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-            flex: 2; /* Glavni sadržaj zauzima više prostora */
-        }
-
-        .sidebar { /* Stilovi za sidebar */
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            flex: 1; /* Sidebar zauzima manje prostora */
-            min-width: 280px;
-            max-width: 350px;
-        }
-
-        .sidebar h2 {
-            color: #333;
-            margin-top: 0;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .sidebar-item {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #555;
-            text-align: left;
-            min-height: 50px; /* Minimalna visina za prikaz sadržaja */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            white-space: pre-wrap; /* Omogućava prelom teksta */
-            word-wrap: break-word; /* Omogućava prelom dugih reči */
+            width: 100%;
+            max-width: 600px; /* Malo širi kontejner za glavni sadržaj */
         }
 
         h1 {
             color: #333;
             margin-bottom: 20px;
+            font-size: 2em;
         }
 
         input[type="text"],
         textarea,
         select {
             width: calc(100% - 20px);
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -87,13 +88,13 @@
 
         textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
         }
 
         button {
             background-color: #007bff;
             color: white;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -110,6 +111,7 @@
             margin-top: 20px;
             color: #333;
             min-height: 20px;
+            font-weight: bold;
         }
 
         #user-name {
@@ -118,12 +120,12 @@
         }
 
         #user-profile-pic {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 15px;
-            border: 2px solid #007bff;
+            border: 3px solid #007bff;
         }
 
         #signout-button {
@@ -136,16 +138,15 @@
     </style>
 </head>
 <body>
-    <div class="main-wrapper">
-        <!-- Sidebar Section -->
-        <div class="sidebar" id="sidebar-section" style="display: none;">
-            <h2>Podaci iz Spreadsheeta</h2>
-            <div class="sidebar-item" id="sidebar-item-0">Nema podataka</div>
-            <div class="sidebar-item" id="sidebar-item-1">Nema podataka</div>
-            <div class="sidebar-item" id="sidebar-item-2">Nema podataka</div>
-            <div class="sidebar-item" id="sidebar-item-3">Nema podataka</div>
-        </div>
+    <div class="side-section">
+        <h2>Sadržaj Tabela</h2>
+        <div id="side-section-field-1" class="side-section-field"></div>
+        <div id="side-section-field-2" class="side-section-field"></div>
+        <div id="side-section-field-3" class="side-section-field"></div>
+        <div id="side-section-field-4" class="side-section-field"></div>
+    </div>
 
+    <div class="main-content">
         <div class="container">
             <h1>Moja Aplikacija</h1>
 
@@ -178,7 +179,8 @@
 
                 <input type="text" id="input3" placeholder="Treće polje za tekst">
                 <input type="text" id="input4" placeholder="Četvrto polje za tekst">
-                <input type="text" id="input5" placeholder="Peto polje za tekst (npr: 2,3,4,6 za spreadsheet redove)">
+                <!-- Peto polje za tekst koje sadrži brojeve redova za bočnu sekciju -->
+                <input type="text" id="input5" placeholder="Redovi za bočnu sekciju (npr. 2, 3, 4, 6)">
 
                 <select id="dropdown-input">
                     <option value="">Odaberite opciju</option>
@@ -197,13 +199,14 @@
 
     <script>
         const BACKEND_URL = 'https://botanica.ngrok.app'; // Tvoja ngrok adresa
-        const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502661578&single=true&output=csv';
+        const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
 
         let googleIdToken = null;
         let userName = null;
         let userProfilePicUrl = null;
-        let spreadsheetData = []; // Za čuvanje učitanih podataka iz spreadsheeta
+        let spreadsheetData = []; // Za čuvanje učitanih podataka iz tabele
 
+        // Funkcija za dekodiranje JWT tokena
         function decodeJwtResponse(token) {
             let base64Url = token.split('.')[1];
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -213,7 +216,8 @@
             return JSON.parse(jsonPayload);
         }
 
-        async function handleCredentialResponse(response) {
+        // Funkcija za obradu Google kredencijala
+        function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
             googleIdToken = response.credential;
 
@@ -221,46 +225,44 @@
             userName = payload.name;
             userProfilePicUrl = payload.picture;
 
-            try {
-                const backendResponse = await fetch(`${BACKEND_URL}/verify-google-login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_token: googleIdToken })
-                });
-
-                if (!backendResponse.ok) { throw new Error(`HTTP error! status: ${backendResponse.status}`); }
-                const data = await backendResponse.json();
-
+            fetch(`${BACKEND_URL}/verify-google-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: googleIdToken })
+            })
+            .then(response => {
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return response.json();
+            })
+            .then(data => {
                 if (data.status === 'success') {
                     console.log("Login successful on backend:", data);
                     updateUIForLoggedInUser();
-                    // Automatsko učitavanje podataka čim se korisnik uloguje
-                    await loadDataFromBackend();
-                    await loadAndDisplaySpreadsheetData();
+                    loadAndDisplayUserData(); // Učitaj korisničke podatke i prikaži sidebar
                 } else {
                     console.error("Backend login failed:", data.message);
                     alert("Login failed: " + data.message);
-                    resetLoginState();
+                    googleIdToken = null;
+                    userName = null;
+                    userProfilePicUrl = null;
+                    updateUIForLoggedOutUser();
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error("Error during backend login verification:", error);
                 alert("An error occurred during login. Please try again.");
-                resetLoginState();
-            }
+                googleIdToken = null;
+                userName = null;
+                userProfilePicUrl = null;
+                updateUIForLoggedOutUser();
+            });
         }
 
-        function resetLoginState() {
-            googleIdToken = null;
-            userName = null;
-            userProfilePicUrl = null;
-            updateUIForLoggedOutUser();
-        }
-
+        // Funkcija za ažuriranje UI-ja za prijavljenog korisnika
         function updateUIForLoggedInUser() {
             document.getElementById('g_id_onload').style.display = 'none';
             document.querySelector('.g_id_signin').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            document.getElementById('sidebar-section').style.display = 'block'; // Prikaži sidebar
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
             
@@ -279,13 +281,18 @@
             document.getElementById('input4').value = "";
             document.getElementById('input5').value = "";
             document.getElementById('dropdown-input').value = "";
+
+            // Očisti bočnu sekciju polja
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`side-section-field-${i}`).textContent = '';
+            }
         }
 
+        // Funkcija za ažuriranje UI-ja za odjavljenog korisnika
         function updateUIForLoggedOutUser() {
             document.getElementById('g_id_onload').style.display = 'block';
             document.querySelector('.g_id_signin').style.display = 'block';
             document.getElementById('app-content').style.display = 'none';
-            document.getElementById('sidebar-section').style.display = 'none'; // Sakrij sidebar
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             
@@ -298,21 +305,33 @@
             userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-            // Reset sidebar content
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`sidebar-item-${i}`).textContent = "Nema podataka";
+            // Očisti bočnu sekciju polja
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`side-section-field-${i}`).textContent = '';
             }
-            spreadsheetData = []; // Clear spreadsheet data
         }
 
-        window.onload = function() {
-            updateUIForLoggedOutUser();
-        };
+        // Funkcija za učitavanje podataka iz Google Spreadsheeta (CSV)
+        async function loadSpreadsheetData() {
+            try {
+                const response = await fetch(SPREADSHEET_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                spreadsheetData = csvText.split('\n').map(row => row.split(','));
+                console.log("Spreadsheet data loaded:", spreadsheetData);
+            } catch (error) {
+                console.error("Error loading spreadsheet data:", error);
+                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka iz tabele.";
+                spreadsheetData = []; // Resetuj podatke u slučaju greške
+            }
+        }
 
-        // Funkcija za učitavanje podataka sa backend-a i popunjavanje polja
-        async function loadDataFromBackend() {
+        // Funkcija za učitavanje korisničkih podataka sa backend-a i prikaz u sidebar-u
+        async function loadAndDisplayUserData() {
             if (!googleIdToken) {
-                alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
+                console.warn("Nema ID tokena za učitavanje podataka.");
                 return;
             }
 
@@ -327,7 +346,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-
+                
                 document.getElementById('input1').value = data.input1 || '';
                 document.getElementById('input2').value = data.input2 || '';
                 document.getElementById('large-text-input').value = data.largeText || '';
@@ -337,66 +356,42 @@
                 document.getElementById('dropdown-input').value = data.dropdown || '';
                 
                 document.getElementById('message').textContent = data.message;
-                console.log("Data loaded from backend successfully.");
 
-                // Nakon učitavanja podataka, ažuriraj sidebar
-                await updateSidebarWithSpreadsheetData();
+                // Nakon što su učitani korisnički podaci, prikaži redove u bočnoj sekciji
+                displaySideSectionRows();
 
             } catch (error) {
-                console.error("Error loading data:", error);
-                document.getElementById('message').textContent = "Greška prilikom učitavanja podataka.";
+                console.error("Error loading user data:", error);
+                document.getElementById('message').textContent = "Greška prilikom učitavanja korisničkih podataka.";
             }
         }
 
-        // Funkcija za učitavanje i parsiranje CSV podataka iz spreadsheeta
-        async function fetchSpreadsheetData() {
-            try {
-                const response = await fetch(SPREADSHEET_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const csvText = await response.text();
-                // Jednostavno parsiranje CSV-a po redovima
-                spreadsheetData = csvText.split('\n').map(row => row.trim()).filter(row => row.length > 0);
-                console.log("Spreadsheet data loaded:", spreadsheetData);
-            } catch (error) {
-                console.error("Error fetching spreadsheet data:", error);
-                alert("Greška prilikom učitavanja podataka iz Google Spreadsheeta.");
-                spreadsheetData = [];
-            }
-        }
-
-        // Funkcija za ažuriranje sidebara na osnovu input5 polja
-        async function updateSidebarWithSpreadsheetData() {
-            if (spreadsheetData.length === 0) {
-                await fetchSpreadsheetData(); // Učitaj podatke ako već nisu učitani
-            }
-            
+        // Funkcija za prikaz redova u bočnoj sekciji
+        function displaySideSectionRows() {
             const input5Value = document.getElementById('input5').value;
             const rowNumbers = input5Value.split(',').map(num => parseInt(num.trim(), 10)).filter(num => !isNaN(num) && num > 0);
 
-            for (let i = 0; i < 4; i++) {
-                const sidebarItem = document.getElementById(`sidebar-item-${i}`);
-                if (i < rowNumbers.length) {
-                    const rowIndex = rowNumbers[i] - 1; // Konvertuj broj reda u indeks (0-based)
-                    if (rowIndex >= 0 && rowIndex < spreadsheetData.length) {
-                        sidebarItem.textContent = spreadsheetData[rowIndex];
-                    } else {
-                        sidebarItem.textContent = `Red ${rowNumbers[i]} (ne postoji)`;
-                    }
-                } else {
-                    sidebarItem.textContent = "Nema podataka";
+            for (let i = 1; i <= 4; i++) {
+                const sideSectionField = document.getElementById(`side-section-field-${i}`);
+                sideSectionField.textContent = ''; // Očisti polje pre popunjavanja
+
+                const rowIndex = rowNumbers[i - 1]; // Uzmi broj reda za i-to polje (1-bazirano)
+                // Proveri da li je rowIndex validan i da li podaci postoje
+                if (rowIndex && rowIndex <= spreadsheetData.length && spreadsheetData[rowIndex - 1]) {
+                    sideSectionField.textContent = `Red ${rowIndex}: ${spreadsheetData[rowIndex - 1].join(', ')}`;
+                } else if (rowIndex) {
+                    sideSectionField.textContent = `Red ${rowIndex}: Nema podataka ili nepostojeći red.`;
                 }
             }
         }
 
-        // Event listener za input5 polje (za dinamičko ažuriranje sidebara)
-        document.getElementById('input5').addEventListener('input', () => {
-            if (googleIdToken) { // Ažuriraj samo ako je korisnik ulogovan
-                updateSidebarWithSpreadsheetData();
-            }
-        });
+        // Pozovi ovu funkciju na početku da osiguraš ispravan UI
+        window.onload = async function() {
+            updateUIForLoggedOutUser();
+            await loadSpreadsheetData(); // Učitaj spreadsheet podatke odmah pri učitavanju stranice
+        };
 
+        // Event listener za "Sačuvaj Podatke"
         document.getElementById('save-button').addEventListener('click', () => {
             if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
@@ -409,7 +404,7 @@
                 largeText: document.getElementById('large-text-input').value,
                 input3: document.getElementById('input3').value,
                 input4: document.getElementById('input4').value,
-                input5: document.getElementById('input5').value,
+                input5: document.getElementById('input5').value, // Sačuvaj i input5
                 dropdown: document.getElementById('dropdown-input').value
             };
 
@@ -427,23 +422,30 @@
             })
             .then(data => { 
                 document.getElementById('message').textContent = data.message; 
-                // Nakon uspešnog čuvanja, ažuriraj sidebar ako se input5 promenio
-                updateSidebarWithSpreadsheetData();
+                displaySideSectionRows(); // Ažuriraj bočnu sekciju nakon čuvanja
             })
             .catch(error => { console.error("Error saving data:", error); document.getElementById('message').textContent = "Greška prilikom čuvanja podataka."; });
         });
 
-        document.getElementById('load-button').addEventListener('click', loadDataFromBackend);
+        // Event listener za "Učitaj Podatke"
+        document.getElementById('load-button').addEventListener('click', loadAndDisplayUserData);
 
+        // Event listener za promene u input5 polju (za dinamičko ažuriranje bočne sekcije)
+        document.getElementById('input5').addEventListener('input', displaySideSectionRows);
+
+        // Event listener za "Odjavi se"
         document.getElementById('signout-button').addEventListener('click', () => {
             if (google.accounts.id) {
-                 google.accounts.id.disableAutoSelect();
-                 google.accounts.id.revoke(userName, done => {
-                    console.log('consent revoked', done);
-                 });
+                 google.accounts.id.disableAutoSelect(); 
+                 // google.accounts.id.revoke(userName, done => { // Revoke zahteva email, ne userName
+                 //    console.log('consent revoked', done);
+                 // });
             }
             
-            resetLoginState(); // Koristi resetLoginState funkciju za odjavu
+            googleIdToken = null;
+            userName = null;
+            userProfilePicUrl = null;
+            updateUIForLoggedOutUser();
 
             fetch(`${BACKEND_URL}/logout`, {
                 method: 'POST',
@@ -459,13 +461,6 @@
                 alert("Došlo je do greške prilikom odjave sa servera.");
             });
         });
-
-        // Funkcija koja se poziva pri loginu i loadu podataka kako bi se učitali i prikazali spreadsheet podaci
-        async function loadAndDisplaySpreadsheetData() {
-            await fetchSpreadsheetData();
-            await updateSidebarWithSpreadsheetData();
-        }
-
     </script>
 </body>
 </html>
