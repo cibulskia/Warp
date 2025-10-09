@@ -32,24 +32,25 @@
 
     .sheet-buttons {
       display: flex;
-      gap: 10px;
       justify-content: center;
+      gap: 10px;
       margin-bottom: 20px;
       flex-wrap: wrap;
     }
 
     .sheet-buttons button {
       padding: 8px 16px;
-      border: none;
       border-radius: 6px;
-      background-color: #007bff;
+      border: none;
+      background-color: #28a745;
       color: white;
+      font-size: 14px;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
     .sheet-buttons button:hover {
-      background-color: #0056b3;
+      background-color: #218838;
     }
 
     #grid { 
@@ -59,19 +60,22 @@
       align-items: center;
     }
 
-    .header-cell, .cell, .input-cell, .button-cell { 
+    .header-cell {
+      font-weight: bold;
+      text-align: center;
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .cell, .input-cell, .button-cell { 
+      background-color: #f8f9fa; 
       padding: 12px;
       border-radius: 8px;
       word-break: break-word; 
       border: 1px solid #ddd;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-      background-color: #f8f9fa;
-      text-align: center;
-    }
-
-    .header-cell {
-      font-weight: bold;
-      background-color: #e9ecef;
     }
 
     .cell {
@@ -124,61 +128,83 @@
     <h1>CSV Prikaz sa Inputom i Dugmetom</h1>
 
     <div class="sheet-buttons">
-      <button data-csv="https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?output=csv">Sheet 1</button>
-      <button data-csv="https://docs.google.com/spreadsheets/d/e/DRUGI_LINK/pub?output=csv">Sheet 2</button>
-      <button data-csv="https://docs.google.com/spreadsheets/d/e/TRECI_LINK/pub?output=csv">Sheet 3</button>
-      <button data-csv="https://docs.google.com/spreadsheets/d/e/CETVRTI_LINK/pub?output=csv">Sheet 4</button>
-      <button data-csv="https://docs.google.com/spreadsheets/d/e/PETI_LINK/pub?output=csv">Sheet 5</button>
+      <button data-sheet="0">Sheet 1</button>
+      <button data-sheet="1">Sheet 2</button>
+      <button data-sheet="2">Sheet 3</button>
+      <button data-sheet="3">Sheet 4</button>
+      <button data-sheet="4">Sheet 5</button>
     </div>
 
     <div id="grid"></div>
   </div>
 
   <script>
-    const gridEl = document.getElementById('grid');
-    let currentCSV = document.querySelector('.sheet-buttons button').getAttribute('data-csv'); // po defaultu prvi sheet
+    const SHEETS = [
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET2/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET3/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET4/pub?output=csv",
+      "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET5/pub?output=csv"
+    ];
 
-    async function loadCSV(csvUrl) {
+    const gridEl = document.getElementById('grid');
+    const sheetButtons = document.querySelectorAll('.sheet-buttons button');
+    let currentSheetIndex = 0;
+
+    async function loadCSV(sheetIndex) {
+      const CSV_URL = SHEETS[sheetIndex];
+      gridEl.innerHTML = ''; // očisti prethodni grid
       try {
-        const res = await fetch(csvUrl, { cache: "no-store" });
+        const res = await fetch(CSV_URL, { cache: "no-store" });
         const text = await res.text();
         const parsed = Papa.parse(text, { skipEmptyLines: true });
         const rows = parsed.data;
 
-        // isprazni grid
-        gridEl.innerHTML = '';
-
-        // naslovi kolona
-        const headers = ["Kolona 1","Kolona 2","Kolona 3","Kolona 4","Kolona 5","Unos","Dugme"];
-        for (const header of headers) {
-          const div = document.createElement('div');
-          div.className = 'header-cell';
-          div.textContent = header;
-          gridEl.appendChild(div);
-        }
+        if (rows.length === 0) return;
 
         const fragment = document.createDocumentFragment();
 
-        for (const row of rows) {
+        // Dodaj naslove kolona (prvih 5 kolona)
+        const headerRow = document.createElement('div');
+        headerRow.className = 'header-row';
+        for (let i = 0; i < 5; i++) {
+          const headerCell = document.createElement('div');
+          headerCell.className = 'header-cell';
+          headerCell.textContent = rows[0][i] || `Kolona ${i+1}`;
+          fragment.appendChild(headerCell);
+        }
+
+        // Naslov za input i dugme
+        const inputHeader = document.createElement('div');
+        inputHeader.className = 'header-cell';
+        inputHeader.textContent = 'Unos';
+        fragment.appendChild(inputHeader);
+
+        const buttonHeader = document.createElement('div');
+        buttonHeader.className = 'header-cell';
+        buttonHeader.textContent = 'Akcija';
+        fragment.appendChild(buttonHeader);
+
+        // Ostale redove
+        for (let r = 1; r < rows.length; r++) { // preskoči header
+          const row = rows[r];
           for (let i = 0; i < 5; i++) {
-            const cell = row[i] || "";
             const div = document.createElement('div');
             div.className = 'cell';
-
+            const cellValue = row[i] || '';
             const urlPattern = /^https?:\/\//i;
-            if (urlPattern.test(cell.trim())) {
+            if (urlPattern.test(cellValue.trim())) {
               const link = document.createElement('a');
-              link.href = cell.trim();
+              link.href = cellValue.trim();
               link.textContent = "PDF";
               link.target = "_blank";
               div.appendChild(link);
             } else {
-              div.textContent = cell;
+              div.textContent = cellValue;
             }
             fragment.appendChild(div);
           }
 
-          // polje za unos
           const inputDiv = document.createElement('div');
           inputDiv.className = 'input-cell';
           const input = document.createElement('input');
@@ -187,7 +213,6 @@
           inputDiv.appendChild(input);
           fragment.appendChild(inputDiv);
 
-          // dugme
           const buttonDiv = document.createElement('div');
           buttonDiv.className = 'button-cell';
           const button = document.createElement('button');
@@ -200,22 +225,21 @@
         }
 
         gridEl.appendChild(fragment);
-
       } catch (error) {
         console.error("Greška pri učitavanju CSV-a:", error);
       }
     }
 
-    // dugmad za sheet
-    document.querySelectorAll('.sheet-buttons button').forEach(btn => {
+    // Dugmad za menjanje sheet-a
+    sheetButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        const csvLink = btn.getAttribute('data-csv');
-        currentCSV = csvLink;
-        loadCSV(csvLink);
+        const index = parseInt(btn.dataset.sheet);
+        currentSheetIndex = index;
+        loadCSV(currentSheetIndex);
       });
     });
 
-    window.addEventListener('load', () => loadCSV(currentCSV));
+    window.addEventListener('load', () => loadCSV(currentSheetIndex));
   </script>
 </body>
 </html>
