@@ -1,18 +1,11 @@
 <!DOCTYPE html>
-<html lang="hr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google OAuth App (All in One)</title>
-
-    <!-- Google Identity Services -->
+    <title>Google OAuth App</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <!-- Učitaj oath.js koji sadrži handleCredentialResponse i backend URL -->
-    <script src="oath.js" defer></script>
-
     <style>
-        /* Styling (ista kao tvoja verzija) */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -144,6 +137,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-direction: column; /* Changed for better stacking of name and spreadsheet content */
+            align-items: flex-start; /* Align text to the start */
         }
 
         .subcategory-list-item:last-child {
@@ -159,6 +154,21 @@
             border-left: 3px solid #007bff;
             font-weight: bold;
         }
+
+        .subcategory-item-name {
+            font-weight: bold;
+            margin-bottom: 5px; /* Space between name and spreadsheet content */
+        }
+
+        .subcategory-item-spreadsheet-content {
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%; /* Ensure it takes full width to truncate */
+        }
+
 
         .checkbox-container {
             display: flex;
@@ -216,20 +226,16 @@
 </head>
 <body>
     <div class="main-wrapper">
-        <!-- Subcategory Sidebar -->
         <div class="subcategory-sidebar" id="subcategory-sidebar" style="display: none;">
             <div class="sidebar-header">
                 <h2>Potkategorije</h2>
             </div>
-            <ul id="subcategory-list" class="subcategory-list">
-                <!-- Potkategorije će biti dinamički dodate ovde -->
-            </ul>
+            <ul id="subcategory-list" class="subcategory-list"></ul>
         </div>
 
         <div class="container">
             <h1>Moja Aplikacija</h1>
 
-            <!-- Google One Tap / Sign In Button -->
             <div id="g_id_onload"
                  data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
                  data-auto_select="true"
@@ -250,7 +256,6 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <!-- Subcategory Details Section - Hidden -->
                 <div id="subcategory-details-section" style="display: none;">
                     <h2>Detalji Potkategorije (<span id="current-subcategory-id" style="font-weight: normal;">Nijedna</span>)</h2>
                     <div id="subcategory-form" style="padding-top: 10px;">
@@ -271,7 +276,6 @@
 
                 <div class="section-separator"></div>
 
-                <!-- Original Data Section -->
                 <h2>Glavni Podaci</h2>
                 <div id="profile-picture-container">
                     <img id="profile-picture" src="" alt="Profilna Slika" style="display: none;">
@@ -290,7 +294,6 @@
                     <option value="opcija3">Opcija 3</option>
                 </select>
 
-                <!-- Dodatna dva velika tekstualna polja -->
                 <textarea id="large-text-input-2" placeholder="Unesite dodatni veliki tekst ovde..."></textarea>
                 <textarea id="large-text-input-3" placeholder="Unesite još jedan dodatni veliki tekst ovde..."></textarea>
 
@@ -304,52 +307,94 @@
         </div>
     </div>
 
-    <!-- Glavni skript (UI + logika, koristi globalne varijable koje postavlja oath.js) -->
     <script>
-        // Ako oath.js nije učitan iz nekog razloga, podesi BACKEND_URL kao fallback
-        if (typeof BACKEND_URL === 'undefined') {
-            window.BACKEND_URL = 'https://botanica.ngrok.app';
+        const BACKEND_URL = 'https://botanica.ngrok.app';
+        const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1502637795&single=true&output=csv';
+
+        let googleIdToken = null;
+        let userName = null;
+        let userProfilePicUrl = null;
+        let currentSubcategoryId = null;
+        let spreadsheetData = []; // To store parsed spreadsheet data
+
+        async function fetchSpreadsheetData() {
+            try {
+                const response = await fetch(SPREADSHEET_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                // Parse CSV - simple split by new line and then by comma (handle potential commas in data later if needed)
+                spreadsheetData = csvText.split('\n').map(row => row.split(','));
+                console.log("Spreadsheet Data Loaded:", spreadsheetData);
+            } catch (error) {
+                console.error("Error fetching spreadsheet data:", error);
+                document.getElementById('subcategory-message').textContent = "Greška prilikom učitavanja podataka sa tabele.";
+            }
         }
 
-        // Proksi na globalne varijable (oath.js postavlja ih)
-        let googleIdToken = window.googleIdToken;
-        let userName = window.userName;
-        let userProfilePicUrl = window.userProfilePicUrl;
-        let currentSubcategoryId = window.currentSubcategoryId;
+        function getSpreadsheetRowContent(rowNumber) {
+            // Spreadsheet row numbers are 1-indexed, array is 0-indexed
+            if (rowNumber > 0 && rowNumber <= spreadsheetData.length) {
+                // Join all columns for the given row, excluding the first element (header if row 1)
+                return spreadsheetData[rowNumber - 1].join(', ');
+            }
+            return 'Nema podataka u tabeli';
+        }
 
-        // update globalne varijable kad se promene u oath.js
-        Object.defineProperty(window, 'googleIdToken', {
-            get() { return googleIdToken; },
-            set(v) { googleIdToken = v; }
-        });
-        Object.defineProperty(window, 'userName', {
-            get() { return userName; },
-            set(v) { userName = v; }
-        });
-        Object.defineProperty(window, 'userProfilePicUrl', {
-            get() { return userProfilePicUrl; },
-            set(v) { userProfilePicUrl = v; }
-        });
-        Object.defineProperty(window, 'currentSubcategoryId', {
-            get() { return currentSubcategoryId; },
-            set(v) { currentSubcategoryId = v; }
-        });
+        function handleCredentialResponse(response) {
+            googleIdToken = response.credential;
 
-        // --- UI update funkcije ---
+            const tokenParts = googleIdToken.split('.');
+            const payload = JSON.parse(atob(tokenParts[1]));
+            userName = payload.name;
+            userProfilePicUrl = payload.picture;
+
+            fetch(`${BACKEND_URL}/verify-google-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: googleIdToken })
+            })
+            .then(response => {
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    updateUIForLoggedInUser();
+                    loadSubcategories();
+                    loadMainData();
+                } else {
+                    alert("Login failed: " + data.message);
+                    googleIdToken = null;
+                    userName = null;
+                    userProfilePicUrl = null;
+                    updateUIForLoggedOutUser();
+                }
+            })
+            .catch(error => {
+                console.error("Error during backend login verification:", error);
+                alert("An error occurred during login. Please try again.");
+                googleIdToken = null;
+                userName = null;
+                userProfilePicUrl = null;
+                updateUIForLoggedOutUser();
+            });
+        }
+
         function updateUIForLoggedInUser() {
             document.getElementById('g_id_onload').style.display = 'none';
             document.querySelector('.g_id_signin').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('subcategory-sidebar').style.display = 'flex';
-            document.getElementById('user-name').textContent = window.userName || '';
+            document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
             document.getElementById('subcategory-message').textContent = "";
             
-            // Prikaz profilne slike
             const profilePicElement = document.getElementById('profile-picture');
             const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
-            if (window.userProfilePicUrl) {
-                profilePicElement.src = window.userProfilePicUrl;
+            if (userProfilePicUrl) {
+                profilePicElement.src = userProfilePicUrl;
                 profilePicElement.style.display = 'block';
                 profilePicPlaceholder.style.display = 'none';
             } else {
@@ -357,7 +402,6 @@
                 profilePicPlaceholder.style.display = 'block';
             }
             
-            // Očisti sva polja prilikom prijave (glavni podaci)
             document.getElementById('input1').value = "";
             document.getElementById('input2').value = "";
             document.getElementById('large-text-input').value = "";
@@ -368,12 +412,10 @@
             document.getElementById('large-text-input-2').value = "";
             document.getElementById('large-text-input-3').value = "";
 
-            // Sakrij formu za potkategorije
             document.getElementById('subcategory-details-section').style.display = 'none';
-            window.currentSubcategoryId = null;
+            currentSubcategoryId = null;
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
             clearSubcategoryForm();
-            // Očisti selekciju u sidebar-u
             document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
         }
 
@@ -385,25 +427,25 @@
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             document.getElementById('subcategory-message').textContent = "";
-            window.googleIdToken = null;
-            window.userName = null;
-            window.userProfilePicUrl = null;
+            googleIdToken = null;
+            userName = null;
+            userProfilePicUrl = null;
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.getElementById('subcategory-list').innerHTML = '';
 
-            // Sakrij profilnu sliku i prikaži placeholder
             document.getElementById('profile-picture').style.display = 'none';
             document.getElementById('profile-picture-placeholder').style.display = 'block';
             document.getElementById('profile-picture').src = '';
         }
 
         window.onload = function() {
-            updateUIForLoggedOutUser();
+            fetchSpreadsheetData().then(() => {
+                updateUIForLoggedOutUser();
+            });
         };
 
-        // --- Glavni podaci (save/load) ---
         document.getElementById('save-button').addEventListener('click', () => {
-            if (!window.googleIdToken) {
+            if (!googleIdToken) {
                 alert("Niste prijavljeni. Molimo prijavite se putem Google-a.");
                 return;
             }
@@ -422,7 +464,7 @@
 
             fetch(`${BACKEND_URL}/save-data`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.googleIdToken}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
                 body: JSON.stringify(dataToSave)
             })
             .then(response => {
@@ -437,13 +479,13 @@
         });
 
         function loadMainData() {
-            if (!window.googleIdToken) {
+            if (!googleIdToken) {
                 return;
             }
 
             fetch(`${BACKEND_URL}/load-data`, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${window.googleIdToken}` }
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
             })
             .then(response => {
                 if (!response.ok) {
@@ -463,16 +505,15 @@
                 document.getElementById('large-text-input-2').value = data.largeText2 || '';
                 document.getElementById('large-text-input-3').value = data.largeText3 || '';
                 
-                document.getElementById('message').textContent = data.message || '';
+                document.getElementById('message').textContent = data.message;
             })
             .catch(error => { console.error("Error loading data:", error); document.getElementById('message').textContent = "Greška prilikom učitavanja podataka."; });
         }
 
-        // --- Sign out ---
         document.getElementById('signout-button').addEventListener('click', () => {
-            window.googleIdToken = null;
-            window.userName = null;
-            window.userProfilePicUrl = null;
+            googleIdToken = null;
+            userName = null;
+            userProfilePicUrl = null;
             updateUIForLoggedOutUser();
 
             fetch(`${BACKEND_URL}/logout`, {
@@ -490,7 +531,6 @@
             });
         });
 
-        // --- Potkategorije ---
         function clearSubcategoryForm() {
             document.getElementById('subcategory-name').value = '';
             document.getElementById('subcategory-short-desc').value = '';
@@ -499,46 +539,46 @@
         }
 
         function showSubcategoryForm(subcategory = {}) {
-            window.currentSubcategoryId = subcategory.id;
-            document.getElementById('current-subcategory-id').textContent = subcategory.id || "Nijedna";
+            currentSubcategoryId = subcategory.id;
+            document.getElementById('current-subcategory-id').textContent = subcategory.id;
             document.getElementById('subcategory-name').value = subcategory.name || '';
             document.getElementById('subcategory-short-desc').value = subcategory.short_description || '';
             document.getElementById('subcategory-long-desc').value = subcategory.long_description || '';
-            document.getElementById('subcategory-checkbox').checked = !!subcategory.is_active;
+            document.getElementById('subcategory-checkbox').checked = subcategory.is_active;
         }
 
         document.getElementById('cancel-subcategory-edit-button').addEventListener('click', () => {
             document.getElementById('subcategory-details-section').style.display = 'none';
             clearSubcategoryForm();
-            window.currentSubcategoryId = null;
+            currentSubcategoryId = null;
             document.getElementById('current-subcategory-id').textContent = "Nijedna";
             document.getElementById('subcategory-message').textContent = "";
             document.querySelectorAll('.subcategory-list-item').forEach(item => item.classList.remove('selected'));
         });
 
         document.getElementById('save-subcategory-button').addEventListener('click', () => {
-            if (!window.googleIdToken) {
+            if (!googleIdToken) {
                 alert("Niste prijavljeni.");
                 return;
             }
-            if (!window.currentSubcategoryId) {
+            if (!currentSubcategoryId) {
                 alert("Nije odabrana potkategorija za čuvanje.");
                 return;
             }
 
             const subcategoryData = {
-                id: window.currentSubcategoryId,
+                id: currentSubcategoryId,
                 name: document.getElementById('subcategory-name').value, 
                 short_description: document.getElementById('subcategory-short-desc').value,
                 long_description: document.getElementById('subcategory-long-desc').value,
                 is_active: document.getElementById('subcategory-checkbox').checked
             };
 
-            const url = `${BACKEND_URL}/subcategories/${window.currentSubcategoryId}`;
+            const url = `${BACKEND_URL}/subcategories/${currentSubcategoryId}`;
 
             fetch(url, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.googleIdToken}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${googleIdToken}` },
                 body: JSON.stringify(subcategoryData)
             })
             .then(response => {
@@ -549,7 +589,7 @@
                 return response.json();
             })
             .then(data => {
-                document.getElementById('subcategory-message').textContent = data.message || "Sačuvano.";
+                document.getElementById('subcategory-message').textContent = data.message;
                 loadSubcategories(true);
                 document.getElementById('subcategory-details-section').style.display = 'none';
                 clearSubcategoryForm();
@@ -561,13 +601,13 @@
         });
 
         function loadSubcategories(reselect = false) {
-            if (!window.googleIdToken) {
+            if (!googleIdToken) {
                 return;
             }
 
             fetch(`${BACKEND_URL}/subcategories`, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${window.googleIdToken}` }
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
             })
             .then(response => {
                 if (!response.ok) {
@@ -580,14 +620,30 @@
                 const subcategoryListElement = document.getElementById('subcategory-list');
                 subcategoryListElement.innerHTML = '';
                 
-                let newlySelectedId = window.currentSubcategoryId;
+                let newlySelectedId = currentSubcategoryId;
 
-                if (data.status === 'success' && Array.isArray(data.subcategories) && data.subcategories.length > 0) {
+                if (data.status === 'success' && data.subcategories.length > 0) {
                     data.subcategories.forEach(sub => {
                         const listItem = document.createElement('li');
                         listItem.className = 'subcategory-list-item';
                         listItem.dataset.id = sub.id;
-                        listItem.textContent = sub.name;
+
+                        const subcategoryNameSpan = document.createElement('span');
+                        subcategoryNameSpan.className = 'subcategory-item-name';
+                        subcategoryNameSpan.textContent = sub.name;
+                        listItem.appendChild(subcategoryNameSpan);
+
+                        // Extract row number from sub.name if it's a number
+                        const rowNumberMatch = sub.name.match(/\d+/);
+                        if (rowNumberMatch) {
+                            const rowNumber = parseInt(rowNumberMatch[0], 10);
+                            const spreadsheetContent = getSpreadsheetRowContent(rowNumber);
+                            const spreadsheetContentSpan = document.createElement('span');
+                            spreadsheetContentSpan.className = 'subcategory-item-spreadsheet-content';
+                            spreadsheetContentSpan.textContent = spreadsheetContent;
+                            listItem.appendChild(spreadsheetContentSpan);
+                        }
+
                         listItem.addEventListener('click', () => {
                             selectSubcategory(sub.id);
                         });
@@ -601,7 +657,7 @@
                 if (reselect && newlySelectedId) {
                     selectSubcategory(newlySelectedId);
                 } else {
-                    window.currentSubcategoryId = null;
+                    currentSubcategoryId = null;
                     document.getElementById('current-subcategory-id').textContent = "Nijedna";
                     document.getElementById('subcategory-details-section').style.display = 'none';
                     clearSubcategoryForm();
@@ -622,16 +678,18 @@
             if (selectedItem) {
                 selectedItem.classList.add('selected');
                 loadSubcategoryDetails(subcategoryId);
-                document.getElementById('subcategory-details-section').style.display = 'block';
+                document.getElementById('subcategory-details-section').style.display = 'block'; 
             }
         }
 
         function loadSubcategoryDetails(subcategoryId) {
-            if (!window.googleIdToken) return;
+            if (!googleIdToken) {
+                return;
+            }
 
             fetch(`${BACKEND_URL}/subcategories/${subcategoryId}`, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${window.googleIdToken}` }
+                headers: { 'Authorization': `Bearer ${googleIdToken}` }
             })
             .then(response => {
                 if (!response.ok) {
@@ -648,7 +706,7 @@
                     document.getElementById('subcategory-message').textContent = "Potkategorija nije pronađena.";
                     document.getElementById('subcategory-details-section').style.display = 'none';
                     clearSubcategoryForm();
-                    window.currentSubcategoryId = null;
+                    currentSubcategoryId = null;
                     document.getElementById('current-subcategory-id').textContent = "Nijedna";
                 }
             })
@@ -660,4 +718,3 @@
     </script>
 </body>
 </html>
-
