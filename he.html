@@ -239,45 +239,41 @@
             padding-bottom: 10px;
         }
 
-        .spreadsheet-row {
-            display: flex;
-            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
-            margin-bottom: 10px;
-            padding: 8px;
-            border: 1px solid #e3f2fd; /* Lighter blue border */
-            border-radius: 4px;
-            background-color: #ffffff;
-            align-items: center; /* Vertically align items */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        /* Styles for input fields generated from spreadsheet data */
+        .independent-spreadsheet-form .form-group {
+            margin-bottom: 15px;
         }
 
-        .spreadsheet-cell {
-            flex: 1; /* Distribute space equally */
-            min-width: 120px; /* Minimum width for each cell */
-            padding: 5px 10px;
-            font-size: 14px;
-            color: #555;
-            word-break: break-word; /* Ensure long text breaks */
-        }
-
-        .spreadsheet-cell:first-child {
-            font-weight: bold; /* Make first column (header/key) bold */
+        .independent-spreadsheet-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
             color: #333;
         }
-        .spreadsheet-cell.header {
-            font-weight: bold;
-            background-color: #e6f7ff;
-            border-bottom: 1px solid #a8d7fa;
-            color: #1a73e8;
+
+        .independent-spreadsheet-form input[type="text"] {
+            width: calc(100% - 22px); /* Adjust for padding and border */
             padding: 10px;
-            margin-bottom: 5px;
-            flex: 1 1 100%; /* Take full width for headers */
+            border: 1px solid #a8d7fa;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: #ffffff;
         }
-        .spreadsheet-row.header-row {
-            margin-bottom: 15px;
-            background-color: transparent;
+
+        .independent-spreadsheet-form button {
+            margin-top: 10px;
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
             border: none;
-            box-shadow: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .independent-spreadsheet-form button:hover {
+            background-color: #155bb5;
         }
     </style>
 </head>
@@ -327,12 +323,16 @@
             <div id="app-content" style="display: none;">
                 <p>Dobrodošao, <span id="user-name"></span>!</p>
 
-                <!-- Independent Spreadsheet Section - NEW -->
+                <!-- Independent Spreadsheet Section - MODIFIED -->
                 <div class="independent-spreadsheet-display">
                     <h2>Nezavisni Spreadsheet Podaci</h2>
-                    <div id="independent-spreadsheet-content">
+                    <div id="independent-spreadsheet-content" class="independent-spreadsheet-form">
                         <p>Učitavanje podataka...</p>
+                        <!-- Input fields will be dynamically generated here -->
                     </div>
+                    <button id="save-independent-data-button">Sačuvaj nezavisne podatke</button>
+                    <button id="load-independent-data-button">Učitaj nezavisne podatke</button>
+                    <p id="independent-data-message" style="margin-top: 10px;"></p>
                 </div>
                 <!-- END Independent Spreadsheet Section -->
 
@@ -464,7 +464,7 @@
         window.displaySpreadsheetDataForSidebar = displaySpreadsheetDataForSidebar; // Expose globally
 
 
-        // NEW: Function to display the independent spreadsheet data
+        // NEW: Function to display the independent spreadsheet data as input fields
         async function displayIndependentSpreadsheetData() {
             const independentSpreadsheetContentDiv = document.getElementById('independent-spreadsheet-content');
             independentSpreadsheetContentDiv.innerHTML = '<p>Učitavanje podataka...</p>'; // Show loading message
@@ -476,26 +476,53 @@
             }
 
             let htmlContent = '';
-            // Assuming the first row is headers
+            // Assuming the first row contains headers/labels for our input fields
             if (spreadsheetDataIndependent.length > 0) {
-                htmlContent += '<div class="spreadsheet-row header-row">';
-                spreadsheetDataIndependent[0].forEach(header => {
-                    htmlContent += `<div class="spreadsheet-cell header">${header}</div>`;
-                });
-                htmlContent += '</div>';
+                const headers = spreadsheetDataIndependent[0];
+                const dataRow = spreadsheetDataIndependent[1] || []; // Use the second row for initial data, or empty if only headers
 
-                // Display subsequent rows as data
-                for (let i = 1; i < spreadsheetDataIndependent.length; i++) {
-                    htmlContent += '<div class="spreadsheet-row">';
-                    spreadsheetDataIndependent[i].forEach(cell => {
-                        htmlContent += `<div class="spreadsheet-cell">${cell}</div>`;
-                    });
-                    htmlContent += '</div>';
+                for (let i = 0; i < headers.length; i++) {
+                    const label = headers[i];
+                    const value = dataRow[i] || ''; // Get value from data row or empty string
+                    // Generate a unique ID for each input field
+                    const inputId = `independent-input-${i}`;
+                    htmlContent += `
+                        <div class="form-group">
+                            <label for="${inputId}">${label}:</label>
+                            <input type="text" id="${inputId}" value="${value}" placeholder="Unesite ${label.toLowerCase()}">
+                        </div>
+                    `;
                 }
             } else {
-                htmlContent = '<p>Nema dostupnih podataka u nezavisnom spreadsheetu.</p>';
+                htmlContent = '<p>Nema dostupnih podataka u nezavisnom spreadsheetu za generisanje polja.</p>';
             }
             independentSpreadsheetContentDiv.innerHTML = htmlContent;
+        }
+
+        // Placeholder functions for saving/loading independent data (requires backend integration)
+        function saveIndependentData() {
+            const independentData = {};
+            const independentContentDiv = document.getElementById('independent-spreadsheet-content');
+            const inputFields = independentContentDiv.querySelectorAll('input[type="text"]');
+            
+            inputFields.forEach(input => {
+                // Assuming the label text corresponds to the key
+                const label = input.previousElementSibling ? input.previousElementSibling.textContent.replace(':', '').trim() : input.id;
+                independentData[label] = input.value;
+            });
+
+            console.log("Saving independent data:", independentData);
+            document.getElementById('independent-data-message').textContent = "Pokušaj snimanja nezavisnih podataka (potrebna backend integracija)!";
+            // TODO: Add actual API call to your backend to save this data to Google Sheets
+        }
+
+        function loadIndependentData() {
+            console.log("Loading independent data (re-fetching from URL for demonstration)...");
+            document.getElementById('independent-data-message').textContent = "Pokušaj učitavanja nezavisnih podataka...";
+            displayIndependentSpreadsheetData(); // Simply re-render from the public CSV for now
+            document.getElementById('independent-data-message').textContent = "Nezavisni podaci ponovo učitani.";
+            // TODO: If you have a writable Sheets API, this would involve fetching *fresh* data
+            // that might have been saved by the current user or others.
         }
 
 
@@ -508,6 +535,7 @@
             document.getElementById('user-name').textContent = userName;
             document.getElementById('message').textContent = "";
             document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('independent-data-message').textContent = "";
             
             const profilePicElement = document.getElementById('profile-picture');
             const profilePicPlaceholder = document.getElementById('profile-picture-placeholder');
@@ -562,6 +590,7 @@
             document.getElementById('user-name').textContent = "";
             document.getElementById('message').textContent = "Molimo prijavite se putem Google-a.";
             document.getElementById('subcategory-message').textContent = "";
+            document.getElementById('independent-data-message').textContent = "";
             window.setCurrentSubcategoryId(null); // Use setter from app.js
             document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.getElementById('subcategory-list').innerHTML = '';
@@ -581,6 +610,10 @@
         document.getElementById('save-button').addEventListener('click', window.saveMainData);
         document.getElementById('load-button').addEventListener('click', window.loadMainData);
         document.getElementById('signout-button').addEventListener('click', window.signOutUser);
+
+        // NEW: Event listeners for independent spreadsheet data buttons
+        document.getElementById('save-independent-data-button').addEventListener('click', saveIndependentData);
+        document.getElementById('load-independent-data-button').addEventListener('click', loadIndependentData);
 
         function clearSubcategoryForm() {
             document.getElementById('subcategory-name').value = '';
