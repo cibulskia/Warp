@@ -106,6 +106,8 @@
     /* Grid */
     #grid {
       display: grid;
+      max-height: 600px;  /* ograničena visina */
+      overflow-y: auto;   /* skrol */
       grid-template-columns: repeat(7, 1fr);
       gap: 10px; /* smanjeno razmicanje */
       align-items: start; /* da se sadržaj ne razvlači po visini */
