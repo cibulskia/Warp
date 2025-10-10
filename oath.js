@@ -1,9 +1,9 @@
 const SHEETS = [
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
-  "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET2/pub?output=csv",
-  "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET3/pub?output=csv",
-  "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET4/pub?output=csv",
-  "https://docs.google.com/spreadsheets/d/e/EXAMPLE_SHEET5/pub?output=csv"
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=151805995&single=true&output=csv",
 ];
 
 const gridEl = document.getElementById('grid');
@@ -33,12 +33,12 @@ async function loadCSV(sheetIndex) {
 
     const inputHeader = document.createElement('div');
     inputHeader.className = 'header-cell';
-    inputHeader.textContent = 'Unos';
+    inputHeader.textContent = 'Ponuda';
     fragment.appendChild(inputHeader);
 
     const buttonHeader = document.createElement('div');
     buttonHeader.className = 'header-cell';
-    buttonHeader.textContent = 'Akcija';
+    buttonHeader.textContent = 'Prijava';
     fragment.appendChild(buttonHeader);
 
     for (let r = 1; r < rows.length; r++) {
@@ -64,14 +64,14 @@ async function loadCSV(sheetIndex) {
       inputDiv.className = 'input-cell';
       const input = document.createElement('input');
       input.type = 'text';
-      input.placeholder = 'Unesi tekst...';
+      input.placeholder = 'Prijava';
       inputDiv.appendChild(input);
       fragment.appendChild(inputDiv);
 
       const buttonDiv = document.createElement('div');
       buttonDiv.className = 'button-cell';
       const button = document.createElement('button');
-      button.textContent = 'Potvrdi';
+      button.textContent = 'Pošalji ponudu';
       button.addEventListener('click', async () => {
         const firstCell = row[0] || '';
         const newEntry = `${firstCell} - ${input.value}`;
