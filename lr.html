@@ -211,6 +211,7 @@
       cursor: pointer;
       text-align: center;
       transition: color 0.3s ease;
+      color: var(--accent);
       text-transform: capitalize; /* Changed to capitalize for first letter only */
     }
     .data-section h4:hover { color: var(--accent); }
@@ -329,13 +330,13 @@
 
   <div class="oauth-app-container">
     <div class="data-section">
-      <h4 onclick="changeTitle(this)">Poslovi u toku</h4>
+      <h4>Poslovi u toku</h4>
       <div id="data-field-1" class="data-field"></div>
-      <h4 onclick="changeTitle(this)">Prijave za posao</h4>
+      <h4>Prijave za posao</h4>
       <div id="data-field-2" class="data-field"></div>
-      <h4 onclick="changeTitle(this)">Završeni poslovi</h4>
+      <h4>Završeni poslovi</h4>
       <div id="data-field-3" class="data-field"></div>
-      <h4 onclick="changeTitle(this)">Odbijeni poslovi</h4>
+      <h4>Odbijeni poslovi</h4>
       <div id="data-field-4" class="data-field"></div>
     </div>
 
