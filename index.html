@@ -3,28 +3,26 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Warp Connect | Vaša Platforma za Industrijsku Saradnju</title>
+<title>Warp</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
   :root {
-    --primary-color: #0b76ff; /* Plava */
-    --primary-color-dark: #0056b3;
-    --secondary-color: #6c757d; /* Siva */
-    --accent-color: #28a745; /* Zelena za akciju */
-    --accent-color-dark: #218838;
-    --background-light: #f6f7fb;
-    --background-white: #ffffff;
-    --text-color-dark: #111;
-    --text-color-light: #444;
-    --border-color: #e0e0e0;
-    --shadow-light: 0 6px 20px rgba(0,0,0,0.08);
-    --border-radius: 12px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 48px;
+    --primary: #fb923c; /* Orange */
+    --primary-dark: #f97316; /* Deeper orange for hover */
+    --accent: #22d3ee; /* Bright cyan */
+    --danger: #ef4444; /* Red */
+    --background: linear-gradient(135deg, #1f2937, #111827, #0f172a); /* Darker, more sophisticated gradient */
+    --surface: #1e293b; /* Darker surface color */
+    --surface-light: #2d3748; /* Slightly lighter surface for distinction */
+    --text: #e2e8f0; /* Light gray text */
+    --text-light: #94a3b8; /* Muted light gray text */
+    --border-color: #334155; /* Darker border color */
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.3); /* More pronounced shadow */
+    --input-bg: #334155; /* Dark input background */
+    --input-border: #475569; /* Dark input border */
     --header-height: 80px;
   }
 
@@ -32,27 +30,35 @@
     font-family: 'Inter', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: var(--background-light);
-    color: var(--text-color-dark);
+    background: var(--background);
+    color: var(--text);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    animation: fadeIn 1s ease-out;
+  }
+
+  /* Animacija fade */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--spacing-lg);
+    padding: 0 24px; /* var(--spacing-lg) */
   }
 
   /* Header */
   .header {
-    background: var(--background-white);
-    padding: var(--spacing-md) 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    background: var(--surface);
+    padding: 16px 0; /* var(--spacing-md) */
+    box-shadow: var(--shadow);
     position: sticky;
     top: 0;
     z-index: 1000;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .header .container {
@@ -65,15 +71,20 @@
   .logo {
     font-size: 1.8em;
     font-weight: 800;
-    color: var(--primary-color);
+    color: var(--primary);
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 8px; /* var(--spacing-sm) */
+    transition: color 0.2s ease;
+  }
+  .logo:hover {
+    color: var(--primary-dark);
   }
 
   .logo i {
     font-size: 1em;
+    color: var(--accent); /* Ikona u akcent boji */
   }
 
   .nav-menu ul {
@@ -81,23 +92,24 @@
     margin: 0;
     padding: 0;
     display: flex;
-    gap: var(--spacing-lg);
+    gap: 24px; /* var(--spacing-lg) */
   }
 
   .nav-menu a {
     text-decoration: none;
-    color: var(--text-color-light);
+    color: var(--text-light);
     font-weight: 500;
     font-size: 1.05em;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.1s ease;
   }
 
   .nav-menu a:hover {
-    color: var(--primary-color);
+    color: var(--accent);
+    transform: translateY(-2px);
   }
 
   .header-actions .btn {
-    margin-left: var(--spacing-md);
+    margin-left: 16px; /* var(--spacing-md) */
   }
 
   /* Hamburger Menu Icon */
@@ -105,19 +117,24 @@
     display: none; /* Hidden by default on larger screens */
     font-size: 1.8em;
     cursor: pointer;
-    color: var(--primary-color);
+    color: var(--primary);
+    transition: color 0.2s ease;
+  }
+  .menu-toggle:hover {
+    color: var(--primary-dark);
   }
 
   /* Hero Section */
   .hero {
-    background: linear-gradient(135deg, var(--primary-color), #004a99);
-    color: white;
+    background: var(--background);
+    color: var(--text);
     padding: 100px 0;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - var(--header-height));
+    border-bottom: 1px solid var(--border-color);
   }
 
   .hero-content {
@@ -126,24 +143,26 @@
 
   .hero h1 {
     font-size: 3.5em;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 16px; /* var(--spacing-md) */
     font-weight: 800;
     line-height: 1.1;
+    color: var(--primary); /* Naslov u primarnoj boji */
   }
 
   .hero p {
     font-size: 1.3em;
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: 48px; /* var(--spacing-xl) */
     opacity: 0.9;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    color: var(--text-light);
   }
 
   /* General Button Styles */
   .btn {
     padding: 14px 28px;
-    border-radius: var(--border-radius);
+    border-radius: var(--radius);
     border: none;
     cursor: pointer;
     font-weight: 600;
@@ -152,64 +171,67 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-sm);
+    gap: 8px; /* var(--spacing-sm) */
     text-decoration: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
   }
 
   .btn-primary {
-    background: var(--accent-color);
-    color: white;
+    background: var(--accent);
+    color: #1f2937; /* Dark text on accent */
   }
 
   .btn-primary:hover {
-    background: var(--accent-color-dark);
+    background: #17b3cb; /* Slightly darker accent */
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
   }
 
   .btn-secondary {
-    background: none;
-    color: white;
-    border: 2px solid white;
+    background: var(--surface);
+    color: var(--accent);
+    border: 2px solid var(--accent);
     box-shadow: none;
   }
 
   .btn-secondary:hover {
-    background: rgba(255,255,255,0.1);
+    background: var(--accent);
+    color: var(--surface);
     transform: translateY(-2px);
     box-shadow: none;
-    border-color: white;
+    border-color: var(--accent);
   }
 
   .btn-dark {
-    background: var(--primary-color);
+    background: var(--primary);
     color: white;
   }
 
   .btn-dark:hover {
-    background: var(--primary-color-dark);
+    background: var(--primary-dark);
     transform: translateY(-2px);
   }
 
   /* Section Styles */
   .section {
-    padding: var(--spacing-xl) 0;
-    background: var(--background-white);
+    padding: 48px 0; /* var(--spacing-xl) */
+    background: var(--surface);
     text-align: center;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .section:nth-of-type(even) {
-    background: var(--background-light);
+    background: var(--background); /* Alternirajuća pozadina */
   }
 
   .section-title {
     font-size: 2.5em;
     font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: var(--spacing-xl);
+    color: var(--primary);
+    margin-bottom: 48px; /* var(--spacing-xl) */
     position: relative;
-    padding-bottom: var(--spacing-md);
+    padding-bottom: 16px; /* var(--spacing-md) */
+    text-transform: uppercase;
   }
 
   .section-title::after {
@@ -220,65 +242,60 @@
     bottom: 0;
     width: 80px;
     height: 4px;
-    background: var(--accent-color);
+    background: var(--accent);
     border-radius: 2px;
   }
 
   .section-description {
     font-size: 1.15em;
-    color: var(--text-color-light);
+    color: var(--text-light);
     max-width: 800px;
-    margin: 0 auto var(--spacing-xl) auto;
+    margin: 0 auto 48px auto; /* var(--spacing-xl) */
   }
 
   .grid-3-cols {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-xl);
+    gap: 24px; /* var(--spacing-lg) */
+    margin-top: 48px; /* var(--spacing-xl) */
   }
 
-  .feature-card {
-    background: var(--background-white);
-    padding: var(--spacing-lg);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-light);
+  .feature-card, .testimonial-card {
+    background: var(--surface-light);
+    padding: 24px; /* var(--spacing-lg) */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     text-align: center;
     border: 1px solid var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  .feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  .feature-card:hover, .testimonial-card:hover {
+    transform: translateY(-8px); /* Malo veći skok */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
   }
 
   .feature-card i {
     font-size: 3em;
-    color: var(--primary-color);
-    margin-bottom: var(--spacing-md);
+    color: var(--accent); /* Ikone u akcent boji */
+    margin-bottom: 16px; /* var(--spacing-md) */
   }
 
   .feature-card h3 {
     font-size: 1.4em;
     font-weight: 700;
-    color: var(--text-color-dark);
-    margin-bottom: var(--spacing-sm);
+    color: var(--primary); /* Naslovi kartica u primarnoj boji */
+    margin-bottom: 8px; /* var(--spacing-sm) */
   }
 
   .feature-card p {
-    color: var(--text-color-light);
+    color: var(--text-light);
     font-size: 0.95em;
   }
 
   /* Testimonials */
   .testimonial-card {
-    background: var(--background-white);
-    padding: var(--spacing-lg);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-light);
     text-align: left;
-    border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -286,63 +303,74 @@
 
   .testimonial-text {
     font-style: italic;
-    color: var(--text-color-dark);
-    margin-bottom: var(--spacing-md);
+    color: var(--text);
+    margin-bottom: 16px; /* var(--spacing-md) */
     flex-grow: 1;
   }
 
   .testimonial-author {
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--primary);
   }
 
   .testimonial-role {
     font-size: 0.9em;
-    color: var(--text-color-light);
+    color: var(--text-light);
   }
 
   /* CTA Section */
   .cta-section {
-    background: linear-gradient(135deg, #0d6efd, #0b76ff);
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary)); /* Gradient za CTA */
     color: white;
-    padding: var(--spacing-xl) 0;
+    padding: 48px 0; /* var(--spacing-xl) */
     text-align: center;
+    border-top: 1px solid var(--border-color);
   }
 
   .cta-section h2 {
     font-size: 2.8em;
     font-weight: 700;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 16px; /* var(--spacing-md) */
+    color: white; /* Beli naslov na tamnoj pozadini */
   }
 
   .cta-section p {
     font-size: 1.2em;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: 24px; /* var(--spacing-lg) */
     opacity: 0.9;
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
+    color: rgba(255,255,255,0.9);
   }
 
   /* Footer */
   .footer {
-    background: #222;
+    background: #111827; /* Još tamnija pozadina */
     color: #bbb;
-    padding: var(--spacing-xl) 0;
+    padding: 48px 0; /* var(--spacing-xl) */
     font-size: 0.9em;
+    border-top: 1px solid #334155;
   }
 
   .footer .container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-lg);
+    gap: 24px; /* var(--spacing-lg) */
     text-align: left;
   }
 
   .footer-col h3 {
-    color: white;
+    color: var(--primary); /* Naslovi u podnožju u primarnoj boji */
     font-size: 1.2em;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 16px; /* var(--spacing-md) */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .footer-col h3 i {
+    color: var(--accent); /* Ikone u naslovima u akcent boji */
   }
 
   .footer-col ul {
@@ -352,105 +380,105 @@
   }
 
   .footer-col ul li {
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 8px; /* var(--spacing-sm) */
   }
 
   .footer-col a {
-    color: #bbb;
+    color: var(--text-light);
     text-decoration: none;
     transition: color 0.2s ease;
   }
 
   .footer-col a:hover {
-    color: var(--primary-color);
+    color: var(--accent);
   }
 
   .social-icons {
     display: flex;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-md);
+    gap: 16px; /* var(--spacing-md) */
+    margin-top: 16px; /* var(--spacing-md) */
   }
 
   .social-icons a {
-    color: white;
+    color: var(--text);
     font-size: 1.5em;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.1s ease;
   }
 
   .social-icons a:hover {
-    color: var(--primary-color);
+    color: var(--accent);
+    transform: translateY(-2px);
   }
 
   .footer-bottom {
     text-align: center;
-    border-top: 1px solid #444;
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-lg);
-    color: #888;
+    border-top: 1px solid #334155;
+    margin-top: 48px; /* var(--spacing-xl) */
+    padding-top: 24px; /* var(--spacing-lg) */
+    color: var(--text-light);
   }
 
   /* Responsive adjustments */
   @media (max-width: 900px) {
     .header .container {
-      flex-direction: row; /* Keep logo and hamburger on one row */
+      flex-direction: row;
       align-items: center;
-      justify-content: space-between; /* Space out logo and toggle */
-      height: var(--header-height); /* Maintain header height */
+      justify-content: space-between;
+      height: var(--header-height);
     }
 
     .nav-menu, .header-actions {
-      display: none; /* Hide navigation and actions by default on smaller screens */
+      display: none;
       flex-direction: column;
       width: 100%;
-      background: var(--background-white);
+      background: var(--surface);
       position: absolute;
       top: var(--header-height);
       left: 0;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      padding-bottom: var(--spacing-md);
-      align-items: center; /* Center items in dropdown */
+      box-shadow: var(--shadow);
+      padding-bottom: 16px; /* var(--spacing-md) */
+      align-items: center;
     }
 
     .nav-menu.active, .header-actions.active {
-      display: flex; /* Show when active */
+      display: flex;
     }
 
     .nav-menu ul {
       flex-direction: column;
       align-items: center;
       width: 100%;
-      padding: var(--spacing-md) 0;
+      padding: 16px 0; /* var(--spacing-md) */
       border-top: 1px solid var(--border-color);
-      margin-top: var(--spacing-md);
+      margin-top: 16px; /* var(--spacing-md) */
     }
 
     .nav-menu ul li {
-      margin: var(--spacing-sm) 0;
+      margin: 8px 0; /* var(--spacing-sm) */
     }
 
     .nav-menu a {
-      padding: var(--spacing-sm) var(--spacing-lg);
+      padding: 8px 24px; /* var(--spacing-sm) var(--spacing-lg) */
       width: 100%;
       text-align: center;
     }
 
     .header-actions {
-      padding: var(--spacing-md) 0;
+      padding: 16px 0; /* var(--spacing-md) */
       border-top: 1px solid var(--border-color);
-      gap: var(--spacing-md);
+      gap: 16px; /* var(--spacing-md) */
     }
 
     .header-actions .btn {
-      width: calc(100% - (2 * var(--spacing-lg))); /* Adjust width for full screen minus padding */
-      margin: 0; /* Remove horizontal margin */
-      max-width: 300px; /* Keep a max-width for aesthetic reasons */
+      width: calc(100% - (2 * 24px)); /* Adjust width for full screen minus padding */
+      margin: 0;
+      max-width: 300px;
     }
 
     .menu-toggle {
-      display: block; /* Show hamburger icon */
+      display: block;
     }
 
-    /* Adjust header height if menu is open, this might require JS */
     .header.menu-open {
       height: auto;
     }
@@ -493,12 +521,12 @@
   }
 
   /* Animation for elements on scroll (optional, can be added with JS) */
-  .fade-in {
+  .fade-in-section {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    transform: translateY(30px); /* Veći pomak za bolji efekat */
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out; /* Duže i uglađenije */
   }
-  .fade-in.appear {
+  .fade-in-section.appear {
     opacity: 1;
     transform: translateY(0);
   }
@@ -509,7 +537,7 @@
   <!-- Header -->
   <header class="header">
     <div class="container">
-      <a href="#" class="logo"><i class="fas fa-industry"></i> IndustriConnect</a>
+      <a href="#" class="logo"><i class="fas fa-industry"></i> Warp Connect</a>
       <div class="menu-toggle" id="menuToggle">
         <i class="fas fa-bars"></i>
       </div>
@@ -530,7 +558,7 @@
 
   <!-- Hero Section -->
   <section class="hero">
-    <div class="container hero-content">
+    <div class="container hero-content fade-in-section">
       <h1>Povežite se. Sarađujte. Rastite.</h1>
       <p>IndustriConnect je vaša centralna platforma za pronalaženje pouzdanih partnera za proizvodnju i obradu metala, ili za pronalaženje novih poslova u industriji. Započnite uspešnu saradnju već danas!</p>
       <a href="manager.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Započnite odmah!</a>
@@ -539,7 +567,7 @@
   </section>
 
   <!-- About Section -->
-  <section id="about" class="section fade-in">
+  <section id="about" class="section fade-in-section">
     <div class="container">
       <h2 class="section-title">O IndustriConnect Platformi</h2>
       <p class="section-description">
@@ -566,7 +594,7 @@
   </section>
   
   <!-- Features Section -->
-  <section id="features" class="section fade-in">
+  <section id="features" class="section fade-in-section">
     <div class="container">
       <h2 class="section-title">Ključne Prednosti</h2>
       <p class="section-description">
@@ -608,7 +636,7 @@
   </section>
 
   <!-- How It Works Section -->
-  <section id="how-it-works" class="section fade-in">
+  <section id="how-it-works" class="section fade-in-section">
     <div class="container">
       <h2 class="section-title">Kako Funkcioniše IndustriConnect?</h2>
       <p class="section-description">
@@ -635,7 +663,7 @@
   </section>
 
   <!-- Testimonials Section -->
-  <section id="testimonials" class="section fade-in">
+  <section id="testimonials" class="section fade-in-section">
     <div class="container">
       <h2 class="section-title">Šta Kažu Naši Korisnici?</h2>
       <p class="section-description">
@@ -663,7 +691,7 @@
 
   <!-- CTA Section -->
   <section class="cta-section">
-    <div class="container fade-in">
+    <div class="container fade-in-section">
       <h2>Spremni za Akciju?</h2>
       <p>Pridružite se zajednici uspešnih industrijskih profesionalaca. Vaša sledeća velika prilika je samo jedan klik daleko.</p>
       <a href="manager.html" class="btn btn-primary btn-lg"><i class="fas fa-plus-circle"></i> Kreiraj Nalog Sada!</a>
@@ -715,20 +743,20 @@
   </footer>
 
   <script>
-    // Simple JavaScript for scroll-based animations
     document.addEventListener("DOMContentLoaded", function() {
+      // Intersection Observer for scroll-based animations
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             entry.target.classList.add('appear');
-            return;
+          } else {
+            // Optional: remove 'appear' when out of view if you want elements to re-animate on scroll back
+            // entry.target.classList.remove('appear'); 
           }
-          // Optionally remove 'appear' when out of view if you want elements to re-animate on scroll back
-          // entry.target.classList.remove('appear'); 
         });
       }, { threshold: 0.1 }); 
 
-      document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+      document.querySelectorAll('.fade-in-section').forEach((el) => observer.observe(el));
 
       // JavaScript for Hamburger menu
       const menuToggle = document.getElementById('menuToggle');
