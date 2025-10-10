@@ -160,11 +160,21 @@
       box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
     }
 
+    .button-cell {
+      background: var(--surface-light); /* Vraćena pozadina za .button-cell */
+      border: 1px solid var(--border-color); /* Vraćen border za .button-cell */
+      border-radius: 12px; /* Vraćen border-radius za .button-cell */
+      padding: 16px; /* Vraćen padding za .button-cell */
+      display: flex; /* Vraćen display flex za .button-cell */
+      align-items: center; /* Vraćen align-items za .button-cell */
+      transition: all 0.3s ease; /* Vraćen transition za .button-cell */
+    }
+
     .button-cell button {
       width: 100%;
       padding: 12px;
       border-radius: 10px;
-      border: none;
+      border: none; /* Dugme unutar ćelije nema svoj border */
       background: var(--primary);
       color: white;
       font-size: 15px;
