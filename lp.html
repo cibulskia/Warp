@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Warp Connect</title>
+  <title>WARP CONNECT</title>
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="oath.js" defer></script>
@@ -12,8 +12,8 @@
     :root {
       --primary: #f97316; /* Narandžasta */
       --primary-dark: #ea580c; /* Tamnija narandžasta za hover */
-      --accent: #22d3ee; /* Svetlo plava/cijan */
-      --danger: #ef4444; /* Crvena */
+      --accent: #22d3ee; /* Bright cyan */
+      --danger: #ef4444; /* Red */
       --background: linear-gradient(135deg, #1f2937, #111827, #0f172a);
       --surface: #1e293b;
       --surface-light: #2d3748;
@@ -42,13 +42,12 @@
 
     h1,h2,h3,h4 {
       font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.2px;
       color: var(--primary);
-      text-transform: none; /* normalna slova */
     }
 
-    h1 { font-size: 32px; margin-bottom: 25px; text-align: center; }
-    h4 { font-size: 18px; color: var(--text); }
+    h1 { font-size: 32px; margin-bottom: 25px; text-align: center; text-transform: capitalize; }
+    h4 { font-size: 18px; color: var(--text); text-transform: capitalize; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
@@ -91,7 +90,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-transform: none;
+      text-transform: capitalize;
     }
     .sheet-buttons button:hover {
       background: var(--primary-dark);
@@ -112,9 +111,9 @@
       color: white;
       padding: 16px;
       border-radius: 10px;
+      text-transform: capitalize;
       box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
       letter-spacing: 0.8px;
-      text-transform: none;
     }
 
     .cell, .input-cell, .button-cell {
@@ -127,6 +126,7 @@
       align-items: center;
       transition: all 0.3s ease;
       color: var(--text-light);
+      text-transform: none;
     }
     .cell:hover { background: #3c495c; transform: translateY(-2px); }
 
@@ -165,7 +165,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      text-transform: none;
+      text-transform: capitalize;
     }
     .button-cell button:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
@@ -196,7 +196,6 @@
       cursor: pointer;
       text-align: center;
       transition: color 0.3s ease;
-      text-transform: none;
     }
     .data-section h4:hover { color: var(--accent); }
 
@@ -237,6 +236,7 @@
       background: var(--input-bg);
       color: var(--text);
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      text-transform: none;
     }
     input[type="text"]:focus, textarea:focus, select:focus {
       outline: none;
@@ -265,7 +265,7 @@
       font-weight: 600;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-transform: none;
+      text-transform: capitalize;
     }
     .oauth-app-container button:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 
@@ -299,7 +299,7 @@
 </head>
 <body>
   <div class="app-section">
-    <h1>Warp Connect</h1>
+    <h1>Warp connect</h1>
     <div class="sheet-buttons">
       <button data-sheet="0">Hitno</button>
       <button data-sheet="1">Glodalica</button>
@@ -356,7 +356,7 @@
             <option value="opcija3">Strug i glodalica</option>
           </select>
           <button id="save-button">Sačuvaj podešavanja</button>
-          <button id="load-button">Odbaci</button>
+          <button id="load-button">Odbači</button>
           <p id="message"></p>
           <button id="signout-button">Odjavi se</button>
         </div>
@@ -372,3 +372,4 @@
   </script>
 </body>
 </html>
+
