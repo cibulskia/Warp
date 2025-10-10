@@ -122,16 +122,17 @@
       letter-spacing: 0.8px;
     }
 
-    .cell, .input-cell, .button-cell {
+    .cell {
       background: var(--surface-light);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 8px;
+      padding: 8px 16px; /* Smanjena visina paddinga */
       font-size: 15px;
       display: flex;
       align-items: center;
       transition: all 0.3s ease;
       color: var(--text-light);
+      min-height: 45px; /* Dodata minimalna visina */
     }
     .cell:hover { background: #3c495c; /* Slightly lighter on hover */ transform: translateY(-2px); }
 
@@ -188,7 +189,7 @@
       background: var(--surface);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 8px;
+      padding: 25px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -210,10 +211,10 @@
       background: var(--input-bg);
       border: 1px solid var(--input-border);
       border-radius: 12px;
-      padding: 8px;
+      padding: 16px;
       font-size: 14px;
       line-height: 1.6;
-      max-height: 80px; /* Slightly taller */
+      max-height: 160px; /* Slightly taller */
       overflow-y: auto;
       white-space: pre-line;
       color: var(--text-light);
