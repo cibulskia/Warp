@@ -65,7 +65,7 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 12px;
-      align-items: center;
+      align-items: stretch; /* Promenjeno na stretch da se ćelije rastežu po visini */
     }
 
     .header-cell {
@@ -84,6 +84,9 @@
       word-break: break-word;
       border: 1px solid #ddd;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+      display: flex; /* Dodato: Koristi flexbox za poravnanje unutar ćelije */
+      align-items: center; /* Dodato: Vertikalno centriraj sadržaj unutar ćelije */
+      box-sizing: border-box; /* Dodato: Osigurava da padding i border ne povećavaju ukupnu veličinu */
     }
 
     .cell { font-size: 14px; color: #333; }
@@ -92,23 +95,23 @@
 
     /* Updated input-cell styling to match other input fields */
     .input-cell {
-      padding: 0; /* Remove internal padding to let the input handle it */
-      border: none; /* Remove border to avoid double border */
-      box-shadow: none; /* Remove shadow to avoid double shadow */
-      background-color: transparent; /* Make background transparent */
-      display: flex; /* Use flexbox to center content vertically */
-      align-items: center; /* Center items vertically */
+      padding: 0; /* Ukloni interni padding ćelije */
+      border: none; /* Ukloni border ćelije */
+      box-shadow: none; /* Ukloni shadow ćelije */
+      background-color: transparent; /* Transparentna pozadina ćelije */
     }
 
     .input-cell input {
       width: 100%;
-      padding: 12px; /* Add padding to the input itself */
-      border-radius: 8px; /* Match cell border-radius */
-      border: 1px solid #ccc; /* Apply border to the input */
+      padding: 12px; /* Dodaj padding inputu */
+      border-radius: 8px; /* Zaobljene ivice inputa */
+      border: 1px solid #ccc; /* Border inputa */
       font-size: 14px;
-      box-sizing: border-box;
-      background-color: #fff; /* White background for the input */
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Shadow for the input */
+      box-sizing: border-box; /* Osigurava da padding i border ne povećavaju ukupnu širinu inputa */
+      background-color: #fff; /* Bela pozadina inputa */
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Shadow inputa */
+      vertical-align: middle; /* Eksplicitno poravnaj input vertikalno */
+      margin: 0; /* Ukloni marginu inputa, ako postoji */
     }
 
     .button-cell button {
@@ -149,13 +152,13 @@
     }
 
     /* Naslov iznad boxova */
-    .data-section h4 { /* Changed to h4 to match HTML, original was h2 */
+    .data-section h4 {
       text-align: center;
       color: #333;
       margin-bottom: 10px;
       border-bottom: 1px solid #eee;
       padding-bottom: 10px;
-      cursor: pointer; /* klikom se menja */
+      cursor: pointer;
     }
 
     /* Ograničenje veličine pojedinačnih boxova sa scroll */
@@ -167,8 +170,8 @@
       font-size: 14px;
       line-height: 1.5;
       word-wrap: break-word;
-      max-height: 120px; /* ograničava visinu boxa */
-      overflow-y: auto;  /* scroll ako sadrzaj prelazi */
+      max-height: 120px;
+      overflow-y: auto;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
       white-space: pre-line;
     }
