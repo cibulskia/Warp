@@ -103,39 +103,41 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
-    /* Grid */
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 16px;
-    }
+/* Grid */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px; /* smanjeno razmicanje */
+  align-items: start; /* da se sadržaj ne razvlači po visini */
+}
 
-    .header-cell {
-      font-weight: bold;
-      text-align: center;
-      background: var(--primary);
-      color: white;
-      padding: 16px;
-      border-radius: 10px;
-      text-transform: capitalize; /* Changed to capitalize for first letter only */
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-      letter-spacing: 0.8px;
-    }
+.header-cell {
+  font-weight: bold;
+  text-align: center;
+  background: var(--primary);
+  color: white;
+  padding: 10px; /* smanjeno sa 16px */
+  border-radius: 8px;
+  font-size: 14px; /* manji font */
+}
 
-    .cell {
-      background: var(--surface-light);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 5px 16px; /* Smanjena visina paddinga još više */
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      transition: all 0.3s ease;
-      color: var(--text-light);
-      min-height: 38px; /* Smanjena minimalna visina */
-    }
-    .cell:hover { background: #3c495c; /* Slightly lighter on hover */ transform: translateY(-2px); }
+.cell, .input-cell, .button-cell {
+  background: var(--surface-light);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px; /* smanjeno sa 16px */
+  font-size: 13px; /* kompaktniji font */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  line-height: 1.3; /* gušće linije */
+  min-height: 40px; /* kontrola minimalne visine */
+}
 
+.cell:hover {
+  background: #3c495c;
+  transform: translateY(-2px);
+}
     .cell a {
       color: var(--accent);
       font-weight: 600;
@@ -160,18 +162,6 @@
       box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
     }
 
-    /* Stilovi za button-cell su vraćeni na originalno ispravno stanje */
-    .button-cell {
-      background: var(--surface-light);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      transition: all 0.3s ease;
-      color: var(--text-light);
-    }
     .button-cell button {
       width: 100%;
       padding: 12px;
