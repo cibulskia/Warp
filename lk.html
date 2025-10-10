@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="sr">
 <head>
   <meta charset="utf-8" />
@@ -31,13 +31,12 @@
       box-sizing: border-box;
     }
 
-    h1, h2, h3 {
+    h1, h2, h3, h4 {
       text-align: center;
       color: #333;
       margin-bottom: 20px;
     }
 
-    /* --- Grid i dugmad --- */
     .sheet-buttons {
       display: flex;
       justify-content: center;
@@ -84,26 +83,25 @@
       word-break: break-word;
       border: 1px solid #ddd;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+      font-size: 14px;
     }
 
-    .cell { font-size: 14px; color: #333; }
-    .cell a { color: #007bff; text-decoration: none; font-weight: bold; }
+    .cell a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
     .cell a:hover { text-decoration: underline; }
 
     .input-cell input {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background-color: #f8f9fa;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 14px;
-      line-height: normal;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
       width: 100%;
-      height: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
       box-sizing: border-box;
+      background-color: #fff;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
     .button-cell button {
@@ -117,10 +115,8 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     .button-cell button:hover { background-color: #0056b3; }
 
-    /* --- OAuth i leva strana --- */
     .oauth-app-container {
       display: flex;
       flex-direction: row;
@@ -143,29 +139,24 @@
       align-self: flex-start;
     }
 
-    /* Naslov iznad boxova */
-    .data-section h2 {
+    .data-section h4 {
       text-align: center;
       color: #333;
       margin-bottom: 10px;
       border-bottom: 1px solid #eee;
       padding-bottom: 10px;
-      cursor: pointer; /* klikom se menja */
+      cursor: pointer;
     }
 
-    /* Ograničenje veličine pojedinačnih boxova sa scroll */
     .data-field {
       background-color: #fff;
-      padding: 15px;
+      padding: 12px;
       border-radius: 8px;
       border: 1px solid #ddd;
       font-size: 14px;
       line-height: 1.5;
       word-wrap: break-word;
-      max-height: 120px; /* ograničava visinu boxa */
-      overflow-y: auto;  /* scroll ako sadrzaj prelazi */
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-      white-space: pre-line;
     }
 
     .main-content {
@@ -190,6 +181,8 @@
       border-radius: 4px;
       font-size: 16px;
       box-sizing: border-box;
+      background-color: #fff;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
     textarea { resize: vertical; min-height: 100px; }
@@ -214,7 +207,6 @@
     #signout-button { background-color: #dc3545; }
     #signout-button:hover { background-color: #c82333; }
 
-    /* Skrivena polja */
     #input4, #input5 { display: none; }
 
     @media (max-width: 900px) {
@@ -248,13 +240,13 @@
 
   <div class="oauth-app-container">
     <div class="data-section">
-      <h4 id="data-section-title" onclick="changeTitle()">Sadržaj Tabela</h4>
+      <h4 onclick="changeTitle(this)">Sadržaj Tabela</h4>
       <div id="data-field-1" class="data-field"></div>
-      <h4 id="data-section-title" onclick="changeTitle()">Sadržaj Tabela</h4>
+      <h4 onclick="changeTitle(this)">Sadržaj Tabela</h4>
       <div id="data-field-2" class="data-field"></div>
-      <h4 id="data-section-title" onclick="changeTitle()">Sadržaj Tabela</h4>
+      <h4 onclick="changeTitle(this)">Sadržaj Tabela</h4>
       <div id="data-field-3" class="data-field"></div>
-      <h4 id="data-section-title" onclick="changeTitle()">Sadržaj Tabela</h4>
+      <h4 onclick="changeTitle(this)">Sadržaj Tabela</h4>
       <div id="data-field-4" class="data-field"></div>
     </div>
 
@@ -285,7 +277,7 @@
 
           <input type="text" id="input1" placeholder="Prvo polje za tekst">
           <input type="text" id="input2" placeholder="Drugo polje za tekst">
-          <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
+          <input type="text" id="large-text-input" placeholder="Unesite veći tekst ovde...">
           <input type="text" id="input3" placeholder="Treće polje za tekst">
           <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
           <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
@@ -307,10 +299,10 @@
   </div>
 
   <script>
-    function changeTitle() {
+    function changeTitle(element) {
       const newTitle = prompt("Unesite novi naslov za levi box:");
       if (newTitle) {
-        document.getElementById("data-section-title").innerText = newTitle;
+        element.innerText = newTitle;
       }
     }
   </script>
