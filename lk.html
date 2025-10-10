@@ -7,223 +7,220 @@
 <link rel="stylesheet" href="stylesl.css" />
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="oath.js" defer></script><!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Integrisana Aplikacija</title>
+<link rel="stylesheet" href="stylesl.css" />
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="oath.js" defer></script>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f4f4f4;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    box-sizing: border-box;
-  }
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f4f4f4;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  box-sizing: border-box;
+}
 
-  .app-section {
-    width: 100%;
-    max-width: 1200px;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-  }
+.app-section {
+  width: 100%;
+  max-width: 1200px;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
 
-  h1, h2, h3, h4 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
-  }
+h1,h2,h3,h4 { text-align:center; color:#333; margin-bottom:20px; }
 
-  .sheet-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
+.sheet-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
 
-  .sheet-buttons button {
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: none;
-    background-color: #28a745;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+.sheet-buttons button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.sheet-buttons button:hover { background-color: #218838; }
 
-  .sheet-buttons button:hover { background-color: #218838; }
+#grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  align-items: center;
+}
 
-  #grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
-    align-items: center;
-  }
+.header-cell {
+  font-weight: bold;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+}
 
-  .header-cell {
-    font-weight: bold;
-    text-align: center;
-    background-color: #007bff;
-    color: white;
-    padding: 10px;
-    border-radius: 6px;
-  }
+.cell, .input-cell, .button-cell {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  word-break: break-word;
+  border: 1px solid #ddd;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 14px;
+  min-height: 30px;
+}
 
-  .cell, .input-cell, .button-cell {
-    background-color: #f8f9fa;
-    padding: 12px;
-    border-radius: 8px;
-    word-break: break-word;
-    border: 1px solid #ddd;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-    font-size: 14px;
-    min-height: 30px;
-  }
+.cell a { color: #007bff; text-decoration:none; font-weight:bold; }
+.cell a:hover { text-decoration:underline; }
 
-  .cell a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: bold;
-  }
+/* input-cell sada je contenteditable div, izgleda kao cell */
+.input-cell {
+  background-color: #fff;
+  cursor: text;
+}
+.input-cell:focus {
+  outline: 2px solid #007bff;
+}
 
-  .cell a:hover { text-decoration: underline; }
+.button-cell button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.button-cell button:hover { background-color: #0056b3; }
 
-  /* input-cell sada izgleda kao cell, bez unutrašnjeg polja */
-  .input-cell {
-    background-color: #fff;
-    cursor: text;
-  }
+/* --- OAuth i levi panel --- */
+.oauth-app-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  box-sizing: border-box;
+}
 
-  .input-cell[contenteditable="true"]:focus {
-    outline: 2px solid #007bff;
-  }
+.data-section {
+  flex: 0 0 300px;
+  background-color: #f8f9fa;
+  color: #333;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: flex-start;
+}
 
-  .button-cell button {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+.data-section h4 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  cursor: pointer;
+}
 
-  .button-cell button:hover { background-color: #0056b3; }
+.data-field {
+  background-color: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
 
-  .oauth-app-container {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    width: 100%;
-    max-width: 1200px;
-    box-sizing: border-box;
-  }
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 
-  .data-section {
-    flex: 0 0 300px;
-    background-color: #f8f9fa;
-    color: #333;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-self: flex-start;
-  }
+.main-content .app-section {
+  width: 100%;
+  max-width: none;
+  padding: 30px;
+  text-align: center;
+}
 
-  .data-section h4 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    cursor: pointer;
-  }
+input[type="text"], textarea, select {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #fff;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+textarea { resize: vertical; min-height: 100px; }
 
-  .data-field {
-    background-color: #fff;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    line-height: 1.5;
-    word-wrap: break-word;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-  }
+.oauth-app-container button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 5px;
+  transition: 0.3s;
+}
+.oauth-app-container button:hover { background-color: #0056b3; }
 
-  .main-content {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
+#message { margin-top: 20px; color: #333; min-height: 20px; }
+#user-name { font-weight:bold; color:#007bff; }
+#user-profile-pic { width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:15px; border:2px solid #007bff; }
+#signout-button { background-color:#dc3545; }
+#signout-button:hover { background-color:#c82333; }
 
-  .main-content .app-section {
-    width: 100%;
-    max-width: none;
-    padding: 30px;
-    text-align: center;
-  }
+#input4, #input5 { display:none; }
 
-  input[type="text"], textarea, select {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-    background-color: #fff;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-  }
+@media (max-width:900px) {
+  #grid { grid-template-columns: repeat(1,1fr); }
+  .oauth-app-container { flex-direction:column; align-items:center; }
+  .data-section { width:100%; flex:auto; }
+  .main-content { width:100%; max-width:none; }
+  .main-content .app-section { padding:20px; }
+}
 
-  textarea { resize: vertical; min-height: 100px; }
-
-  .oauth-app-container button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    margin: 5px;
-    transition: background-color 0.3s ease;
-  }
-
-  .oauth-app-container button:hover { background-color: #0056b3; }
-
-  #message { margin-top: 20px; color: #333; min-height: 20px; }
-  #user-name { font-weight: bold; color: #007bff; }
-  #user-profile-pic { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 2px solid #007bff; }
-  #signout-button { background-color: #dc3545; }
-  #signout-button:hover { background-color: #c82333; }
-
-  #input4, #input5 { display: none; }
-
-  @media (max-width: 900px) {
-    #grid { grid-template-columns: repeat(1, 1fr); }
-    .oauth-app-container { flex-direction: column; align-items: center; }
-    .data-section { width: 100%; flex: auto; }
-    .main-content { width: 100%; max-width: none; }
-    .main-content .app-section { padding: 20px; }
-  }
-
-  @media (max-width: 600px) {
-    body { padding: 10px; }
-    .app-section { padding: 20px; }
-  }
+@media (max-width:600px) {
+  body { padding:10px; }
+  .app-section { padding:20px; }
+}
 </style>
 </head>
 <body>
+
 <div class="app-section">
   <h1>CSV Prikaz sa Inputom i Dugmetom</h1>
 
@@ -235,7 +232,23 @@
     <button data-sheet="4">Sheet 5</button>
   </div>
 
-  <div id="grid"></div>
+  <div id="grid">
+    <div class="header-cell">Header 1</div>
+    <div class="header-cell">Header 2</div>
+    <div class="header-cell">Header 3</div>
+    <div class="header-cell">Header 4</div>
+    <div class="header-cell">Header 5</div>
+    <div class="header-cell">Header 6</div>
+    <div class="header-cell">Header 7</div>
+
+    <div class="input-cell" contenteditable="true"></div>
+    <div class="input-cell" contenteditable="true"></div>
+    <div class="input-cell" contenteditable="true"></div>
+    <div class="input-cell" contenteditable="true"></div>
+    <div class="input-cell" contenteditable="true"></div>
+    <div class="input-cell" contenteditable="true"></div>
+    <div class="input-cell" contenteditable="true"></div>
+  </div>
 </div>
 
 <div class="oauth-app-container">
@@ -277,10 +290,10 @@
 
         <input type="text" id="input1" placeholder="Prvo polje za tekst">
         <input type="text" id="input2" placeholder="Drugo polje za tekst">
-        <input type="text" id="large-text-input" placeholder="Unesite veći tekst ovde...">
+        <textarea id="large-text-input" placeholder="Unesite veći tekst ovde..."></textarea>
         <input type="text" id="input3" placeholder="Treće polje za tekst">
         <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
-        <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
+        <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2,3,4,6)">
 
         <select id="dropdown-input">
           <option value="">Odaberite opciju</option>
@@ -301,10 +314,10 @@
 <script>
 function changeTitle(element) {
   const newTitle = prompt("Unesite novi naslov za levi box:");
-  if (newTitle) {
-    element.innerText = newTitle;
-  }
+  if(newTitle) element.innerText = newTitle;
 }
 </script>
+
 </body>
 </html>
+
