@@ -94,14 +94,16 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      /* box-shadow: 0 4px 15px rgba(0,0,0,0.2);  UKLONJENO */
+      box-shadow: none; /* DODATO: Uklanja senku */
       text-transform: capitalize; /* Changed to capitalize for first letter only */
-      outline: none; /* DODATO: Uklanja okvir pri fokusu */
+      outline: none;
     }
     .sheet-buttons button:hover {
       background: var(--primary-dark);
       transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      /* box-shadow: 0 6px 20px rgba(0,0,0,0.3); UKLONJENO */
+      box-shadow: none; /* DODATO: Uklanja senku pri hoveru */
     }
 
     /* Grid */
@@ -153,7 +155,7 @@
       font-size: 15px;
       background: var(--input-bg);
       color: var(--text);
-      transition: border-color 0.3s ease;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
     .input-cell input:focus {
       outline: none;
@@ -165,16 +167,21 @@
       width: 100%;
       padding: 12px;
       border-radius: 10px;
-      border: none; /* DODATO: Uklanja border */
+      border: none;
       background: var(--primary);
       color: white;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      outline: none; /* DODATO: Uklanja okvir pri fokusu */
+      outline: none;
+      box-shadow: none; /* DODATO: Uklanja senku */
     }
-    .button-cell button:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .button-cell button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: none; /* DODATO: Uklanja senku pri hoveru */
+    }
 
     /* Layout OAuth */
     .oauth-app-container {
@@ -266,21 +273,27 @@
       background: var(--primary);
       color: white;
       padding: 12px 20px;
-      border: none; /* DODATO: Uklanja border */
+      border: none;
       border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
       margin: 8px; /* More spacing */
       font-weight: 600;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      /* box-shadow: 0 4px 15px rgba(0,0,0,0.2); UKLONJENO */
+      box-shadow: none; /* DODATO: Uklanja senku */
       text-transform: capitalize; /* Changed to capitalize for first letter only */
-      outline: none; /* DODATO: Uklanja okvir pri fokusu */
+      outline: none;
     }
-    .oauth-app-container button:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    .oauth-app-container button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      /* box-shadow: 0 6px 20px rgba(0,0,0,0.3); UKLONJENO */
+      box-shadow: none; /* DODATO: Uklanja senku pri hoveru */
+    }
 
     #signout-button { background: var(--danger); }
-    #signout-button:hover { background: #dc2626; transform: translateY(-2px); }
+    #signout-button:hover { background: #dc2626; transform: translateY(-2px); box-shadow: none; /* DODATO: Uklanja senku pri hoveru */ }
 
     #user-profile-pic {
       width: 100px; /* Slightly larger */
