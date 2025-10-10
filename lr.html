@@ -11,20 +11,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #fb923c;
-      --primary-dark: #f97316;
-      --accent: #22d3ee;
-      --danger: #ef4444;
-      --background: linear-gradient(135deg, #1f2937, #111827, #0f172a);
-      --surface: #1e293b;
-      --surface-light: #2d3748;
-      --text: #e2e8f0;
-      --text-light: #94a3b8;
-      --border-color: #334155;
+      --primary: #fb923c; /* Orange */
+      --primary-dark: #f97316; /* Deeper orange for hover */
+      --accent: #22d3ee; /* Bright cyan */
+      --danger: #ef4444; /* Red */
+      --background: linear-gradient(135deg, #1f2937, #111827, #0f172a); /* Darker, more sophisticated gradient */
+      --surface: #1e293b; /* Darker surface color */
+      --surface-light: #2d3748; /* Slightly lighter surface for distinction */
+      --text: #e2e8f0; /* Light gray text */
+      --text-light: #94a3b8; /* Muted light gray text */
+      --border-color: #334155; /* Darker border color */
       --radius: 14px;
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --input-bg: #334155;
-      --input-border: #475569;
+      --shadow: 0 10px 30px rgba(0,0,0,0.3); /* More pronounced shadow */
+      --input-bg: #334155; /* Dark input background */
+      --input-border: #475569; /* Dark input border */
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,18 +44,20 @@
     h1,h2,h3,h4 {
       font-weight: 700;
       letter-spacing: 1.2px;
-      color: var(--primary);
-      text-transform: capitalize;
+      color: var(--primary); /* Apply primary color to headers */
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
     }
 
     h1 { font-size: 32px; margin-bottom: 25px; text-align: center; }
     h4 { font-size: 18px; color: var(--text); }
 
+    /* Animacija fade */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Kartice */
     .app-section {
       background: var(--surface);
       border-radius: var(--radius);
@@ -66,13 +68,14 @@
       margin: auto;
       animation: fadeIn 0.8s ease-out;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-color); /* Subtle border */
     }
     .app-section:hover {
       transform: translateY(-5px);
       box-shadow: 0 15px 35px rgba(0,0,0,0.4);
     }
 
+    /* Dugmad za sheet */
     .sheet-buttons {
       display: flex;
       justify-content: center;
@@ -92,13 +95,8 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-transform: capitalize;
-      outline: none !important;
-      box-shadow: none !important;
-    }
-    .sheet-buttons button:focus {
-      outline: none !important;
-      box-shadow: none !important;
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+      outline: none; /* DODATO: Uklanja okvir pri fokusu */
     }
     .sheet-buttons button:hover {
       background: var(--primary-dark);
@@ -106,11 +104,12 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
+    /* Grid */
     #grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-      align-items: start;
+      gap: 10px; /* smanjeno razmicanje */
+      align-items: start; /* da se sadržaj ne razvlači po visini */
     }
 
     .header-cell {
@@ -120,7 +119,7 @@
       color: white;
       padding: 16px;
       border-radius: 10px;
-      text-transform: capitalize;
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
       box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
       letter-spacing: 0.8px;
     }
@@ -136,7 +135,7 @@
       transition: all 0.3s ease;
       color: var(--text-light);
     }
-    .cell:hover { background: #3c495c; transform: translateY(-2px); }
+    .cell:hover { background: #3c495c; /* Slightly lighter on hover */ transform: translateY(-2px); }
 
     .cell a {
       color: var(--accent);
@@ -166,22 +165,18 @@
       width: 100%;
       padding: 12px;
       border-radius: 10px;
-      border: none;
+      border: none; /* DODATO: Uklanja border */
       background: var(--primary);
       color: white;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      outline: none !important;
-      box-shadow: none !important;
-    }
-    .button-cell button:focus {
-      outline: none !important;
-      box-shadow: none !important;
+      outline: none; /* DODATO: Uklanja okvir pri fokusu */
     }
     .button-cell button:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
+    /* Layout OAuth */
     .oauth-app-container {
       display: flex;
       gap: 30px;
@@ -192,7 +187,7 @@
     }
 
     .data-section {
-      flex: 0 0 320px;
+      flex: 0 0 320px; /* Slightly wider */
       background: var(--surface);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -209,9 +204,10 @@
       cursor: pointer;
       text-align: center;
       transition: color 0.3s ease;
-      text-transform: capitalize;
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
     }
     .data-section h4:hover { color: var(--accent); }
+
 
     .data-field {
       background: var(--input-bg);
@@ -220,7 +216,7 @@
       padding: 16px;
       font-size: 14px;
       line-height: 1.6;
-      max-height: 160px;
+      max-height: 160px; /* Slightly taller */
       overflow-y: auto;
       white-space: pre-line;
       color: var(--text-light);
@@ -237,13 +233,13 @@
       width: 100%;
       max-width: none;
       text-align: center;
-      padding: 35px;
+      padding: 35px; /* Consistent padding */
     }
 
     input[type="text"], textarea, select {
       width: 100%;
       padding: 14px;
-      margin-bottom: 18px;
+      margin-bottom: 18px; /* More spacing */
       border: 1px solid var(--input-border);
       border-radius: 10px;
       font-size: 16px;
@@ -257,7 +253,7 @@
       box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
     }
     select {
-      appearance: none;
+      appearance: none; /* Remove default arrow */
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 1em center;
@@ -270,20 +266,16 @@
       background: var(--primary);
       color: white;
       padding: 12px 20px;
-      border: none;
+      border: none; /* DODATO: Uklanja border */
       border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
-      margin: 8px;
+      margin: 8px; /* More spacing */
       font-weight: 600;
       transition: all 0.3s ease;
-      text-transform: capitalize;
-      outline: none !important;
-      box-shadow: none !important;
-    }
-    .oauth-app-container button:focus {
-      outline: none !important;
-      box-shadow: none !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+      outline: none; /* DODATO: Uklanja okvir pri fokusu */
     }
     .oauth-app-container button:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 
@@ -291,17 +283,18 @@
     #signout-button:hover { background: #dc2626; transform: translateY(-2px); }
 
     #user-profile-pic {
-      width: 100px;
+      width: 100px; /* Slightly larger */
       height: 100px;
       border-radius: 50%;
       margin-bottom: 20px;
-      border: 4px solid var(--accent);
+      border: 4px solid var(--accent); /* Accent border */
       object-fit: cover;
-      box-shadow: 0 0 0 5px rgba(34, 211, 238, 0.2);
+      box-shadow: 0 0 0 5px rgba(34, 211, 238, 0.2); /* Halo effect */
     }
 
     #message { margin-top: 15px; color: var(--text-light); font-size: 14px; }
 
+    /* Skrivena polja */
     #input4, #input5 { display: none; }
 
     @media (max-width: 900px) {
@@ -387,6 +380,9 @@
       const newTitle = prompt("Unesite novi naslov:");
       if (newTitle) element.innerText = newTitle.charAt(0).toUpperCase() + newTitle.slice(1).toLowerCase();
     }
+    // You'll need to add your JavaScript logic for handling the sheet buttons,
+    // Google OAuth (handleCredentialResponse), and saving/loading settings
+    // in your 'oath.js' file as you had originally intended.
   </script>
 </body>
 </html>
