@@ -93,6 +93,12 @@
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       text-transform: capitalize;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .sheet-buttons button:focus {
+      outline: none !important;
+      box-shadow: none !important;
     }
     .sheet-buttons button:hover {
       background: var(--primary-dark);
@@ -167,6 +173,12 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .button-cell button:focus {
+      outline: none !important;
+      box-shadow: none !important;
     }
     .button-cell button:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
@@ -258,15 +270,20 @@
       background: var(--primary);
       color: white;
       padding: 12px 20px;
-      border: none; /* <<< OVDE izbacio okvir (border) */
+      border: none;
       border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
       margin: 8px;
       font-weight: 600;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       text-transform: capitalize;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .oauth-app-container button:focus {
+      outline: none !important;
+      box-shadow: none !important;
     }
     .oauth-app-container button:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 
