@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>warp connect</title>
-  <link rel="stylesheet" href="stylesl.css" />
+  <title>WARP CONNECT</title>
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="oath.js" defer></script>
@@ -14,33 +13,44 @@
       --primary-dark: #4f46e5;
       --accent: #06b6d4;
       --danger: #ef4444;
-      --background: #f3f4f6;
+      --background: linear-gradient(135deg, #1e3a8a, #312e81, #4c1d95);
       --surface: #ffffff;
-      --text: #1f2937;
+      --text: #111827;
       --text-light: #6b7280;
-      --radius: 16px;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --radius: 14px;
+      --shadow: 0 6px 20px rgba(0,0,0,0.12);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: "Inter", Arial, sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f0fdfa);
+      background: var(--background);
+      min-height: 100vh;
       padding: 30px;
       color: var(--text);
       display: flex;
       flex-direction: column;
       gap: 40px;
+      animation: fadeIn 1s ease;
     }
 
     h1,h2,h3,h4 {
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    /* --- Kartice --- */
+    h1 { font-size: 28px; margin-bottom: 20px; color: var(--primary); }
+    h4 { font-size: 16px; color: var(--text); }
+
+    /* Animacija fade */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Kartice */
     .app-section {
       background: var(--surface);
       border-radius: var(--radius);
@@ -49,14 +59,12 @@
       width: 100%;
       max-width: 1300px;
       margin: auto;
+      animation: fadeIn 0.8s ease;
       transition: transform 0.3s ease;
     }
+    .app-section:hover { transform: translateY(-4px); }
 
-    .app-section:hover {
-      transform: translateY(-2px);
-    }
-
-    /* --- Dugmad za sheet --- */
+    /* Dugmad za sheet */
     .sheet-buttons {
       display: flex;
       justify-content: center;
@@ -70,19 +78,18 @@
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 10px 18px;
+      padding: 10px 20px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.25s ease;
     }
-
     .sheet-buttons button:hover {
       background: var(--primary-dark);
-      transform: translateY(-2px);
+      transform: scale(1.05);
     }
 
-    /* --- Grid 7 kolona --- */
+    /* Grid */
     #grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -94,22 +101,23 @@
       text-align: center;
       background: var(--primary);
       color: white;
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
+      text-transform: uppercase;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .cell, .input-cell, .button-cell {
-      background: #fafafa;
+      background: #f9fafb;
       border: 1px solid #e5e7eb;
       border-radius: 10px;
       padding: 14px;
       font-size: 14px;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
     }
+    .cell:hover { background: #eef2ff; }
 
     .cell a {
       color: var(--accent);
@@ -136,19 +144,20 @@
       background: var(--primary);
       color: white;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
     }
     .button-cell button:hover { background: var(--primary-dark); }
 
-    /* --- Layout za OAuth deo --- */
+    /* Layout OAuth */
     .oauth-app-container {
       display: flex;
       gap: 25px;
       max-width: 1300px;
       margin: auto;
       width: 100%;
+      animation: fadeIn 1s ease;
     }
 
     .data-section {
@@ -163,9 +172,6 @@
     }
 
     .data-section h4 {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
       border-bottom: 1px solid #e5e7eb;
       padding-bottom: 8px;
       cursor: pointer;
@@ -217,6 +223,7 @@
       cursor: pointer;
       font-size: 15px;
       margin: 5px;
+      font-weight: 600;
       transition: all 0.3s ease;
     }
     .oauth-app-container button:hover { background: var(--primary-dark); }
@@ -247,68 +254,66 @@
 </head>
 <body>
   <div class="app-section">
-    <h1>warp connect</h1>
+    <h1>WARP CONNECT</h1>
     <div class="sheet-buttons">
-      <button data-sheet="0">hitno</button>
-      <button data-sheet="1">glodalica</button>
-      <button data-sheet="2">strug</button>
-      <button data-sheet="3">strug i<br>glodalica</button>
-      <button data-sheet="4">ostali</button>
+      <button data-sheet="0">HITNO</button>
+      <button data-sheet="1">GLODALICA</button>
+      <button data-sheet="2">STRUG</button>
+      <button data-sheet="3">STRUG + GLODALICA</button>
+      <button data-sheet="4">OSTALI</button>
     </div>
     <div id="grid"></div>
   </div>
 
   <div class="oauth-app-container">
     <div class="data-section">
-      <h4 onclick="changeTitle(this)">poslovi u toku</h4>
+      <h4 onclick="changeTitle(this)">POSLOVI U TOKU</h4>
       <div id="data-field-1" class="data-field"></div>
-      <h4 onclick="changeTitle(this)">prijave za posao</h4>
+      <h4 onclick="changeTitle(this)">PRIJAVE ZA POSAO</h4>
       <div id="data-field-2" class="data-field"></div>
-      <h4 onclick="changeTitle(this)">zavrseni poslovi</h4>
+      <h4 onclick="changeTitle(this)">ZAVRŠENI POSLOVI</h4>
       <div id="data-field-3" class="data-field"></div>
-      <h4 onclick="changeTitle(this)">odbijeni poslovi</h4>
+      <h4 onclick="changeTitle(this)">ODBIJENI POSLOVI</h4>
       <div id="data-field-4" class="data-field"></div>
     </div>
 
     <div class="main-content">
       <div class="app-section">
-        <h1>korisnička podešavanja</h1>
+        <h1>KORISNIČKA PODEŠAVANJA</h1>
         <div id="g_id_onload"
              data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
              data-auto_select="true"
              data-callback="handleCredentialResponse"
              data-ux_mode="popup"
              data-cancel_on_tap_outside="false"
-             data-context="use">
-        </div>
+             data-context="use"></div>
         <div class="g_id_signin"
              data-type="standard"
              data-size="large"
              data-theme="outline"
              data-text="sign_in_with"
              data-shape="rectangular"
-             data-logo_alignment="left">
-        </div>
+             data-logo_alignment="left"></div>
 
         <div id="app-content" style="display: none;">
           <img id="user-profile-pic" src="" alt="Profilna slika korisnika" style="display: none;">
           <p>Dobrodošao, <span id="user-name"></span>!</p>
-          <input type="text" id="input1" placeholder="naziv firme">
-          <input type="text" id="input2" placeholder="kratak opis firme">
-          <textarea id="large-text-input" placeholder="detaljan opis firme"></textarea>
-          <input type="text" id="input3" placeholder="kontakt email">
-          <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
-          <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
+          <input type="text" id="input1" placeholder="NAZIV FIRME">
+          <input type="text" id="input2" placeholder="KRATAK OPIS FIRME">
+          <textarea id="large-text-input" placeholder="DETALJAN OPIS FIRME"></textarea>
+          <input type="text" id="input3" placeholder="KONTAKT EMAIL">
+          <input type="text" id="input4" placeholder="ZBIRNI UNOS CSV TABELE">
+          <input type="text" id="input5" placeholder="REDOVI ZA SEKTOR PODATAKA (npr. 2,3,4,6)">
           <select id="dropdown-input">
-            <option value="">Odaberite opciju</option>
-            <option value="opcija1">strug</option>
-            <option value="opcija2">glodalica</option>
-            <option value="opcija3">strug i glodalica</option>
+            <option value="">ODABERITE OPCIJU</option>
+            <option value="opcija1">STRUG</option>
+            <option value="opcija2">GLODALICA</option>
+            <option value="opcija3">STRUG I GLODALICA</option>
           </select>
-          <button id="save-button">sačuvaj podešavanja</button>
-          <button id="load-button">odbaci</button>
+          <button id="save-button">SAČUVAJ PODEŠAVANJA</button>
+          <button id="load-button">ODBAČI</button>
           <p id="message"></p>
-          <button id="signout-button">Odjavi se</button>
+          <button id="signout-button">ODJAVI SE</button>
         </div>
       </div>
     </div>
@@ -317,7 +322,7 @@
   <script>
     function changeTitle(element) {
       const newTitle = prompt("Unesite novi naslov:");
-      if (newTitle) element.innerText = newTitle;
+      if (newTitle) element.innerText = newTitle.toUpperCase();
     }
   </script>
 </body>
