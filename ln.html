@@ -3,399 +3,276 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Warp Connect</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>warp connect</title>
+  <link rel="stylesheet" href="stylesl.css" />
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- oath.js je rad only, ne sme se menjati niti citati -->
   <script src="oath.js" defer></script>
   <style>
     :root {
-      --primary-color: #6a0dad; /* Deep Purple */
-      --secondary-color: #00bcd4; /* Cyan */
-      --accent-color: #ffd700; /* Gold */
-      --background-light: #f0f2f5; /* Light Gray Blue */
-      --background-dark: #2c3e50; /* Dark Slate Gray */
-      --text-color-dark: #333;
-      --text-color-light: #ecf0f1; /* Off-White */
-      --border-color: #e0e0e0;
-      --card-background: #ffffff;
-      --shadow-light: rgba(0, 0, 0, 0.08);
-      --shadow-medium: rgba(0, 0, 0, 0.15);
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #06b6d4;
+      --danger: #ef4444;
+      --background: #f3f4f6;
+      --surface: #ffffff;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Poppins', Arial, sans-serif;
-      padding: 20px;
-      background-color: var(--background-light);
-      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #f0fdfa);
+      padding: 30px;
+      color: var(--text);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 30px;
-      box-sizing: border-box;
-      color: var(--text-color-dark);
-      line-height: 1.6;
+      gap: 40px;
     }
 
+    h1,h2,h3,h4 {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    /* --- Kartice --- */
     .app-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 30px;
       width: 100%;
-      max-width: 1200px;
-      background-color: var(--card-background);
-      padding: 35px;
-      border-radius: 12px;
-      box-shadow: 0 8px 25px var(--shadow-light);
-      box-sizing: border-box;
-      transition: all 0.3s ease;
+      max-width: 1300px;
+      margin: auto;
+      transition: transform 0.3s ease;
     }
-    .app-section:hover { box-shadow: 0 12px 30px var(--shadow-medium); }
 
-    h1, h2, h3 {
-      text-align: center;
-      color: var(--primary-color);
-      margin-bottom: 25px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+    .app-section:hover {
+      transform: translateY(-2px);
     }
-    h1 { font-size: 2.5em; }
 
+    /* --- Dugmad za sheet --- */
     .sheet-buttons {
       display: flex;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 30px;
       flex-wrap: wrap;
+      margin-bottom: 25px;
     }
 
     .sheet-buttons button {
-      padding: 10px 20px;
-      border-radius: 8px;
+      background: var(--primary);
+      color: white;
       border: none;
-      background-color: var(--secondary-color);
-      color: var(--text-color-light);
-      font-size: 15px;
-      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-      box-shadow: 0 4px 10px rgba(0, 188, 212, 0.3);
+      transition: all 0.25s ease;
     }
+
     .sheet-buttons button:hover {
-      background-color: #0097a7;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(0, 188, 212, 0.4);
-    }
-    .sheet-buttons button.active {
-      background-color: var(--primary-color);
-      box-shadow: 0 4px 10px rgba(106, 13, 173, 0.4);
+      background: var(--primary-dark);
       transform: translateY(-2px);
     }
 
+    /* --- Grid 7 kolona --- */
     #grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 15px;
-      align-items: stretch;
+      gap: 14px;
     }
 
     .header-cell {
-      font-weight: 700;
+      font-weight: bold;
       text-align: center;
-      background-color: var(--primary-color);
-      color: var(--text-color-light);
-      padding: 12px 10px;
+      background: var(--primary);
+      color: white;
+      padding: 12px;
       border-radius: 8px;
-      box-shadow: 0 3px 10px rgba(106, 13, 173, 0.3);
-      font-size: 15px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .cell, .input-cell, .button-cell {
-      background-color: var(--background-light);
-      padding: 15px;
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
       border-radius: 10px;
-      word-break: break-word;
-      border: 1px solid var(--border-color);
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.03);
+      padding: 14px;
+      font-size: 14px;
       display: flex;
       align-items: center;
-      box-sizing: border-box;
-      transition: all 0.2s ease;
-    }
-    .cell:hover, .input-cell:hover, .button-cell:hover {
-      box-shadow: inset 0 2px 7px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.05);
-      background-color: #e6e9ed;
+      justify-content: flex-start;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
     }
 
-    .cell { font-size: 14px; color: var(--text-color-dark); }
     .cell a {
-      color: var(--primary-color);
-      text-decoration: none;
+      color: var(--accent);
       font-weight: 600;
-      transition: color 0.2s ease;
+      text-decoration: none;
     }
-    .cell a:hover { text-decoration: underline; color: var(--secondary-color); }
+    .cell a:hover { text-decoration: underline; }
 
-    .input-cell {
-      padding: 0;
-      border: none;
-      box-shadow: none;
-      background-color: transparent;
-    }
-
+    .input-cell { padding: 0; border: none; background: transparent; box-shadow: none; }
     .input-cell input {
       width: 100%;
-      padding: 12px 15px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
       font-size: 14px;
-      box-sizing: border-box;
-      background-color: var(--card-background);
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-      color: var(--text-color-dark);
-    }
-    .input-cell input:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
-      outline: none;
-      background-color: #faffff;
+      background: #fff;
     }
 
     .button-cell button {
       width: 100%;
-      padding: 10px 15px;
+      padding: 10px;
       border-radius: 8px;
       border: none;
-      background-color: var(--primary-color);
-      color: var(--text-color-light);
+      background: var(--primary);
+      color: white;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-      box-shadow: 0 4px 10px rgba(106, 13, 173, 0.3);
+      transition: background 0.3s ease;
     }
-    .button-cell button:hover {
-      background-color: #5a0a9c;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(106, 13, 173, 0.4);
-    }
+    .button-cell button:hover { background: var(--primary-dark); }
 
+    /* --- Layout za OAuth deo --- */
     .oauth-app-container {
       display: flex;
-      flex-direction: row;
       gap: 25px;
+      max-width: 1300px;
+      margin: auto;
       width: 100%;
-      max-width: 1200px;
-      box-sizing: border-box;
     }
 
     .data-section {
-      flex: 0 0 350px;
-      background-color: var(--card-background);
-      color: var(--text-color-dark);
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 8px 25px var(--shadow-light);
+      flex: 0 0 300px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 15px;
-      align-self: flex-start;
-      transition: all 0.3s ease;
     }
-    .data-section:hover { box-shadow: 0 12px 30px var(--shadow-medium); }
 
     .data-section h4 {
-      text-align: center;
-      color: var(--primary-color);
-      margin-bottom: 15px;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 15px;
-      cursor: pointer;
+      font-size: 16px;
       font-weight: 600;
-      font-size: 1.2em;
-      transition: color 0.2s ease;
+      color: var(--text);
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 8px;
+      cursor: pointer;
+      text-align: center;
     }
-    .data-section h4:hover { color: var(--secondary-color); }
 
     .data-field {
-      background-color: var(--background-light);
-      padding: 18px;
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
       border-radius: 10px;
-      border: 1px solid var(--border-color);
+      padding: 14px;
       font-size: 14px;
       line-height: 1.5;
-      word-wrap: break-word;
-      max-height: 150px;
+      max-height: 140px;
       overflow-y: auto;
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
       white-space: pre-line;
-      transition: all 0.2s ease;
-    }
-    .data-field:hover {
-      background-color: #e6e9ed;
-      box-shadow: inset 0 2px 7px rgba(0,0,0,0.07);
     }
 
     .main-content {
       flex-grow: 1;
       display: flex;
-      justify-content: center;
       align-items: flex-start;
     }
+
     .main-content .app-section {
       width: 100%;
       max-width: none;
-      padding: 35px;
       text-align: center;
     }
 
     input[type="text"], textarea, select {
-      width: calc(100% - 30px);
-      padding: 12px 15px;
-      margin-bottom: 18px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
       font-size: 15px;
-      box-sizing: border-box;
-      background-color: var(--card-background);
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-      color: var(--text-color-dark);
-    }
-    input[type="text"]:focus, textarea:focus, select:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
-      outline: none;
-      background-color: #faffff;
-    }
-    textarea { resize: vertical; min-height: 120px; }
-    select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background-image: url('data:image/svg+xml;utf8,<svg fill="%236A0DAD" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 20px;
+      background: #fff;
     }
 
-    .oauth-app-container button:not(#signout-button) {
-      background-color: var(--primary-color);
-      color: var(--text-color-light);
-      padding: 12px 20px;
+    textarea { resize: vertical; min-height: 100px; }
+
+    .oauth-app-container button {
+      background: var(--primary);
+      color: white;
+      padding: 10px 15px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 16px;
-      margin: 8px;
-      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-      font-weight: 600;
-      box-shadow: 0 4px 10px rgba(106, 13, 173, 0.3);
+      font-size: 15px;
+      margin: 5px;
+      transition: all 0.3s ease;
     }
-    .oauth-app-container button:not(#signout-button):hover {
-      background-color: #5a0a9c;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(106, 13, 173, 0.4);
-    }
+    .oauth-app-container button:hover { background: var(--primary-dark); }
 
-    #message {
-      margin-top: 25px;
-      color: var(--primary-color);
-      min-height: 20px;
-      font-weight: 600;
-    }
-    #user-name { font-weight: 700; color: var(--secondary-color); }
+    #signout-button { background: var(--danger); }
+    #signout-button:hover { background: #b91c1c; }
+
     #user-profile-pic {
       width: 90px;
       height: 90px;
       border-radius: 50%;
+      margin-bottom: 15px;
+      border: 3px solid var(--primary);
       object-fit: cover;
-      margin-bottom: 20px;
-      border: 3px solid var(--accent-color);
-      box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.3);
-      transition: all 0.3s ease;
-    }
-    #user-profile-pic:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.5);
     }
 
-    #signout-button {
-      background-color: #dc3545;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 8px;
-      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-      font-weight: 600;
-      box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
-    }
-    #signout-button:hover {
-      background-color: #c82333;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
-    }
+    #message { margin-top: 10px; color: var(--text-light); }
 
+    /* Skrivena polja */
     #input4, #input5 { display: none; }
-
-    .g_id_signin {
-        margin-bottom: 25px !important;
-        display: inline-block;
-    }
 
     @media (max-width: 900px) {
       #grid { grid-template-columns: repeat(1, 1fr); }
-      .oauth-app-container { flex-direction: column; align-items: center; }
-      .data-section { width: 100%; flex: auto; max-width: 500px; }
-      .main-content { width: 100%; max-width: none; }
-      .main-content .app-section { padding: 30px; }
-    }
-
-    @media (max-width: 600px) {
-      body { padding: 15px; }
-      .app-section { padding: 25px; border-radius: 10px; }
-      h1 { font-size: 2em; }
-      .sheet-buttons button { padding: 9px 18px; font-size: 14px; border-radius: 7px; }
-      .header-cell, .cell, .input-cell input, .button-cell button, .data-field { font-size: 13px; padding: 12px; }
-      .data-section { padding: 20px; border-radius: 10px; }
-      input[type="text"], textarea, select { padding: 10px 12px; font-size: 14px; }
-      .oauth-app-container button { padding: 10px 18px; font-size: 15px; }
+      .oauth-app-container { flex-direction: column; }
+      .data-section { width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="app-section">
-    <h1>Warp Connect</h1>
-
+    <h1>warp connect</h1>
     <div class="sheet-buttons">
-      <button data-sheet="0" class="active">Hitno</button>
-      <button data-sheet="1">Glodalica</button>
-      <button data-sheet="2">Strug</button>
-      <button data-sheet="3">Strug i<br>Glodalica</button>
-      <button data-sheet="4">Ostali</button>
+      <button data-sheet="0">hitno</button>
+      <button data-sheet="1">glodalica</button>
+      <button data-sheet="2">strug</button>
+      <button data-sheet="3">strug i<br>glodalica</button>
+      <button data-sheet="4">ostali</button>
     </div>
-
     <div id="grid"></div>
   </div>
 
   <div class="oauth-app-container">
     <div class="data-section">
-      <h4 class="data-section-title" onclick="changeTitle(this)">Poslovi u toku</h4>
-      <div id="data-field-1" class="data-field">Nema aktivnih poslova.</div>
-      <h4 class="data-section-title" onclick="changeTitle(this)">Prijave za posao</h4>
-      <div id="data-field-2" class="data-field">Nema novih prijava.</div>
-      <h4 class="data-section-title" onclick="changeTitle(this)">Završeni poslovi</h4>
-      <div id="data-field-3" class="data-field">Nema završenih poslova.</div>
-      <h4 class="data-section-title" onclick="changeTitle(this)">Odbijeni poslovi</h4>
-      <div id="data-field-4" class="data-field">Nema odbijenih poslova.</div>
+      <h4 onclick="changeTitle(this)">poslovi u toku</h4>
+      <div id="data-field-1" class="data-field"></div>
+      <h4 onclick="changeTitle(this)">prijave za posao</h4>
+      <div id="data-field-2" class="data-field"></div>
+      <h4 onclick="changeTitle(this)">zavrseni poslovi</h4>
+      <div id="data-field-3" class="data-field"></div>
+      <h4 onclick="changeTitle(this)">odbijeni poslovi</h4>
+      <div id="data-field-4" class="data-field"></div>
     </div>
 
     <div class="main-content">
       <div class="app-section">
-        <h1>Korisnička podešavanja</h1>
-
+        <h1>korisnička podešavanja</h1>
         <div id="g_id_onload"
              data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
              data-auto_select="true"
@@ -416,23 +293,20 @@
         <div id="app-content" style="display: none;">
           <img id="user-profile-pic" src="" alt="Profilna slika korisnika" style="display: none;">
           <p>Dobrodošao, <span id="user-name"></span>!</p>
-
-          <input type="text" id="input1" placeholder="Naziv firme">
-          <input type="text" id="input2" placeholder="Kratak opis firme">
-          <textarea id="large-text-input" placeholder="Detaljan opis firme"></textarea>
-          <input type="text" id="input3" placeholder="Kontakt email">
+          <input type="text" id="input1" placeholder="naziv firme">
+          <input type="text" id="input2" placeholder="kratak opis firme">
+          <textarea id="large-text-input" placeholder="detaljan opis firme"></textarea>
+          <input type="text" id="input3" placeholder="kontakt email">
           <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
           <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
-
           <select id="dropdown-input">
             <option value="">Odaberite opciju</option>
-            <option value="opcija1">Strug</option>
-            <option value="opcija2">Glodalica</option>
-            <option value="opcija3">Strug i Glodalica</option>
+            <option value="opcija1">strug</option>
+            <option value="opcija2">glodalica</option>
+            <option value="opcija3">strug i glodalica</option>
           </select>
-
-          <button id="save-button">Sačuvaj podešavanja</button>
-          <button id="load-button">Odbaci</button>
+          <button id="save-button">sačuvaj podešavanja</button>
+          <button id="load-button">odbaci</button>
           <p id="message"></p>
           <button id="signout-button">Odjavi se</button>
         </div>
@@ -442,190 +316,10 @@
 
   <script>
     function changeTitle(element) {
-      const newTitle = prompt("Unesite novi naslov za levi box:");
-      if (newTitle) {
-        element.innerText = newTitle;
-      }
+      const newTitle = prompt("Unesite novi naslov:");
+      if (newTitle) element.innerText = newTitle;
     }
-
-    const csvData = [
-      "ID,Status,Opis,Datum,Prioritet,Link,Akcija",
-      "1,Hitno,Popravka masine X,2023-10-26,Visok,https://example.com/job1,Pogledaj",
-      "2,Redovan,Izrada dela Y,2023-10-27,Srednji,https://example.com/job2,Detalji",
-      "3,Odrzavanje,Provera sistema,2023-10-28,Nizak,https://example.com/job3,Info",
-      "4,Hitno,Zamena alata,2023-10-29,Visok,https://example.com/job4,Akcija",
-      "5,Redovan,Kontrola kvaliteta,2023-10-30,Srednji,https://example.com/job5,Pregled",
-      "6,Odrzavanje,Kalibracija senzora,2023-10-31,Nizak,https://example.com/job6,Proveri",
-      "7,Hitno,Problem sa softverom,2023-11-01,Visok,https://example.com/job7,Resi",
-      "8,Redovan,Novi prototip,2023-11-02,Visok,https://example.com/job8,Start",
-      "9,Odrzavanje,Ciscenje opreme,2023-11-03,Nizak,https://example.com/job9,Cisti",
-    ].join('\n');
-
-    const csvDataGlodalica = [
-      "ID,Status,Zadatak,Masina,Vreme,Materijal,Dugme",
-      "G1,Aktivan,Precizno glodanje,CNC Glodalica 1,4h,Aluminijum,Start",
-      "G2,Cekanje,Priprema za seriju,CNC Glodalica 2,8h,Čelik,Pusti",
-      "G3,Zavrseno,Zavrsno poliranje,Ručna Glodalica,2h,Drvo,Arhiviraj",
-      "G4,Aktivan,Graviranje,Laser Glodalica,1.5h,Plastika,Pauza"
-    ].join('\n');
-
-    const csvDataStrug = [
-      "ID,Status,Operacija,Model Struga,Duzina,Precnik,Dugme",
-      "S1,Prioritet,Brušenje,Strug A,200mm,50mm,Detalji",
-      "S2,Redovan,Sečenje,Strug B,150mm,30mm,Info",
-      "S3,Zavrseno,Poliranje,Strug C,100mm,20mm,Proveri",
-      "S4,Hitno,Nov navoj,Strug A,250mm,60mm,Pokreni",
-      "S5,Čekanje,Preformiranje,Strug B,180mm,45mm,Planiraj"
-    ].join('\n');
-
-    const csvDataStrugGlodalica = [
-      "ID,Zadatak,Prioritet,Kombinovano,Start,Kraj,Opis",
-      "KG1,Izrada komplexnog dela,Visok,Da,2023-10-26,2023-10-28,Delicate process",
-      "KG2,Modifikacija prototipa,Srednji,Da,2023-10-27,2023-10-29,Requires both machines",
-      "KG3,Popravka alata,Nizak,Ne,2023-10-28,2023-10-28,Minor adjustment"
-    ].join('\n');
-
-    const csvDataOstali = [
-      "ID,Tip,Lokacija,Odgovoran,Status,Napomena,Dugme",
-      "O1,Inspekcija,Skladište,Marko,Zakazano,Potrebna oprema,Planiraj",
-      "O2,Transport,Zona A-B,Petar,U toku,Kamion na putu,Prati",
-      "O3,Obuka,Sala za obuku,Jelena,Završeno,Svi položili,Arhiviraj"
-    ].join('\n');
-
-    const allCsvData = [
-      csvData,
-      csvDataGlodalica,
-      csvDataStrug,
-      csvDataStrugGlodalica,
-      csvDataOstali
-    ];
-
-    let currentSheetIndex = 0;
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const grid = document.getElementById('grid');
-      const sheetButtons = document.querySelectorAll('.sheet-buttons button');
-
-      function loadSheet(index) {
-        currentSheetIndex = index;
-        sheetButtons.forEach((btn, i) => {
-          if (i === index) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
-        });
-        Papa.parse(allCsvData[index], {
-          header: true,
-          dynamicTyping: true,
-          complete: function(results) {
-            renderGrid(results.data);
-          }
-        });
-      }
-
-      function renderGrid(data) {
-        grid.innerHTML = '';
-        if (data.length === 0 || Object.keys(data[0]).length === 0) {
-          grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #777;">Nema podataka za prikaz.</p>';
-          return;
-        }
-
-        const headers = Object.keys(data[0]);
-
-        headers.forEach(header => {
-          const headerCell = document.createElement('div');
-          headerCell.className = 'header-cell';
-          headerCell.textContent = header;
-          grid.appendChild(headerCell);
-        });
-
-        data.forEach(row => {
-          headers.forEach(header => {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            let cellContent = row[header] !== undefined && row[header] !== null ? row[header].toString() : '';
-
-            if (header === 'Link' && cellContent.startsWith('http')) {
-              cell.innerHTML = `<a href="${cellContent}" target="_blank">Otvori Link</a>`;
-            } else if (header === 'Akcija' || header === 'Dugme') {
-                const buttonCell = document.createElement('div');
-                buttonCell.className = 'button-cell';
-                const button = document.createElement('button');
-                button.textContent = cellContent;
-                button.onclick = () => alert(`Kliknuto: ${cellContent} za ID ${row.ID || row.GId || row.SId || row.KGId || row.OId}`); // Prilagoditi ID kolonu
-                buttonCell.appendChild(button);
-                cell.replaceWith(buttonCell);
-            } else {
-              cell.textContent = cellContent;
-            }
-            grid.appendChild(cell);
-          });
-        });
-        grid.style.gridTemplateColumns = `repeat(${headers.length}, 1fr)`;
-      }
-
-      sheetButtons.forEach((button, index) => {
-        button.addEventListener('click', () => loadSheet(index));
-      });
-
-      loadSheet(currentSheetIndex);
-
-      const appContent = document.getElementById('app-content');
-      const userName = document.getElementById('user-name');
-      const userProfilePic = document.getElementById('user-profile-pic');
-      const signoutButton = document.getElementById('signout-button');
-      const gsiDiv = document.querySelector('.g_id_signin');
-
-      function handleCredentialResponse(response) {
-          const responsePayload = decodeJwtResponse(response.credential);
-          userName.textContent = responsePayload.name;
-          userProfilePic.src = responsePayload.picture;
-          userProfilePic.style.display = 'block';
-          appContent.style.display = 'block';
-          gsiDiv.style.display = 'none';
-      }
-
-      function decodeJwtResponse(token) {
-          let base64Url = token.split('.')[1];
-          let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          }).join(''));
-          return JSON.parse(jsonPayload);
-      }
-
-      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-          google.accounts.id.initialize({
-              client_id: "252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com",
-              callback: handleCredentialResponse
-          });
-
-          signoutButton.addEventListener('click', () => {
-              google.accounts.id.disableAutoSelect();
-              // Aplikacija treba da ima i token za revoke, ako je sačuvan
-              google.accounts.id.revoke(localStorage.getItem('g_id_token'), done => {
-                  console.log('Consent revoked', done);
-                  localStorage.removeItem('g_id_token');
-                  appContent.style.display = 'none';
-                  userProfilePic.style.display = 'none';
-                  gsiDiv.style.display = 'block';
-                  userName.textContent = '';
-              });
-          });
-      }
-
-      document.getElementById('save-button').addEventListener('click', () => {
-        document.getElementById('message').textContent = 'Podešavanja su sačuvana!';
-        setTimeout(() => document.getElementById('message').textContent = '', 3000);
-      });
-
-      document.getElementById('load-button').addEventListener('click', () => {
-        document.getElementById('message').textContent = 'Podešavanja su odbačena!';
-        // Ovde možete dodati logiku za resetovanje formi
-        setTimeout(() => document.getElementById('message').textContent = '', 3000);
-      });
-    });
   </script>
 </body>
 </html>
+
