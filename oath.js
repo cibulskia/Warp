@@ -64,7 +64,7 @@ async function loadCSV(sheetIndex) {
       inputDiv.className = 'input-cell';
       const input = document.createElement('input');
       input.type = 'text';
-      input.placeholder = 'Prijava';
+      input.placeholder = 'Unesi ponudu';
       inputDiv.appendChild(input);
       fragment.appendChild(inputDiv);
 
