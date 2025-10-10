@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Warp Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="oath.js" defer></script>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --secondary-color: #28a745;
+      --accent-color: #6f42c1;
+      --background-light: #f4f7fd;
+      --background-dark: #e0e6f6;
+      --card-background: #ffffff;
+      --text-color-dark: #333333;
+      --text-color-light: #666666;
+      --border-color: #e0e0e0;
+      --shadow-light: rgba(0, 0, 0, 0.08);
+      --shadow-medium: rgba(0, 0, 0, 0.12);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text-color-dark);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      text-align: center;
+      color: var(--text-color-dark);
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    .app-section {
+      background-color: var(--card-background);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px var(--shadow-light);
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 1200px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    .app-section:hover {
+      box-shadow: 0 12px 35px var(--shadow-medium);
+    }
+
+    /* --- Grid i dugmad --- */
+    .sheet-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-buttons button {
+      padding: 12px 25px;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--secondary-color);
+      color: white;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+    }
+
+    .sheet-buttons button:hover {
+      background-color: #218838;
+      transform: translateY(-2px);
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Prilagodljiv grid */
+      gap: 15px;
+      align-items: stretch;
+    }
+
+    .header-cell {
+      font-weight: 600;
+      text-align: center;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+    }
+
+    .cell, .input-cell, .button-cell {
+      background-color: var(--background-dark);
+      padding: 15px;
+      border-radius: 10px;
+      word-break: break-word;
+      border: 1px solid var(--border-color);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 15px;
+      color: var(--text-color-light);
+    }
+
+    .cell a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    .cell a:hover { text-decoration: underline; color: #0056b3; }
+
+    .input-cell {
+      padding: 0;
+      border: none;
+      box-shadow: none;
+      background-color: transparent;
+    }
+
+    .input-cell input {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 15px;
+      box-sizing: border-box;
+      background-color: var(--card-background);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .input-cell input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    }
+
+    .button-cell button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+    }
+
+    .button-cell button:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    /* --- OAuth i leva strana (Data Section) --- */
+    .oauth-app-container {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      width: 100%;
+      max-width: 1200px;
+      box-sizing: border-box;
+      margin-bottom: 50px; /* Dodat margin-bottom za razmak ispod */
+    }
+
+    .data-section {
+      flex: 0 0 350px; /* Fiksna širina za data-section */
+      background-color: var(--card-background);
+      color: var(--text-color-dark);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px var(--shadow-light);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-self: flex-start;
+      transition: all 0.3s ease;
+    }
+
+    .data-section:hover {
+      box-shadow: 0 12px 35px var(--shadow-medium);
+    }
+
+    .data-section h4 {
+      text-align: center;
+      color: var(--primary-color);
+      margin-top: 0;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.2em;
+      transition: color 0.3s ease;
+    }
+
+    .data-section h4:hover {
+      color: #0056b3;
+    }
+
+    .data-field {
+      background-color: var(--background-dark);
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      line-height: 1.6;
+      word-wrap: break-word;
+      max-height: 150px; /* Povećana max-height */
+      overflow-y: auto;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.07);
+      white-space: pre-line;
+      color: var(--text-color-light);
+      transition: all 0.3s ease;
+    }
+
+    .data-field:hover {
+      background-color: #dbe0ed;
+      border-color: var(--primary-color);
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Input i dugmad za korisnička podešavanja */
+    input[type="text"], textarea, select {
+      width: calc(100% - 20px);
+      padding: 12px 15px;
+      margin-bottom: 18px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background-color: var(--background-light);
+      color: var(--text-color-dark);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    }
+
+    textarea { resize: vertical; min-height: 120px; }
+
+    .oauth-app-container .app-section button {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 8px;
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+    }
+
+    .oauth-app-container .app-section button:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    #message {
+      margin-top: 25px;
+      color: var(--primary-color);
+      min-height: 20px;
+      font-weight: 500;
+    }
+    #user-name { font-weight: 700; color: var(--accent-color); }
+    #user-profile-pic {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 20px;
+      border: 3px solid var(--primary-color);
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+    #signout-button {
+      background-color: #dc3545;
+      box-shadow: 0 4px 10px rgba(220, 53, 69, 0.2);
+    }
+    #signout-button:hover { background-color: #c82333; }
+
+    /* Skrivena polja */
+    #input4, #input5 { display: none; }
+
+    /* Google Sign-in Button Styling */
+    .g_id_signin {
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .oauth-app-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+      }
+      .data-section {
+        width: 100%;
+        flex: auto;
+        max-width: 500px; /* Ograniči širinu na manjim ekranima */
+        margin-bottom: 0;
+      }
+      .main-content {
+        width: 100%;
+        max-width: 500px;
+      }
+      .app-section {
+        padding: 30px;
+      }
+      #grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+      .sheet-buttons button { padding: 10px 20px; font-size: 14px; }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 15px; }
+      .app-section { padding: 25px; margin-bottom: 20px; }
+      h1 { font-size: 1.8em; }
+      h2, h3, h4 { font-size: 1.1em; margin-bottom: 15px; }
+      .sheet-buttons { gap: 10px; margin-bottom: 20px; }
+      .sheet-buttons button { padding: 8px 15px; font-size: 13px; }
+      #grid { grid-template-columns: 1fr; } /* Jedna kolona na najmanjim ekranima */
+      .header-cell, .cell, .input-cell, .button-cell { padding: 12px; font-size: 14px; }
+      .data-section { padding: 20px; gap: 10px; }
+      .data-field { max-height: 100px; padding: 15px; font-size: 13px; }
+      input[type="text"], textarea, select { font-size: 14px; padding: 10px 12px; margin-bottom: 15px; }
+      .oauth-app-container .app-section button { padding: 10px 20px; font-size: 15px; margin: 6px; }
+      #user-profile-pic { width: 80px; height: 80px; margin-bottom: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-section">
+    <h1><span style="color: var(--accent-color);">Warp</span> Connect</h1>
+
+    <div class="sheet-buttons">
+      <button data-sheet="0">Hitno</button>
+      <button data-sheet="1">Glodalica</button>
+      <button data-sheet="2">Strug</button>
+      <button data-sheet="3">Strug i<br>Glodalica</button>
+      <button data-sheet="4">Ostali</button>
+    </div>
+
+    <div id="grid"></div>
+  </div>
+
+  <div class="oauth-app-container">
+    <div class="data-section">
+      <h4 class="data-section-title" id="title-current-jobs">Poslovi u toku</h4>
+      <div id="data-field-1" class="data-field"></div>
+      <h4 class="data-section-title" id="title-job-applications">Prijave za posao</h4>
+      <div id="data-field-2" class="data-field"></div>
+      <h4 class="data-section-title" id="title-completed-jobs">Završeni poslovi</h4>
+      <div id="data-field-3" class="data-field"></div>
+      <h4 class="data-section-title" id="title-rejected-jobs">Odbijeni poslovi</h4>
+      <div id="data-field-4" class="data-field"></div>
+    </div>
+
+    <div class="main-content">
+      <div class="app-section">
+        <h1>Korisnička podešavanja</h1>
+
+        <div id="g_id_onload"
+             data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+             data-auto_select="true"
+             data-callback="handleCredentialResponse"
+             data-ux_mode="popup"
+             data-cancel_on_tap_outside="false"
+             data-context="use">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+
+        <div id="app-content" style="display: none;">
+          <img id="user-profile-pic" src="" alt="Profilna slika korisnika" style="display: none;">
+          <p>Dobrodošao, <span id="user-name"></span>!</p>
+
+          <input type="text" id="input1" placeholder="Naziv firme">
+          <input type="text" id="input2" placeholder="Kratak opis firme">
+          <textarea id="large-text-input" placeholder="Detaljan opis firme"></textarea>
+          <input type="text" id="input3" placeholder="Kontakt email">
+          <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
+          <input type="text" id="input5" placeholder="Redovi za sekciju sa podacima (npr. 2, 3, 4, 6)">
+
+          <select id="dropdown-input">
+            <option value="">Odaberite opciju</option>
+            <option value="opcija1">Strug</option>
+            <option value="opcija2">Glodalica</option>
+            <option value="opcija3">Strug i Glodalica</option>
+          </select>
+
+          <button id="save-button">Sačuvaj podešavanja</button>
+          <button id="load-button">Odbaci</button>
+          <p id="message"></p>
+          <button id="signout-button">Odjavi se</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Globalna varijabla za čuvanje preuzetih podataka
+    let sheetsData = [];
+    let currentSheetIndex = 0; // Trenutno aktivni sheet
+
+    // Funkcija za menjanje naslova
+    document.querySelectorAll('.data-section-title').forEach(titleElement => {
+      titleElement.addEventListener('click', function() {
+        const newTitle = prompt("Unesite novi naslov za sekciju:");
+        if (newTitle) {
+          this.innerText = newTitle;
+        }
+      });
+    });
+
+    // Funkcija za renderovanje grida
+    function renderGrid(data) {
+      const gridContainer = document.getElementById('grid');
+      gridContainer.innerHTML = ''; // Očisti prethodni sadržaj
+
+      if (!data || data.length === 0) {
+        gridContainer.innerHTML = '<p style="text-align: center; color: var(--text-color-light);">Nema dostupnih podataka za prikaz.</p>';
+        return;
+      }
+
+      // Kreiranje zaglavlja
+      data[0].forEach(header => {
+        const headerCell = document.createElement('div');
+        headerCell.classList.add('header-cell');
+        headerCell.textContent = header;
+        gridContainer.appendChild(headerCell);
+      });
+
+      // Dinamičko dodavanje kolona za input i dugme ako je potrebno
+      let hasInputColumn = false;
+      let hasButtonColumn = false;
+      if (currentSheetIndex === 0) { // Primer: samo za "Hitno" sheet
+        hasInputColumn = true;
+        hasButtonColumn = true;
+        // Dodaj zaglavlja za input i dugme
+        const inputHeader = document.createElement('div');
+        inputHeader.classList.add('header-cell');
+        inputHeader.textContent = 'Unos';
+        gridContainer.appendChild(inputHeader);
+
+        const buttonHeader = document.createElement('div');
+        buttonHeader.classList.add('header-cell');
+        buttonHeader.textContent = 'Akcija';
+        gridContainer.appendChild(buttonHeader);
+      }
+
+      // Renderovanje redova podataka
+      for (let i = 1; i < data.length; i++) {
+        data[i].forEach(cellData => {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          if (cellData.startsWith('http')) { // Ako je link
+            const link = document.createElement('a');
+            link.href = cellData;
+            link.textContent = 'Link'; // Možete promeniti tekst linka
+            link.target = '_blank';
+            cell.appendChild(link);
+          } else {
+            cell.textContent = cellData;
+          }
+          gridContainer.appendChild(cell);
+        });
+
+        // Dodavanje input polja i dugmeta za specifične sheetove
+        if (hasInputColumn) {
+          const inputCell = document.createElement('div');
+          inputCell.classList.add('input-cell');
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Unesi vrednost';
+          input.dataset.row = i; // Čuvamo indeks reda za kasnije
+          inputCell.appendChild(input);
+          gridContainer.appendChild(inputCell);
+        }
+
+        if (hasButtonColumn) {
+          const buttonCell = document.createElement('div');
+          buttonCell.classList.add('button-cell');
+          const button = document.createElement('button');
+          button.textContent = 'Potvrdi';
+          button.dataset.row = i; // Čuvamo indeks reda za kasnije
+          button.addEventListener('click', (event) => {
+            const row = event.target.dataset.row;
+            const inputValue = gridContainer.querySelector(`.input-cell input[data-row="${row}"]`).value;
+            alert(`Potvrda za red ${row}, unos: ${inputValue}`);
+            // Ovde možete dodati logiku za slanje podataka na server/sheet
+          });
+          buttonCell.appendChild(button);
+          gridContainer.appendChild(buttonCell);
+        }
+      }
+
+      // Prilagodba broja kolona za grid (CSS grid-template-columns)
+      const numColumns = data[0].length + (hasInputColumn ? 1 : 0) + (hasButtonColumn ? 1 : 0);
+      gridContainer.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
+    }
+
+    // Funkcija za preuzimanje CSV podataka (simulacija)
+    async function fetchCSVData(sheetIndex) {
+      // U stvarnoj aplikaciji, ovde bi se vršio poziv ka serveru ili Google Sheets API-ju
+      // Za sada, koristićemo simulirane podatke
+      const mockData = [
+        // Sheet 0: Hitno
+        [
+          ['ID', 'Opis posla', 'Klijent', 'Prioritet', 'Rok'],
+          ['H001', 'Popravka CNC glodalice', 'Metalcom d.o.o.', 'Visok', '2023-11-25'],
+          ['H002', 'Izrada prototipa Strug', 'InovativeTech', 'Srednji', '2023-12-01'],
+          ['H003', 'Kalibracija senzora', 'SmartSystems', 'Visok', '2023-11-28'],
+          ['H004', 'Hitna intervencija', 'AutoIndustrija', 'Najviši', '2023-11-24']
+        ],
+        // Sheet 1: Glodalica
+        [
+          ['ID', 'Tip obrade', 'Materijal', 'Status', 'Datum početka'],
+          ['G001', 'Frezovanje aluminijuma', 'Al 7075', 'U toku', '2023-11-20'],
+          ['G002', 'Bušenje čelika', 'Čelik 45', 'Završeno', '2023-11-15'],
+          ['G003', 'Profilisanje plastike', 'Delrin', 'Na čekanju', '2023-11-27']
+        ],
+        // Sheet 2: Strug
+        [
+          ['ID', 'Dimenzije', 'Tolerancija', 'Radnik', 'Link ka crtežu'],
+          ['S001', 'fi 50 x 100mm', '0.01mm', 'Marko Petrović', 'http://example.com/drawingS001'],
+          ['S002', 'fi 20 x 30mm', '0.005mm', 'Ana Kostić', 'http://example.com/drawingS002']
+        ],
+        // Sheet 3: Strug i Glodalica
+        [
+          ['ID', 'Projekat', 'Faze', 'Komentar', 'Krajnji rok'],
+          ['SG001', 'Komponenta motora', 'Strug, pa glodalica', 'Kompleksan, visoka preciznost', '2023-12-15'],
+          ['SG002', 'Kućište senzora', 'Glodalica, pa strug', 'Potrebna završna obrada', '2023-12-05']
+        ],
+        // Sheet 4: Ostali
+        [
+          ['ID', 'Vrsta', 'Prioritet', 'Dodatne beleške'],
+          ['O001', 'Lasersko sečenje', 'Srednji', 'Zahteva specifičan materijal'],
+          ['O002', 'Zavarivanje', 'Nizak', 'Manji zahvati'],
+          ['O003', 'Montaža', 'Srednji', 'Finalna provera']
+        ]
+      ];
+
+      return new Promise(resolve => {
+        setTimeout(() => { // Simulacija asinhronog poziva
+          sheetsData = mockData; // Učitaj sve mock podatke
+          resolve(mockData[sheetIndex]);
+        }, 300);
+      });
+    }
+
+    // Event listeneri za dugmad za promenu sheeta
+    document.querySelectorAll('.sheet-buttons button').forEach(button => {
+      button.addEventListener('click', async () => {
+        const sheetIndex = parseInt(button.dataset.sheet);
+        currentSheetIndex = sheetIndex;
+        const data = await fetchCSVData(sheetIndex);
+        renderGrid(data);
+
+        // Ažuriraj aktivno dugme
+        document.querySelectorAll('.sheet-buttons button').forEach(btn => btn.style.backgroundColor = 'var(--secondary-color)');
+        button.style.backgroundColor = 'var(--primary-color)'; // Ili neka druga boja za aktivno dugme
+      });
+    });
+
+    // Učitaj početni sheet pri učitavanju stranice (npr. prvi sheet)
+    document.addEventListener('DOMContentLoaded', async () => {
+      const initialData = await fetchCSVData(0); // Učitaj prvi sheet
+      renderGrid(initialData);
+      document.querySelector('.sheet-buttons button[data-sheet="0"]').style.backgroundColor = 'var(--primary-color)'; // Označi ga kao aktivnog
+    });
+
+    // Skripta za korisnička podešavanja (nastavak oath.js funkcionalnosti)
+    document.addEventListener('DOMContentLoaded', function() {
+      const saveButton = document.getElementById('save-button');
+      const loadButton = document.getElementById('load-button');
+      const messageElement = document.getElementById('message');
+      const inputs = {
+        input1: document.getElementById('input1'),
+        input2: document.getElementById('input2'),
+        largeTextInput: document.getElementById('large-text-input'),
+        input3: document.getElementById('input3'),
+        input4: document.getElementById('input4'), // Skriveno polje
+        input5: document.getElementById('input5'), // Skriveno polje
+        dropdownInput: document.getElementById('dropdown-input')
+      };
+
+      // Funkcija za učitavanje sačuvanih podešavanja (simulacija)
+      function loadSettings() {
+        // U stvarnosti, ovde bi se pozivao API da preuzme podatke sa servera/baze
+        const savedSettings = JSON.parse(localStorage.getItem('userSettings')) || {};
+        inputs.input1.value = savedSettings.input1 || '';
+        inputs.input2.value = savedSettings.input2 || '';
+        inputs.largeTextInput.value = savedSettings.largeTextInput || '';
+        inputs.input3.value = savedSettings.input3 || '';
+        inputs.dropdownInput.value = savedSettings.dropdownInput || '';
+        messageElement.textContent = 'Podešavanja su učitana.';
+      }
+
+      // Funkcija za čuvanje podešavanja (simulacija)
+      saveButton.addEventListener('click', function() {
+        const settingsToSave = {
+          input1: inputs.input1.value,
+          input2: inputs.input2.value,
+          largeTextInput: inputs.largeTextInput.value,
+          input3: inputs.input3.value,
+          dropdownInput: inputs.dropdownInput.value
+        };
+        localStorage.setItem('userSettings', JSON.stringify(settingsToSave));
+        messageElement.textContent = 'Podešavanja su sačuvana!';
+        messageElement.style.color = var(--secondary-color);
+        setTimeout(() => messageElement.textContent = '', 3000);
+      });
+
+      loadButton.addEventListener('click', function() {
+        loadSettings();
+        messageElement.style.color = var(--primary-color);
+        setTimeout(() => messageElement.textContent = '', 3000);
+      });
+
+      // Učitaj podešavanja pri inicijalnom prikazu app-content
+      const appContentObserver = new MutationObserver((mutationsList, observer) => {
+          for (const mutation of mutationsList) {
+              if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                  if (document.getElementById('app-content').style.display !== 'none') {
+                      loadSettings();
+                      observer.disconnect(); // Prekini posmatranje nakon što se učita
+                  }
+              }
+          }
+      });
+      appContentObserver.observe(document.getElementById('app-content'), { attributes: true });
+
+      // Inicijalno učitaj ako je već prikazan (npr. nakon refresh-a sa zapamćenim logovanjem)
+      if (document.getElementById('app-content').style.display !== 'none') {
+        loadSettings();
+      }
+    });
+
+  </script>
+</body>
+</html>
