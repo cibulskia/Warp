@@ -94,16 +94,13 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      /* box-shadow: 0 4px 15px rgba(0,0,0,0.2);  UKLONJENO */
-      box-shadow: none; /* DODATO: Uklanja senku */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       text-transform: capitalize; /* Changed to capitalize for first letter only */
-      outline: none;
     }
     .sheet-buttons button:hover {
       background: var(--primary-dark);
       transform: translateY(-2px) scale(1.02);
-      /* box-shadow: 0 6px 20px rgba(0,0,0,0.3); UKLONJENO */
-      box-shadow: none; /* DODATO: Uklanja senku pri hoveru */
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
     /* Grid */
@@ -155,7 +152,7 @@
       font-size: 15px;
       background: var(--input-bg);
       color: var(--text);
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transition: border-color 0.3s ease;
     }
     .input-cell input:focus {
       outline: none;
@@ -174,14 +171,8 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      outline: none;
-      box-shadow: none; /* DODATO: Uklanja senku */
     }
-    .button-cell button:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      box-shadow: none; /* DODATO: Uklanja senku pri hoveru */
-    }
+    .button-cell button:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
     /* Layout OAuth */
     .oauth-app-container {
@@ -280,20 +271,13 @@
       margin: 8px; /* More spacing */
       font-weight: 600;
       transition: all 0.3s ease;
-      /* box-shadow: 0 4px 15px rgba(0,0,0,0.2); UKLONJENO */
-      box-shadow: none; /* DODATO: Uklanja senku */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       text-transform: capitalize; /* Changed to capitalize for first letter only */
-      outline: none;
     }
-    .oauth-app-container button:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      /* box-shadow: 0 6px 20px rgba(0,0,0,0.3); UKLONJENO */
-      box-shadow: none; /* DODATO: Uklanja senku pri hoveru */
-    }
+    .oauth-app-container button:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 
     #signout-button { background: var(--danger); }
-    #signout-button:hover { background: #dc2626; transform: translateY(-2px); box-shadow: none; /* DODATO: Uklanja senku pri hoveru */ }
+    #signout-button:hover { background: #dc2626; transform: translateY(-2px); }
 
     #user-profile-pic {
       width: 100px; /* Slightly larger */
