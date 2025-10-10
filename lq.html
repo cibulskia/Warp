@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WarpP Connect</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="oath.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #fb923c; /* Orange */
+      --primary-dark: #f97316; /* Deeper orange for hover */
+      --accent: #22d3ee; /* Bright cyan */
+      --danger: #ef4444; /* Red */
+      --background: linear-gradient(135deg, #1f2937, #111827, #0f172a); /* Darker, more sophisticated gradient */
+      --surface: #1e293b; /* Darker surface color */
+      --surface-light: #2d3748; /* Slightly lighter surface for distinction */
+      --text: #e2e8f0; /* Light gray text */
+      --text-light: #94a3b8; /* Muted light gray text */
+      --border-color: #334155; /* Darker border color */
+      --radius: 14px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.3); /* More pronounced shadow */
+      --input-bg: #334155; /* Dark input background */
+      --input-border: #475569; /* Dark input border */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--background);
+      min-height: 100vh;
+      padding: 30px;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      animation: fadeIn 1s ease-out;
+    }
+
+    h1,h2,h3,h4 {
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--primary); /* Apply primary color to headers */
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+    }
+
+    h1 { font-size: 32px; margin-bottom: 25px; text-align: center; }
+    h4 { font-size: 18px; color: var(--text); }
+
+    /* Animacija fade */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Kartice */
+    .app-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 35px;
+      width: 100%;
+      max-width: 1300px;
+      margin: auto;
+      animation: fadeIn 0.8s ease-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid var(--border-color); /* Subtle border */
+    }
+    .app-section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    /* Dugmad za sheet */
+    .sheet-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .sheet-buttons button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 25px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+    }
+    .sheet-buttons button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    /* Grid */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 16px;
+    }
+
+    .header-cell {
+      font-weight: bold;
+      text-align: center;
+      background: var(--primary);
+      color: white;
+      padding: 16px;
+      border-radius: 10px;
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+      letter-spacing: 0.8px;
+    }
+
+    .cell, .input-cell, .button-cell {
+      background: var(--surface-light);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      color: var(--text-light);
+    }
+    .cell:hover { background: #3c495c; /* Slightly lighter on hover */ transform: translateY(-2px); }
+
+    .cell a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .cell a:hover { text-decoration: underline; }
+
+    .input-cell { padding: 0; border: none; background: transparent; box-shadow: none; }
+    .input-cell input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--input-border);
+      font-size: 15px;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: border-color 0.3s ease;
+    }
+    .input-cell input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
+    }
+
+    .button-cell button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .button-cell button:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+    /* Layout OAuth */
+    .oauth-app-container {
+      display: flex;
+      gap: 30px;
+      max-width: 1300px;
+      margin: auto;
+      width: 100%;
+      animation: fadeIn 1s ease-out;
+    }
+
+    .data-section {
+      flex: 0 0 320px; /* Slightly wider */
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .data-section h4 {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.3s ease;
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+    }
+    .data-section h4:hover { color: var(--accent); }
+
+
+    .data-field {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      max-height: 160px; /* Slightly taller */
+      overflow-y: auto;
+      white-space: pre-line;
+      color: var(--text-light);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .main-content .app-section {
+      width: 100%;
+      max-width: none;
+      text-align: center;
+      padding: 35px; /* Consistent padding */
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 18px; /* More spacing */
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-size: 16px;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
+    }
+    select {
+      appearance: none; /* Remove default arrow */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1em center;
+      background-size: 1.2em;
+    }
+
+    textarea { resize: vertical; min-height: 120px; }
+
+    .oauth-app-container button {
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 8px; /* More spacing */
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-transform: capitalize; /* Changed to capitalize for first letter only */
+    }
+    .oauth-app-container button:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+
+    #signout-button { background: var(--danger); }
+    #signout-button:hover { background: #dc2626; transform: translateY(-2px); }
+
+    #user-profile-pic {
+      width: 100px; /* Slightly larger */
+      height: 100px;
+      border-radius: 50%;
+      margin-bottom: 20px;
+      border: 4px solid var(--accent); /* Accent border */
+      object-fit: cover;
+      box-shadow: 0 0 0 5px rgba(34, 211, 238, 0.2); /* Halo effect */
+    }
+
+    #message { margin-top: 15px; color: var(--text-light); font-size: 14px; }
+
+    /* Skrivena polja */
+    #input4, #input5 { display: none; }
+
+    @media (max-width: 900px) {
+      #grid { grid-template-columns: repeat(1, 1fr); }
+      .oauth-app-container { flex-direction: column; }
+      .data-section { width: 100%; }
+      body { padding: 20px; }
+      .app-section, .data-section { padding: 25px; }
+      h1 { font-size: 26px; }
+      .sheet-buttons button { padding: 10px 18px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-section">
+    <h1>Warp connect</h1>
+    <div class="sheet-buttons">
+      <button data-sheet="0">Hitno</button>
+      <button data-sheet="1">Glodalica</button>
+      <button data-sheet="2">Strug</button>
+      <button data-sheet="3">Strug + glodalica</button>
+      <button data-sheet="4">Ostali</button>
+    </div>
+    <div id="grid"></div>
+  </div>
+
+  <div class="oauth-app-container">
+    <div class="data-section">
+      <h4 onclick="changeTitle(this)">Poslovi u toku</h4>
+      <div id="data-field-1" class="data-field"></div>
+      <h4 onclick="changeTitle(this)">Prijave za posao</h4>
+      <div id="data-field-2" class="data-field"></div>
+      <h4 onclick="changeTitle(this)">Završeni poslovi</h4>
+      <div id="data-field-3" class="data-field"></div>
+      <h4 onclick="changeTitle(this)">Odbijeni poslovi</h4>
+      <div id="data-field-4" class="data-field"></div>
+    </div>
+
+    <div class="main-content">
+      <div class="app-section">
+        <h1>Korisnička podešavanja</h1>
+        <div id="g_id_onload"
+             data-client_id="252373158568-4up41b7jo8ik6cu8c1pl3mlvvck2sq2t.apps.googleusercontent.com"
+             data-auto_select="true"
+             data-callback="handleCredentialResponse"
+             data-ux_mode="popup"
+             data-cancel_on_tap_outside="false"
+             data-context="use"></div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left"></div>
+
+        <div id="app-content" style="display: none;">
+          <img id="user-profile-pic" src="" alt="Profilna slika korisnika" style="display: none;">
+          <p style="margin-bottom: 20px; font-size: 18px;">Dobrodošao, <span id="user-name" style="font-weight: 600; color: var(--primary);"></span>!</p>
+          <input type="text" id="input1" placeholder="Naziv firme">
+          <input type="text" id="input2" placeholder="Kratak opis firme">
+          <textarea id="large-text-input" placeholder="Detaljan opis firme"></textarea>
+          <input type="text" id="input3" placeholder="Kontakt email">
+          <input type="text" id="input4" placeholder="Zbirni unos CSV tabele">
+          <input type="text" id="input5" placeholder="Redovi za sektor podataka (npr. 2,3,4,6)">
+          <select id="dropdown-input">
+            <option value="">Odaberite opciju</option>
+            <option value="opcija1">Strug</option>
+            <option value="opcija2">Glodalica</option>
+            <option value="opcija3">Strug i glodalica</option>
+          </select>
+          <button id="save-button">Sačuvaj podešavanja</button>
+          <button id="load-button">Odbaci</button>
+          <p id="message"></p>
+          <button id="signout-button">Odjavi se</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function changeTitle(element) {
+      const newTitle = prompt("Unesite novi naslov:");
+      if (newTitle) element.innerText = newTitle.charAt(0).toUpperCase() + newTitle.slice(1).toLowerCase();
+    }
+    // You'll need to add your JavaScript logic for handling the sheet buttons,
+    // Google OAuth (handleCredentialResponse), and saving/loading settings
+    // in your 'oath.js' file as you had originally intended.
+  </script>
+</body>
+</html>
