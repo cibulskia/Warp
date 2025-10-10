@@ -91,13 +91,18 @@
     .cell a:hover { text-decoration: underline; }
 
     .input-cell input {
-      width: 100%;
-      padding: 12px;               /* isto kao ćelije */
-      border-radius: 8px;          /* isto kao ćelije */
-      border: 1px solid #ddd;      /* ista ivica */
-      background-color: #f8f9fa;   /* siva */
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
       font-size: 14px;
+      line-height: normal;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+      width: 100%;
+      height: 100%;
       box-sizing: border-box;
     }
 
