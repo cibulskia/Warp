@@ -131,6 +131,11 @@
       letter-spacing: 0.8px;
     }
 
+    /* Dodaj klasu za skrivanje prvog reda na mobilnim uređajima */
+    .grid-row-1 .header-cell {
+        /* Ovo je prvi red zaglavlja, sakri ga na mobilnom */
+    }
+
     .cell, .input-cell{
       background: var(--surface-light);
       border: 1px solid var(--border-color);
@@ -314,13 +319,21 @@
     #input4, #input5 { display: none; }
 
     @media (max-width: 900px) {
-      #grid { grid-template-columns: repeat(1, 1fr); }
+      #grid { 
+        grid-template-columns: repeat(1, 1fr); 
+        gap: 40px; /* Povećan razmak između redova na mobilnim uređajima */
+      }
       .oauth-app-container { flex-direction: column; }
       .data-section { width: 100%; }
       body { padding: 20px; }
       .app-section, .data-section { padding: 25px; }
       h1 { font-size: 26px; }
       .sheet-buttons button { padding: 10px 18px; font-size: 14px; }
+
+      /* NOVO: Sakrij prvi red (zaglavlja) unutar #grid na mobilnim uređajima */
+      #grid > *:nth-child(-n+7) { /* Ovo cilja prvih 7 elemenata unutar grida, što su zaglavlja */
+        display: none;
+      }
     }
   </style>
 </head>
@@ -334,7 +347,15 @@
       <button data-sheet="3"><i class="fas fa-gear"></i> Strug + Glodalica</button>
       <button data-sheet="4"><i class="fas fa-ellipsis-h"></i> Ostalo</button>
     </div>
-    <div id="grid"></div>
+    <div id="grid">
+      <!-- Opciono: ovde možete dodati HTML za zaglavlja ako želite da budu renderovana
+           ali skrivena CSS-om, što je obično bolje za pristupačnost.
+           Za svrhu demonstracije, pretpostavljam da će zaglavlja biti dinamički dodata JS-om.
+           Ako su zaglavlja statična, obavezno ih omotajte u neki div sa klasom
+           kako biste ih mogli sakriti preko CSS-a, npr. <div class="grid-header-row">...</div>
+           Ili, kao što sam uradio, ciljati ih sa nth-child direktno unutar #grid.
+      -->
+    </div>
   </div>
 
   <div class="oauth-app-container">
@@ -417,6 +438,37 @@
     // You'll need to add your JavaScript logic for handling the sheet buttons,
     // Google OAuth (handleCredentialResponse), and saving/loading settings
     // in your 'oath.js' file as you had originally intended.
+
+    // Primer kako biste dodali zaglavlja u grid (ovo bi obično došlo iz oath.js ili slično)
+    // Samo za testiranje da vidite kako funkcioniše skrivanje
+    window.onload = function() {
+      const grid = document.getElementById('grid');
+      const headers = ['Naziv', 'Opis', 'Datum', 'Status', 'Cena', 'Link', 'Akcija'];
+      headers.forEach(headerText => {
+        const headerCell = document.createElement('div');
+        headerCell.className = 'header-cell';
+        headerCell.innerText = headerText;
+        grid.appendChild(headerCell);
+      });
+
+      // Primer dodavanja nekih podataka (obično bi ovo došlo iz CSV-a)
+      for (let i = 0; i < 3; i++) { // Tri reda podataka
+        const data = ['Proizvod A', 'Detalji A', '2023-10-26', 'Aktivan', '100$', '<a href="#">View</a>', '<button>Edit</button>'];
+        data.forEach((item, index) => {
+          const cell = document.createElement('div');
+          cell.className = (index === 5 ? '' : 'cell') + (index === 6 ? ' button-cell' : ''); // Linkovi i dugmad
+          if (index === 5) { // Link
+            cell.innerHTML = item;
+            cell.className += ' cell'; // Dodaj cell klasu i za link
+          } else if (index === 6) { // Dugme
+            cell.innerHTML = item;
+          } else {
+            cell.innerText = item;
+          }
+          grid.appendChild(cell);
+        });
+      }
+    };
   </script>
 </body>
 </html>
