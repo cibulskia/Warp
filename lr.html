@@ -123,7 +123,7 @@
       letter-spacing: 0.8px;
     }
 
-    .cell, .input-cell, .button-cell {
+    .cell, .input-cell{
       background: var(--surface-light);
       border: 1px solid var(--border-color);
       border-radius: 12px;
@@ -136,6 +136,12 @@
     }
     .cell:hover { background: #3c495c; /* Slightly lighter on hover */ transform: translateY(-2px); }
 
+    .button-cell {
+      padding: 0; /* uklanja višak prostora */
+      justify-content: center; /* centriranje dugmeta horizontalno */
+      align-items: center;     /* centriranje dugmeta vertikalno */
+    }
+        
     .cell a {
       color: var(--accent);
       font-weight: 600;
