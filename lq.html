@@ -75,34 +75,32 @@
       box-shadow: 0 15px 35px rgba(0,0,0,0.4);
     }
 
-    /* Dugmad za sheet */
-    .sheet-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
+/* Dugmad za sheet */
+.sheet-buttons button {
+  background: var(--primary);
+  color: white;
+  border: none;          /* nema ivice */
+  outline: none;         /* nema plavog okvira kad je dugme fokusirano */
+  border-radius: 10px;
+  padding: 12px 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* senka ostaje */
+  text-transform: capitalize;
+}
 
-    .sheet-buttons button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 25px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-transform: capitalize; /* Changed to capitalize for first letter only */
-    }
-    .sheet-buttons button:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
+.sheet-buttons button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
 
+.sheet-buttons button:focus {
+  outline: none;   /* dodatna garancija da fokus okvir ne postoji */
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3); /* zadrži samo hover senku */
+}
     /* Grid */
     #grid {
       display: grid;
