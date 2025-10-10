@@ -126,13 +126,13 @@
       background: var(--surface-light);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 8px 16px; /* Smanjena visina paddinga */
+      padding: 5px 16px; /* Smanjena visina paddinga još više */
       font-size: 15px;
       display: flex;
       align-items: center;
       transition: all 0.3s ease;
       color: var(--text-light);
-      min-height: 45px; /* Dodata minimalna visina */
+      min-height: 38px; /* Smanjena minimalna visina */
     }
     .cell:hover { background: #3c495c; /* Slightly lighter on hover */ transform: translateY(-2px); }
 
@@ -160,21 +160,23 @@
       box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
     }
 
+    /* Stilovi za button-cell su vraćeni na originalno ispravno stanje */
     .button-cell {
-      background: var(--surface-light); /* Vraćena pozadina za .button-cell */
-      border: 1px solid var(--border-color); /* Vraćen border za .button-cell */
-      border-radius: 12px; /* Vraćen border-radius za .button-cell */
-      padding: 16px; /* Vraćen padding za .button-cell */
-      display: flex; /* Vraćen display flex za .button-cell */
-      align-items: center; /* Vraćen align-items za .button-cell */
-      transition: all 0.3s ease; /* Vraćen transition za .button-cell */
+      background: var(--surface-light);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      color: var(--text-light);
     }
-
     .button-cell button {
       width: 100%;
       padding: 12px;
       border-radius: 10px;
-      border: none; /* Dugme unutar ćelije nema svoj border */
+      border: none;
       background: var(--primary);
       color: white;
       font-size: 15px;
