@@ -103,48 +103,50 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
-/* Grid */
-#grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px; /* smanjeno razmicanje */
-  align-items: start; /* da se sadržaj ne razvlači po visini */
-}
-
-.header-cell {
-  font-weight: bold;
-  text-align: center;
-  background: var(--primary);
-  color: white;
-  padding: 10px; /* smanjeno sa 16px */
-  border-radius: 8px;
-  font-size: 14px; /* manji font */
-}
-
-.cell, .input-cell, .button-cell {
-  background: var(--surface-light);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px; /* smanjeno sa 16px */
-  font-size: 13px; /* kompaktniji font */
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  line-height: 1.3; /* gušće linije */
-  min-height: 40px; /* kontrola minimalne visine */
-}
-
-.cell:hover {
-  background: #3c495c;
-  transform: translateY(-2px);
-}
+    /* Grid */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px; /* smanjeno razmicanje */
+      align-items: start; /* da se sadržaj ne razvlači po visini */
+    }
+    
+    .header-cell {
+      font-weight: bold;
+      text-align: center;
+      background: var(--primary);
+      color: white;
+      padding: 10px; /* smanjeno sa 16px */
+      border-radius: 8px;
+      font-size: 14px; /* manji font */
+    }
+    
+    .cell, .input-cell, .button-cell {
+      background: var(--surface-light);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px; /* smanjeno sa 16px */
+      font-size: 13px; /* kompaktniji font */
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      line-height: 1.3; /* gušće linije */
+      min-height: 40px; /* kontrola minimalne visine */
+    }
+    
+    .cell:hover {
+      background: #3c495c;
+      transform: translateY(-2px);
+    }
     .cell a {
       color: var(--accent);
       font-weight: 600;
       text-decoration: none;
     }
-    .cell a:hover { text-decoration: underline; }
-
+    .cell:hover {
+      background: #3c495c;
+      transform: translateY(-2px);
+    }
     .input-cell { padding: 0; border: none; background: transparent; box-shadow: none; }
     .input-cell input {
       width: 100%;
