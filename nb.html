@@ -58,16 +58,9 @@
     }
     @media (min-width:900px){
       .columns{
-        flex-direction: row;
-        align-items: flex-start;
+        flex-direction:row;
+        align-items:flex-start;
       }
-    }
-    
-    @media (max-width:899px){
-      .columns{
-        flex-direction: column-reverse; /* samo mobilni */
-      }
-    }
       .col{
         flex:1;
       }
@@ -75,6 +68,13 @@
         max-width:380px;
       }
     }
+    /* DODATO — za mobilni prikaz obrće redosled sekcija */
+    @media (max-width:899px){
+      .columns{
+        flex-direction:column-reverse;
+      }
+    }
+
     .feed{
       display:flex;
       flex-direction:column;
@@ -120,6 +120,31 @@
       color:#b00020;
       font-size:14px;
     }
+
+    /* 🖼️ DODATO — za drugu sekciju (mala slika u tekstu) */
+    #feed2 .post {
+      display:block; /* tekst teče oko slike */
+    }
+    #feed2 .post .image {
+      float:left;
+      width:120px;
+      margin-right:12px;
+      margin-bottom:6px;
+    }
+    #feed2 .post img {
+      width:100%;
+      height:auto;
+      border-radius:8px;
+    }
+    /* Mobilni — slika ide iznad teksta */
+    @media (max-width:600px){
+      #feed2 .post .image {
+        float:none;
+        display:block;
+        width:100%;
+        margin:0 0 10px 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -130,17 +155,17 @@
     </header>
 
     <main>
-  <div class="columns">
-    <div class="col narrow">
-      <h2>druga sekcija</h2>
-      <div id="feed2" class="feed"></div>
-    </div>
+      <div class="columns">
+        <div class="col narrow">
+          <h2>druga sekcija</h2>
+          <div id="feed2" class="feed"></div>
+        </div>
 
-    <div class="col">
-      <h2>prva sekcija</h2>
-      <div id="feed1" class="feed"></div>
-    </div>
-  </div>
+        <div class="col">
+          <h2>prva sekcija</h2>
+          <div id="feed1" class="feed"></div>
+        </div>
+      </div>
 
       <div id="error" class="error" role="status" style="display:none;margin-top:12px"></div>
     </main>
