@@ -64,8 +64,9 @@
                 data = data.filter(row => row[0]); // samo kolona A
                 data.reverse(); // od poslednjeg ka prvom
                 const sidebar = document.getElementById("sidebar");
-                
-                data.forEach(row => {
+                const main = document.getElementById("main");
+
+                data.forEach((row, index) => {
                     const videoUrl = row[0];
                     const videoIdMatch = videoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
                     if (!videoIdMatch) return; // preskoči ako nije validan
@@ -79,15 +80,15 @@
 
                     const title = document.createElement("div");
                     title.className = "title";
-                    title.textContent = `Video: ${videoId}`; // za sada ID, kasnije možeš zameniti pravim naslovom
+                    title.textContent = `Video: ${videoId}`;
 
                     videoItem.appendChild(thumbnail);
                     videoItem.appendChild(title);
 
                     videoItem.addEventListener("click", () => {
-                        document.getElementById("main").innerHTML = `
+                        main.innerHTML = `
                             <iframe width="800" height="450" 
-                            src="https://www.youtube.com/embed/${videoId}?controls=1" 
+                            src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
                             title="YouTube video player" frameborder="0" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                             allowfullscreen></iframe>
@@ -95,6 +96,11 @@
                     });
 
                     sidebar.appendChild(videoItem);
+
+                    // Otvori prvi video automatski
+                    if(index === 0) {
+                        videoItem.click();
+                    }
                 });
             }
         });
