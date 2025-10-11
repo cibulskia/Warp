@@ -51,7 +51,6 @@
       flex-direction:column;
       gap:var(--gap);
     }
-    /* Dve kolone */
     .columns{
       display:flex;
       flex-direction:column;
@@ -125,13 +124,11 @@
 
     <main>
       <div class="columns">
-        <!-- Leva sekcija (C,D,E) -->
         <div class="col narrow">
           <h2 style="font-size:17px;margin:0 0 8px 0;">Druga sekcija</h2>
           <div id="feed2" class="feed"></div>
         </div>
 
-        <!-- Desna sekcija (A,B) -->
         <div class="col">
           <h2 style="font-size:17px;margin:0 0 8px 0;">Prva sekcija</h2>
           <div id="feed1" class="feed"></div>
@@ -163,16 +160,9 @@
     }
 
     function createImageElement(raw){
+      if(!raw) return null;
       const imgWrap = document.createElement('div');
       imgWrap.className = 'image';
-      if(!raw){
-        const p = document.createElement('div');
-        p.style.color = '#888';
-        p.style.fontSize = '13px';
-        p.textContent = 'Nema slike.';
-        imgWrap.appendChild(p);
-        return imgWrap;
-      }
       if(containsImgTag(raw)){
         const src = extractSrcFromImgTag(raw);
         if(src){
@@ -193,11 +183,7 @@
           img.loading = 'lazy';
           imgWrap.appendChild(img);
         } else {
-          const p = document.createElement('div');
-          p.style.color = '#888';
-          p.style.fontSize = '13px';
-          p.textContent = 'Nepravilan format slike: ' + raw;
-          imgWrap.appendChild(p);
+          return null;
         }
       }
       return imgWrap;
@@ -206,8 +192,8 @@
     function renderPostA(imageCell, textCell, index){
       const post = document.createElement('article');
       post.className = 'post';
-      post.appendChild(createImageElement(imageCell));
-
+      const imgEl = createImageElement(imageCell);
+      if(imgEl) post.appendChild(imgEl);
       const textDiv = document.createElement('div');
       textDiv.className = 'text';
       textDiv.textContent = (textCell || '').toString().trim();
@@ -218,13 +204,12 @@
     function renderPostB(imageCell, textCell, linkCell, index){
       const post = document.createElement('article');
       post.className = 'post';
-      post.appendChild(createImageElement(imageCell));
-
+      const imgEl = createImageElement(imageCell);
+      if(imgEl) post.appendChild(imgEl);
       const textDiv = document.createElement('div');
       textDiv.className = 'text';
       textDiv.textContent = (textCell || '').toString().trim();
       post.appendChild(textDiv);
-
       const linkRaw = (linkCell || '').toString().trim();
       if(linkRaw){
         const a = document.createElement('a');
@@ -235,7 +220,6 @@
         a.textContent = 'link';
         post.appendChild(a);
       }
-
       feed2.appendChild(post);
     }
 
@@ -244,14 +228,9 @@
         statusEl.textContent = 'Preuzimam CSV...';
         const resp = await fetch(csvUrl, {cache: "no-store"});
         if(!resp.ok) throw new Error('HTTP ' + resp.status);
-
         const csvText = await resp.text();
         statusEl.textContent = 'Parsiram CSV...';
-
-        const parsed = Papa.parse(csvText, {
-          header:false,
-          skipEmptyLines:true,
-        });
+        const parsed = Papa.parse(csvText, { header:false, skipEmptyLines:true });
         const rows = parsed.data || [];
         if(rows.length===0){
           statusEl.textContent = 'Nema podataka';
@@ -259,14 +238,12 @@
           errorEl.textContent='CSV je prazan.';
           return;
         }
-
-        statusEl.textContent = 'Prikazujem ' + rows.length + ' redova';
+        statusEl.textContent = ''; // nema prikaza broja redova
         rows.forEach((row,i)=>{
           const a=row[0]||'', b=row[1]||'', c=row[2]||'', d=row[3]||'', e=row[4]||'';
           renderPostA(a,b,i);
           renderPostB(c,d,e,i);
         });
-
       } catch(err){
         console.error(err);
         statusEl.textContent='Greška';
