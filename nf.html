@@ -5,75 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Video Lista iz Google Spreadsheet</title>
 <style>
-    /* --- OSNOVNI STIL --- */
     body {
         margin: 0;
-        font-family: "Segoe UI", Arial, sans-serif;
+        font-family: Arial, sans-serif;
+        background: #f4f4f8;
         display: flex;
+        justify-content: center;
+        align-items: center;
         height: 100vh;
-        background-color: #f7f7f9;
-        color: #333;
+        padding: 10px;
+        box-sizing: border-box;
     }
 
-    /* --- SIDEBAR --- */
+    .container {
+        display: flex;
+        width: 95%;
+        height: 95vh;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        overflow: hidden;
+    }
+
     #sidebar {
         width: 320px;
         overflow-y: auto;
         border-right: 1px solid #ddd;
         padding: 15px;
         box-sizing: border-box;
-        background-color: #fff;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        background: #fafafa;
     }
 
-    #sidebar h2 {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0 0 15px 0;
-        text-align: center;
-        color: #555;
-    }
-
-    .video-item {
+    #sidebar .video-item {
         display: flex;
         flex-direction: column;
+        margin-bottom: 15px;
+        cursor: pointer;
         border-radius: 8px;
         overflow: hidden;
-        margin-bottom: 15px;
-        background-color: #fafafa;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
-    .video-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    #sidebar .video-item:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     }
 
-    .video-item img {
+    #sidebar img {
         width: 100%;
         height: auto;
         display: block;
     }
 
-    .video-item .title {
+    #sidebar .title {
         font-size: 14px;
-        padding: 10px;
+        margin: 8px;
         color: #333;
-        text-align: center;
-        font-weight: 500;
-        background-color: #fff;
     }
 
-    /* --- GLAVNI VIDEO --- */
     #main {
         flex-grow: 1;
         display: flex;
         justify-content: center;
         align-items: center;
+        background: #000;
         position: relative;
-        background-color: #000;
     }
 
     #main iframe {
@@ -85,30 +83,26 @@
         border: 0;
     }
 
-    /* --- SCROLLBAR --- */
+    /* Scrollbar */
     #sidebar::-webkit-scrollbar {
         width: 8px;
     }
-
     #sidebar::-webkit-scrollbar-thumb {
-        background: #ccc;
+        background-color: rgba(0,0,0,0.2);
         border-radius: 4px;
     }
-
-    #sidebar::-webkit-scrollbar-thumb:hover {
-        background: #aaa;
-    }
-
 </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <h2>Lista videa</h2>
-</div>
+<div class="container">
+    <div id="sidebar">
+        <!-- Lista videa će se učitati ovde -->
+    </div>
 
-<div id="main">
-    <!-- Video iframe -->
+    <div id="main">
+        <!-- Video iframe -->
+    </div>
 </div>
 
 <!-- PapaParse za CSV parsiranje -->
@@ -120,34 +114,34 @@ Papa.parse(sheetUrl, {
     download: true,
     header: false,
     complete: function(results) {
-        let data = results.data.filter(row => row[0]); // samo kolona A
-        if(data.length === 0) return;
+        let data = results.data.filter(row => row[0]);
+        if (data.length === 0) return;
 
         const sidebar = document.getElementById("sidebar");
         const main = document.getElementById("main");
 
-        // Placeholder video iz A1
-        const placeholderVideoUrl = data[0][0];
-        const placeholderIdMatch = placeholderVideoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
-        if(placeholderIdMatch) {
-            const placeholderVideoId = placeholderIdMatch[1];
+        // Prvi video kao početni prikaz
+        const firstVideoUrl = data[0][0];
+        const firstMatch = firstVideoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (firstMatch) {
+            const firstId = firstMatch[1];
             main.innerHTML = `
                 <iframe 
-                src="https://www.youtube.com/embed/${placeholderVideoId}?autoplay=1&controls=1" 
+                src="https://www.youtube.com/embed/${firstId}?autoplay=1&controls=1" 
                 title="YouTube video player" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                 allowfullscreen></iframe>
             `;
         }
 
-        // Lista ostalih videa obrnuto, ali preskoči A1
-        const restData = data.slice(1).reverse();
+        // Ostali videi obrnuto, bez prvog
+        const rest = data.slice(1).reverse();
 
-        restData.forEach((row, index) => {
+        rest.forEach((row) => {
             const videoUrl = row[0];
-            const videoIdMatch = videoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
-            if (!videoIdMatch) return;
-            const videoId = videoIdMatch[1];
+            const match = videoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (!match) return;
+            const videoId = match[1];
 
             const videoItem = document.createElement("div");
             videoItem.className = "video-item";
@@ -157,7 +151,7 @@ Papa.parse(sheetUrl, {
 
             const title = document.createElement("div");
             title.className = "title";
-            title.textContent = `Video ${restData.length - index}`;
+            title.textContent = `Video: ${videoId}`;
 
             videoItem.appendChild(thumbnail);
             videoItem.appendChild(title);
@@ -180,3 +174,4 @@ Papa.parse(sheetUrl, {
 
 </body>
 </html>
+
