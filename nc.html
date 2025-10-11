@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dve sekcije prikaza</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <style>
+    :root{
+      --bg:#f7f7f8;
+      --card:#ffffff;
+      --muted:#6b6b6b;
+      --accent:#222;
+      --radius:12px;
+      --gap:18px;
+      --maxw:1200px;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:var(--accent);
+      display:flex;
+      justify-content:center;
+      padding:28px 16px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+    header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    header h1{
+      font-size:20px;
+      margin:0;
+    }
+    #status{
+      margin-left:auto;
+      font-size:13px;
+      color:var(--muted);
+    }
+    main{
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+    .columns{
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+    @media (min-width:900px){
+      .columns{
+        flex-direction:row;
+        align-items:flex-start;
+      }
+      .col{
+        flex:1;
+      }
+      .col.narrow{
+        max-width:380px;
+      }
+    }
+    /* DODATO — za mobilni prikaz obrće redosled sekcija */
+    @media (max-width:899px){
+      .columns{
+        flex-direction:column-reverse;
+      }
+    }
+
+    .feed{
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+    .post{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:0 4px 18px rgba(20,20,30,0.06);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .post .image{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .post img{
+      max-width:100%;
+      height:auto;
+      border-radius:8px;
+      display:block;
+    }
+    .post .text{
+      font-size:15px;
+      line-height:1.45;
+      color:var(--accent);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .post .link{
+      font-size:14px;
+      color:#0066cc;
+      text-decoration:none;
+    }
+    .post .link:hover{
+      text-decoration:underline;
+    }
+    .error{
+      color:#b00020;
+      font-size:14px;
+    }
+
+    /* 🖼️ DODATO — za drugu sekciju (mala slika u tekstu + naslov) */
+    #feed2 .post {
+      display:block; /* tekst teče oko slike */
+    }
+    #feed2 .post .image {
+      float:left;
+      width:120px;
+      margin-right:12px;
+      margin-bottom:6px;
+    }
+    #feed2 .post img {
+      width:100%;
+      height:auto;
+      border-radius:8px;
+    }
+    #feed2 .post .title {
+      font-weight:bold;
+      font-size:16px;
+      margin-bottom:6px;
+    }
+    @media (max-width:600px){
+      #feed2 .post .image {
+        float:none;
+        display:block;
+        width:100%;
+        margin:0 0 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Prikaz iz dve sekcije</h1>
+      <div id="status">Učitavanje...</div>
+    </header>
+
+    <main>
+      <div class="columns">
+        <div class="col narrow">
+          <h2>druga sekcija</h2>
+          <div id="feed2" class="feed"></div>
+        </div>
+
+        <div class="col">
+          <h2>prva sekcija</h2>
+          <div id="feed1" class="feed"></div>
+        </div>
+      </div>
+
+      <div id="error" class="error" role="status" style="display:none;margin-top:12px"></div>
+    </main>
+  </div>
+
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
+
+    const statusEl = document.getElementById('status');
+    const feed1 = document.getElementById('feed1');
+    const feed2 = document.getElementById('feed2');
+    const errorEl = document.getElementById('error');
+
+    function containsImgTag(str){
+      return /<img\s[^>]*>/i.test(str);
+    }
+    function extractSrcFromImgTag(tag){
+      try {
+        const match = tag.match(/src=(["'])(.*?)\1/i);
+        return match ? match[2] : null;
+      } catch(e){
+        return null;
+      }
+    }
+
+    function createImageElement(raw){
+      if(!raw) return null;
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'image';
+      if(containsImgTag(raw)){
+        const src = extractSrcFromImgTag(raw);
+        if(src){
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          img.loading = 'lazy';
+          imgWrap.appendChild(img);
+        } else {
+          imgWrap.innerHTML = raw;
+        }
+      } else {
+        const urlMatch = raw.match(/https?:\/\/[^\s"']+/i);
+        if(urlMatch){
+          const img = document.createElement('img');
+          img.src = urlMatch[0];
+          img.alt = '';
+          img.loading = 'lazy';
+          imgWrap.appendChild(img);
+        } else {
+          return null;
+        }
+      }
+      return imgWrap;
+    }
+
+    function renderPostA(imageCell, textCell, index){
+      const post = document.createElement('article');
+      post.className = 'post';
+      const imgEl = createImageElement(imageCell);
+      if(imgEl) post.appendChild(imgEl);
+      const textDiv = document.createElement('div');
+      textDiv.className = 'text';
+      textDiv.textContent = (textCell || '').toString().trim();
+      post.appendChild(textDiv);
+      feed1.appendChild(post);
+    }
+
+    function renderPostB(imageCell, textCell, linkCell, titleCell, index){
+      const post = document.createElement('article');
+      post.className = 'post';
+      
+      const linkUrl = (linkCell || '').toString().trim();
+      
+      // Slika
+      const imgEl = createImageElement(imageCell);
+      if(imgEl && linkUrl){
+        const aImg = document.createElement('a');
+        aImg.href = linkUrl;
+        aImg.appendChild(imgEl);
+        post.appendChild(aImg);
+      } else if(imgEl){
+        post.appendChild(imgEl);
+      }
+      
+      // Naslov
+      const titleText = (titleCell || '').toString().trim();
+      if(titleText){
+        const aTitle = document.createElement('a');
+        aTitle.href = linkUrl || '#';
+        aTitle.className = 'title';
+        aTitle.textContent = titleText;
+        post.appendChild(aTitle);
+      }
+      
+      // Tekst
+      const textDiv = document.createElement('div');
+      textDiv.className = 'text';
+      textDiv.textContent = (textCell || '').toString().trim();
+      post.appendChild(textDiv);
+      
+      feed2.appendChild(post);
+    }
+
+    (async function(){
+      try {
+        statusEl.textContent = 'Preuzimam CSV...';
+        const resp = await fetch(csvUrl, {cache: "no-store"});
+        if(!resp.ok) throw new Error('HTTP ' + resp.status);
+        const csvText = await resp.text();
+        statusEl.textContent = 'Parsiram CSV...';
+        const parsed = Papa.parse(csvText, { header:false, skipEmptyLines:true });
+        const rows = parsed.data || [];
+        if(rows.length===0){
+          statusEl.textContent = 'Nema podataka';
+          errorEl.style.display='block';
+          errorEl.textContent='CSV je prazan.';
+          return;
+        }
+        statusEl.textContent = '';
+        rows.forEach((row,i)=>{
+          const a=row[0]||'', b=row[1]||'', c=row[2]||'', d=row[3]||'', e=row[4]||'', f=row[5]||'';
+          renderPostA(a,b,i);
+          renderPostB(c,d,e,f,i);
+        });
+      } catch(err){
+        console.error(err);
+        statusEl.textContent='Greška';
+        errorEl.style.display='block';
+        errorEl.textContent='Greška pri učitavanju: ' + err.message;
+      }
+    })();
+  </script>
+</body>
+</html>
