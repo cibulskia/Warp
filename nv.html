@@ -12,274 +12,260 @@ body {
     display: flex;
     justify-content: center;
     align-items: stretch;
-    min-height: 100vh; /* Ensure body takes at least full viewport height */
 }
+
 .social-link {
-display: inline-block;
-width: 30px;
-height: 30px;
-transition: transform 0.2s, filter 0.2s;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    transition: transform 0.2s, filter 0.2s;
 }
+
 .social-link:hover {
-transform: scale(1.2);
-filter: brightness(1.2);
+    transform: scale(1.2);
+    filter: brightness(1.2);
 }
+
 .social-icon {
-width: 100%;
-height: 100%;
-object-fit: contain;
-fill: currentColor;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    fill: currentColor;
 }
+  
 .page-wrapper {
-width: 1500px;
-max-width: 98%; /* Added for responsiveness */
-display: flex;
-gap: 10px;
-box-sizing: border-box;
-padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* da ne stretchuje celu visinu */
+    gap: 10px;
 }
-/* === SIDEBAR === */
+
 .sidebar.card {
-width: 300px;
-display: flex;
-flex-direction: column;
-background: #fff;
-border-radius: 10px;
-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-overflow: hidden;
-flex-shrink: 0; /* Prevent sidebar from shrinking */
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+    /* Ograničenje visine */
+    height: 90%;  /* 90% visine desne kolone */
+    overflow: hidden;
 }
+
 #sidebar {
-flex: 1;
-overflow-y: auto; /* This makes the content inside sidebar scrollable */
-padding: 15px;
-background: #fafafa;
-height: 100%; /* Important: allows overflow-y to work correctly within flex container */
-box-sizing: border-box; /* Include padding in height calculation */
+    flex: 1;
+    overflow-y: auto; /* omogućava skrol */
+    padding: 15px;
+    background: #fafafa;
 }
+
 /* === DESNA STRANA === */
 .right-column {
-flex-grow: 1;
-display: flex;
-flex-direction: column;
-gap: 10px;
-min-height: 0; /* Allow main content to shrink if needed */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+
 header.card, footer.card {
-background: #fff;
-border-radius: 10px;
-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-height: 100px;
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 0 15px;
-color: #666;
-font-size: 18px;
-flex-shrink: 0;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: 100px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 15px;
+    color: #666;
+    font-size: 18px;
+    flex-shrink: 0;
 }
+
 header.card img {
-width: 80px;
-height: 80px;
-border-radius: 50%;
-object-fit: cover;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
 }
+
 .header-texts {
-display: flex;
-flex-direction: column;
-justify-content: center;
-line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
 }
+
 .header-texts span.name {
-font-weight: bold;
-color: #333;
+    font-weight: bold;
+    color: #333;
 }
+
 .header-texts span.motto {
-font-size: 18px;
-color: #888;
-font-weight: normal;
+    font-size: 18px;
+    color: #888;
+    font-weight: normal;
 }
+
 .main.card {
-flex-grow: 1;
-display: flex;
-flex-direction: column;
-background: #000;
-border-radius: 10px;
-overflow: hidden;
-position: relative;
-min-height: 0; /* Added to ensure flex item can shrink */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
 }
+
 #main {
-width: 100%;
-flex-grow: 1; /* Allow main content within the card to take available space */
-display: flex;
-align-items: center; /* Center video vertically if space allows */
-justify-content: center; /* Center video horizontally */
+    width: 100%;
 }
+
 /* === Wrapper sa aspect ratio === */
 .video-wrapper {
-position: relative;
-width: 100%;
-height: 0;
-padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
 }
+
 .video-wrapper iframe {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
+
 /* === LINKOVI I VIDEO LISTA === */
 .section-title {
-font-size: 16px;
-font-weight: bold;
-margin-bottom: 10px;
-color: #333;
-text-align: center;
-border-bottom: 1px solid #ddd;
-padding-bottom: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
 }
+
 .link-item, .video-item {
-display: flex;
-align-items: center;
-margin-bottom: 12px;
-cursor: pointer;
-border-radius: 8px;
-padding: 6px;
-transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-background: #fff;
-box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 6px;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+
 .link-item:hover, .video-item:hover {
-transform: scale(1.02);
-box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-background: #f0f0f0;
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    background: #f0f0f0;
 }
+
 .link-text {
-font-size: 14px;
-color: #333;
-line-height: 1.3;
-word-break: break-word;
-flex-grow: 1;
-text-decoration: none;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.3;
+    word-break: break-word;
+    flex-grow: 1;
+    text-decoration: none;
 }
+
 .video-item img {
-width: 120px;
-height: auto; /* Changed to auto to maintain aspect ratio */
-border-radius: 6px;
-flex-shrink: 0;
+    width: 120px;
+    height: auto;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
+
 .video-info {
-margin-left: 10px;
-display: flex;
-flex-direction: column;
-justify-content: center;
-flex-grow: 1;
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
 }
+
 .video-desc {
-font-size: 13px;
-color: #666;
-line-height: 1.2;
-word-break: break-word;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.2;
+    word-break: break-word;
 }
+
 /* Scrollbar */
 #sidebar::-webkit-scrollbar {
-width: 8px;
+    width: 8px;
 }
 #sidebar::-webkit-scrollbar-thumb {
-background-color: rgba(0,0,0,0.2);
-border-radius: 4px;
-}
-
-/* Flexbox adjustments to make columns fill height without breaking video aspect ratio */
-.page-wrapper {
-    align-items: stretch; /* Ensure children stretch to fill height */
-    height: calc(100vh - 20px); /* Fill screen height minus padding */
-}
-.sidebar.card, .right-column {
-    height: 100%; /* Both columns take full height of the page-wrapper */
-}
-
-/* Media queries for smaller screens */
-@media (max-width: 1200px) {
-    .page-wrapper {
-        flex-direction: column;
-        width: 100%;
-        height: auto; /* Allow height to adjust naturally */
-    }
-    .sidebar.card {
-        width: 100%;
-        height: auto; /* Let sidebar height adjust */
-        margin-bottom: 10px;
-    }
-    #sidebar {
-        max-height: 400px; /* Limit sidebar height on smaller screens */
-    }
-    .right-column {
-        width: 100%;
-        height: auto;
-    }
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 4px;
 }
 </style>
 </head>
 <body>
+
 <div class="page-wrapper">
-<!-- Leva sekcija -->
-<aside class="sidebar card">
-    <div id="sidebar">
-        <div class="section-title" id="content-title"></div>
-        <div id="link-section"></div>
-        <div class="section-title" id="video-title"></div>
-        <div id="video-section"></div>
-    </div>
-</aside>
 
-<!-- Desna kolona -->
-<div class="right-column">
-    <header class="card">
-        <img id="profile-img">
-        <div class="header-texts">
-            <span class="name" id="profile-name"></span>
-            <span class="motto" id="profile-motto"></span>
+    <!-- Leva sekcija -->
+    <aside class="sidebar card">
+        <div id="sidebar">
+            <div class="section-title" id="content-title"></div>
+            <div id="link-section"></div>
+            <div class="section-title" id="video-title"></div>
+            <div id="video-section"></div>
         </div>
-    </header>
+    </aside>
 
-    <main class="main card">
-        <div id="main"></div>
-    </main>
-
-    <footer class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:40px; padding:10px 0;">
-            <span style="font-size:14px; color:#333;" id="footer-text"></span>
-            <div style="display:flex; gap:40px;">
-                <a href="https://www.youtube.com/" target="_blank" id="youtube-link" style="display:flex; flex-direction:column; align-items:center; gap:4px; transition: transform 0.2s;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#FF0000">
-                        <path d="M23.498 6.186a2.988 2.988 0 0 0-2.107-2.11C19.508 3.5 12 3.5 12 3.5s-7.508 0-9.391.576a2.988 2.988 0 0 0-2.107 2.11C0 8.067 0 12 0 12s0 3.933.502 5.814a2.988 2.988 0 0 0 2.107 2.11c1.883.576 9.391.576 9.391.576s7.508 0 9.391-.576a2.988 2.988 0 0 0 2.107-2.11C24 15.933 24 12 24 12s0-3.933-.502-5.814zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/>
-                    </svg>
-                </a>
-                <a href="https://twitter.com/" target="_blank" id="twitter-link" style="display:flex; flex-direction:column; align-items:center; gap:4px; transition: transform 0.2s;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#1DA1F2">
-                        <path d="M24 4.557a9.835 9.835 0 0 1-2.828.775 4.932 4.932 0 0 0 2.165-2.724 9.868 9.868 0 0 1-3.127 1.195 4.916 4.916 0 0 0-8.38 4.482A13.944 13.944 0 0 1 1.671 3.149 4.915 4.915 0 0 0 3.195 9.72a4.902 4.902 0 0 1-2.229-.616v.062a4.917 4.917 0 0 0 3.946 4.827 4.902 4.902 0 0 1-2.224.085 4.918 4.918 0 0 0 4.588 3.417A9.867 9.867 0 0 1 0 19.54 13.933 13.933 0 0 0 7.548 21c9.142 0 14.307-7.721 13.995-14.646A9.936 9.936 0 0 0 24 4.557z"/>
-                    </svg>
-                </a>
-                <a href="https://rumble.com/" target="_blank" id="rumble-link" style="display:flex; flex-direction:column; align-items:center; gap:4px; transition: transform 0.2s;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#00C6FF">
-                        <path d="M2 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12zm6.5-2v4l4-2-4-2z"/>
-                    </svg>
-                </a>
+    <!-- Desna kolona -->
+    <div class="right-column">
+        <header class="card">
+            <img id="profile-img">
+            <div class="header-texts">
+                <span class="name" id="profile-name"></span>
+                <span class="motto" id="profile-motto"></span>
             </div>
-        </div>
-    </footer>
-    
-    <style>
-    footer a:hover {
-        transform: scale(1.2);
-    }
-    </style>
+        </header>
+
+        <main class="main card">
+            <div id="main"></div>
+        </main>
+
+        <footer class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:40px; padding:10px 0;">
+                <span style="font-size:14px; color:#333;" id="footer-text"></span>
+                <div style="display:flex; gap:40px;">
+                    <a href="https://www.youtube.com/" target="_blank" id="youtube-link" style="display:flex; flex-direction:column; align-items:center; gap:4px; transition: transform 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#FF0000">
+                            <path d="M23.498 6.186a2.988 2.988 0 0 0-2.107-2.11C19.508 3.5 12 3.5 12 3.5s-7.508 0-9.391.576a2.988 2.988 0 0 0-2.107 2.11C0 8.067 0 12 0 12s0 3.933.502 5.814a2.988 2.988 0 0 0 2.107 2.11c1.883.576 9.391.576 9.391.576s7.508 0 9.391-.576a2.988 2.988 0 0 0 2.107-2.11C24 15.933 24 12 24 12s0-3.933-.502-5.814zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/>
+                        </svg>
+                    </a>
+                    <a href="https://twitter.com/" target="_blank" id="twitter-link" style="display:flex; flex-direction:column; align-items:center; gap:4px; transition: transform 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#1DA1F2">
+                            <path d="M24 4.557a9.835 9.835 0 0 1-2.828.775 4.932 4.932 0 0 0 2.165-2.724 9.868 9.868 0 0 1-3.127 1.195 4.916 4.916 0 0 0-8.38 4.482A13.944 13.944 0 0 1 1.671 3.149 4.915 4.915 0 0 0 3.195 9.72a4.902 4.902 0 0 1-2.229-.616v.062a4.917 4.917 0 0 0 3.946 4.827 4.902 4.902 0 0 1-2.224.085 4.918 4.918 0 0 0 4.588 3.417A9.867 9.867 0 0 1 0 19.54 13.933 13.933 0 0 0 7.548 21c9.142 0 14.307-7.721 13.995-14.646A9.936 9.936 0 0 0 24 4.557z"/>
+                        </svg>
+                    </a>
+                    <a href="https://rumble.com/" target="_blank" id="rumble-link" style="display:flex; flex-direction:column; align-items:center; gap:4px; transition: transform 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#00C6FF">
+                            <path d="M2 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12zm6.5-2v4l4-2-4-2z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+        
+        <style>
+        footer a:hover {
+            transform: scale(1.2);
+        }
+        </style>
+    </div>
+
 </div>
-</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
@@ -361,24 +347,21 @@ function showVideosFromColumn(colIndex) {
     const main = document.getElementById("main");
 
     videoSection.innerHTML = "";
-    main.innerHTML = ""; /* Clear main before embedding new video */
 
     const videos = allData
         .map(row => ({ link: row[colIndex], desc: row[colIndex + 1] || "" }))
         .filter(v => v.link && v.link.trim());
 
     if (videos.length === 0) {
-        videoSection.innerHTML = "<div style='text-align:center; color:#666; padding: 20px;'>Nema videa u ovoj sekciji</div>";
+        videoSection.innerHTML = "<div style='text-align:center; color:#666;'>Nema videa u ovoj sekciji</div>";
+        main.innerHTML = "";
         return;
     }
 
-    // Display the first video in the main section
     const firstVideo = videos[0];
     embedVideo(firstVideo.link, main, autoplayEnabled);
 
-    // Display remaining videos in the sidebar list (reversed order if desired)
-    // If you want the list in the same order as in the spreadsheet, remove .reverse()
-    videos.slice().reverse().forEach(({ link, desc }) => {
+    videos.reverse().forEach(({ link, desc }) => {
         const match = link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
         if (!match) return;
         const videoId = match[1];
@@ -410,24 +393,19 @@ function showVideosFromColumn(colIndex) {
 
 function embedVideo(link, container, autoplay) {
     const match = link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (!match) {
-        console.error("Invalid YouTube link:", link);
-        return;
-    }
+    if (!match) return;
     const videoId = match[1];
     const autoplayParam = autoplay ? 1 : 0;
 
-    // The padding-bottom: 56.25% is already in the CSS for .video-wrapper
-    // and is the correct way to maintain 16:9 aspect ratio without black bars.
-    // The main container now properly flex-grows to fill space.
-    container.innerHTML = `<div class="video-wrapper">
+    container.innerHTML = `<div class="video-wrapper" style="padding-bottom:56.25%">
         <iframe 
             src="https://www.youtube.com/embed/${videoId}?autoplay=${autoplayParam}&controls=1" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; autoplay" 
             allowfullscreen>
         </iframe>
     </div>`;
 }
 </script>
+
 </body>
 </html>
