@@ -58,9 +58,16 @@
     }
     @media (min-width:900px){
       .columns{
-        flex-direction:row;
-        align-items:flex-start;
+        flex-direction: row;
+        align-items: flex-start;
       }
+    }
+    
+    @media (max-width:899px){
+      .columns{
+        flex-direction: column-reverse; /* samo mobilni */
+      }
+    }
       .col{
         flex:1;
       }
