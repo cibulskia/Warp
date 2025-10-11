@@ -288,10 +288,11 @@ Papa.parse(sheetUrl, {
         document.getElementById("content-title").textContent = allData[4][4]; // E5
         document.getElementById("video-title").textContent = allData[5][4]; // E6
 
-        // Novi linkovi iz Sheet-a:
-        document.getElementById("youtube-link").href = allData[6][4];  // E7
-        document.getElementById("twitter-link").href = allData[7][4];  // E8
-        document.getElementById("rumble-link").href = allData[8][4];   // E9
+        // Učitavanje linkova za društvene mreže
+        document.getElementById("youtube-link").href = allData[6][4]; // E7
+        document.getElementById("twitter-link").href = allData[7][4]; // E8
+        document.getElementById("rumble-link").href = allData[8][4];  // E9
+
 
         const linkSection = document.getElementById("link-section");
 
