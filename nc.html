@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Lista sa YouTube i Google Sheets</title>
+    <title>Video Lista iz Google Spreadsheet</title>
     <style>
         body {
             margin: 0;
@@ -11,91 +11,94 @@
             display: flex;
             height: 100vh;
         }
-        .sidebar {
+        #sidebar {
             width: 300px;
             overflow-y: auto;
             border-right: 1px solid #ccc;
             padding: 10px;
             box-sizing: border-box;
         }
-        .video-item {
-            cursor: pointer;
-            margin-bottom: 10px;
+        #sidebar .video-item {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            margin-bottom: 15px;
+            cursor: pointer;
         }
-        .video-item img {
-            width: 80px;
-            height: 45px;
-            object-fit: cover;
-            margin-right: 10px;
+        #sidebar img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
         }
-        .video-item span {
+        #sidebar .title {
             font-size: 14px;
+            margin-top: 5px;
         }
-        .main {
-            flex: 1;
+        #main {
+            flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #f4f4f4;
         }
     </style>
 </head>
 <body>
-    <div class="sidebar" id="video-list">
-        <!-- Lista video klipova će se ubacivati ovde -->
-    </div>
-    <div class="main" id="main-section">
-        <!-- Centralna sekcija je prazna za sada -->
+
+    <div id="sidebar">
+        <!-- Lista videa će se učitati ovde -->
     </div>
 
+    <div id="main">
+        <!-- Video iframe -->
+    </div>
+
+    <!-- PapaParse za CSV parsiranje -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv';
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
 
-        async function loadVideos() {
-            const response = await fetch(sheetUrl);
-            const csvText = await response.text();
-            const lines = csvText.trim().split('\n');
-            const videoList = document.getElementById('video-list');
-
-            // Obrnuti redosled: od poslednjeg ka prvom
-            lines.reverse().forEach(line => {
-                const columns = line.split(',');   // Parsiramo CSV kolone
-                const videoId = columns[0].trim(); // Uzimamo samo kolonu A
-                if (!videoId) return;
-
-                const videoItem = document.createElement('div');
-                videoItem.className = 'video-item';
+        Papa.parse(sheetUrl, {
+            download: true,
+            header: false,
+            complete: function(results) {
+                let data = results.data;
+                data = data.filter(row => row[0]); // samo kolona A
+                data.reverse(); // od poslednjeg ka prvom
+                const sidebar = document.getElementById("sidebar");
                 
-                const thumbnail = document.createElement('img');
-                thumbnail.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-                thumbnail.alt = 'Video thumbnail';
+                data.forEach(row => {
+                    const videoUrl = row[0];
+                    const videoIdMatch = videoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+                    if (!videoIdMatch) return; // preskoči ako nije validan
+                    const videoId = videoIdMatch[1];
 
-                const title = document.createElement('span');
-                title.textContent = videoId; // Samo ID videa iz kolone A
+                    const videoItem = document.createElement("div");
+                    videoItem.className = "video-item";
 
-                videoItem.appendChild(thumbnail);
-                videoItem.appendChild(title);
+                    const thumbnail = document.createElement("img");
+                    thumbnail.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
-                // Klikom ubacujemo iframe u centralnu sekciju
-                videoItem.addEventListener('click', () => {
-                    const mainSection = document.getElementById('main-section');
-                    mainSection.innerHTML = `
-                        <iframe width="560" height="315" 
-                        src="https://www.youtube.com/embed/${videoId}?controls=0" 
-                        title="YouTube video player" frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                    `;
+                    const title = document.createElement("div");
+                    title.className = "title";
+                    title.textContent = `Video: ${videoId}`; // za sada ID, kasnije možeš zameniti pravim naslovom
+
+                    videoItem.appendChild(thumbnail);
+                    videoItem.appendChild(title);
+
+                    videoItem.addEventListener("click", () => {
+                        document.getElementById("main").innerHTML = `
+                            <iframe width="800" height="450" 
+                            src="https://www.youtube.com/embed/${videoId}?controls=1" 
+                            title="YouTube video player" frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen></iframe>
+                        `;
+                    });
+
+                    sidebar.appendChild(videoItem);
                 });
-
-                videoList.appendChild(videoItem);
-            });
-        }
-
-        loadVideos();
+            }
+        });
     </script>
+
 </body>
 </html>
-
