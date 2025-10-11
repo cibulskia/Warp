@@ -12,7 +12,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: stretch;
-    min-height: 100vh; /* Ensure body takes full viewport height */
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
 }
 
 .social-link {
@@ -36,10 +36,12 @@ body {
   
 .page-wrapper {
     width: 1500px;
+    max-width: 100%; /* Added for responsiveness */
     display: flex;
     gap: 10px;
     box-sizing: border-box;
     padding: 10px;
+    flex-grow: 1; /* Allow page-wrapper to grow and fill available space */
 }
 
 /* === SIDEBAR === */
@@ -51,12 +53,12 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     overflow: hidden;
-    /* Removed fixed height, will be set dynamically or by flex */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
 }
 
 #sidebar {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; /* This handles the scroll for content within the sidebar */
     padding: 15px;
     background: #fafafa;
 }
@@ -67,6 +69,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-height: 0; /* Allows children with flex-grow to properly size */
 }
 
 header.card, footer.card {
@@ -80,7 +83,7 @@ header.card, footer.card {
     padding: 0 15px;
     color: #666;
     font-size: 18px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent header/footer from shrinking */
 }
 
 header.card img {
@@ -116,19 +119,25 @@ header.card img {
     border-radius: 10px;
     overflow: hidden;
     position: relative;
+    min-height: 0; /* Important for flex items with aspect ratio children */
 }
 
 #main {
     width: 100%;
+    height: 100%; /* Ensure #main takes full height of its flex parent */
+    display: flex; /* Make #main a flex container */
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center content vertically if needed */
 }
 
 /* === Wrapper sa aspect ratio === */
 .video-wrapper {
     position: relative;
     width: 100%;
-    height: 0;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0; /* Critical for aspect ratio padding trick */
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio (height / width * 100%) */
     overflow: hidden;
+    flex-shrink: 0; /* Prevent video-wrapper from shrinking */
 }
 
 .video-wrapper iframe {
@@ -137,6 +146,7 @@ header.card img {
     left: 0;
     width: 100%;
     height: 100%;
+    border: none; /* Remove default iframe border */
 }
 
 /* === LINKOVI I VIDEO LISTA === */
@@ -148,6 +158,10 @@ header.card img {
     text-align: center;
     border-bottom: 1px solid #ddd;
     padding-bottom: 6px;
+    position: sticky; /* Keep title visible when scrolling sidebar */
+    top: 0;
+    background: #fafafa;
+    z-index: 10;
 }
 
 .link-item, .video-item {
@@ -208,7 +222,7 @@ header.card img {
     border-radius: 4px;
 }
 
-/* Footer social links hover effect */
+/* Footer social icon hover effect */
 footer a:hover {
     transform: scale(1.2);
 }
@@ -219,7 +233,7 @@ footer a:hover {
 <div class="page-wrapper">
 
     <!-- Leva sekcija -->
-    <aside class="sidebar card" id="sidebar-card">
+    <aside class="sidebar card">
         <div id="sidebar">
             <div class="section-title" id="content-title"></div>
             <div id="link-section"></div>
@@ -229,8 +243,8 @@ footer a:hover {
     </aside>
 
     <!-- Desna kolona -->
-    <div class="right-column" id="right-column">
-        <header class="card" id="header-card">
+    <div class="right-column">
+        <header class="card">
             <img id="profile-img">
             <div class="header-texts">
                 <span class="name" id="profile-name"></span>
@@ -238,11 +252,11 @@ footer a:hover {
             </div>
         </header>
 
-        <main class="main card" id="main-card">
+        <main class="main card">
             <div id="main"></div>
         </main>
 
-        <footer class="card" id="footer-card">
+        <footer class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:40px; padding:10px 0;">
                 <span style="font-size:14px; color:#333;" id="footer-text"></span>
                 <div style="display:flex; gap:40px;">
@@ -274,15 +288,6 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_
 
 let allData = [];
 let autoplayEnabled = false;
-
-// Function to adjust sidebar height
-function adjustSidebarHeight() {
-    const rightColumn = document.getElementById("right-column");
-    const sidebarCard = document.getElementById("sidebar-card");
-    if (rightColumn && sidebarCard) {
-        sidebarCard.style.height = `${rightColumn.offsetHeight}px`;
-    }
-}
 
 Papa.parse(sheetUrl, {
     download: true,
@@ -340,9 +345,8 @@ Papa.parse(sheetUrl, {
             }
         });
 
+        // Initialize with the first column of videos
         showVideosFromColumn(0);
-        // Adjust sidebar height after initial content load
-        adjustSidebarHeight();
     }
 });
 
@@ -360,28 +364,28 @@ function showVideosFromColumn(colIndex) {
     const main = document.getElementById("main");
 
     videoSection.innerHTML = "";
+    main.innerHTML = ""; // Clear main section when loading new videos
 
     const videos = allData
         .map(row => ({ link: row[colIndex], desc: row[colIndex + 1] || "" }))
         .filter(v => v.link && v.link.trim());
 
     if (videos.length === 0) {
-        videoSection.innerHTML = "<div style='text-align:center; color:#666;'>Nema videa u ovoj sekciji</div>";
-        main.innerHTML = "";
-        // Adjust sidebar height even if no videos
-        adjustSidebarHeight();
+        videoSection.innerHTML = "<div style='text-align:center; color:#666; padding: 20px;'>Nema videa u ovoj sekciji</div>";
         return;
     }
 
+    // Embed the first video in the main section
     const firstVideo = videos[0];
     embedVideo(firstVideo.link, main, autoplayEnabled);
 
-    // To display videos in reverse order as per original logic, iterate from the end
-    // Note: This was `videos.reverse().forEach(...)` in original.
-    for (let i = videos.length - 1; i >= 0; i--) {
-        const { link, desc } = videos[i];
+    // Populate the video list in the sidebar
+    // Reverse the order for the display in the sidebar if you want the newest first,
+    // otherwise remove .reverse()
+    const videosForSidebar = [...videos].reverse(); // Create a copy to reverse
+    videosForSidebar.forEach(({ link, desc }) => {
         const match = link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
-        if (!match) continue;
+        if (!match) return;
         const videoId = match[1];
 
         const videoItem = document.createElement("div");
@@ -402,13 +406,11 @@ function showVideosFromColumn(colIndex) {
         videoItem.appendChild(info);
 
         videoItem.addEventListener("click", () => {
-            embedVideo(link, main, true);
+            embedVideo(link, main, true); // Autoplay when clicked from list
         });
 
         videoSection.appendChild(videoItem);
-    }
-    // Adjust sidebar height after video list is populated
-    adjustSidebarHeight();
+    });
 }
 
 function embedVideo(link, container, autoplay) {
@@ -420,28 +422,14 @@ function embedVideo(link, container, autoplay) {
     container.innerHTML = `<div class="video-wrapper">
         <iframe 
             src="https://www.youtube.com/embed/${videoId}?autoplay=${autoplayParam}&controls=1" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; autoplay" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
             allowfullscreen>
         </iframe>
     </div>`;
-    // Adjust sidebar height after embedding new video (content height might change)
-    adjustSidebarHeight();
 }
-
-// Add an event listener to adjust height on window resize
-window.addEventListener('resize', adjustSidebarHeight);
-
-// Also call adjustSidebarHeight when the DOM is fully loaded, in case content loads faster than PapaParse
-document.addEventListener('DOMContentLoaded', adjustSidebarHeight);
-
-// Observe changes in the right column's height if content might change dynamically (e.g., main video area changing size)
-const rightColumn = document.getElementById('right-column');
-const resizeObserver = new ResizeObserver(() => {
-    adjustSidebarHeight();
-});
-resizeObserver.observe(rightColumn);
-
 </script>
 
+</body>
+</html>
 </body>
 </html>
