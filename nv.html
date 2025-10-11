@@ -11,9 +11,20 @@ body {
     background: #f4f4f8;
     display: flex;
     justify-content: center;
-    align-items: stretch;
+    align-items: flex-start; /* IZMENA: Da body ne rasteže page-wrapper */
+    min-height: 100vh; /* Da se body razvuče na celu visinu prozora */
 }
 
+    .right-column {
+    flex-grow: 1; /* Omogućava da zauzme preostalu širinu */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Dodaj min-height da se desna kolona ne smanji previše */
+    min-height: calc(100vh - 20px - 200px); /* Primer: 100vh - padding page-wrappera - visina headera i footera */
+    /* Ovo je grub estimate, idealno bi bilo dinamički */
+    /* ILI: align-self: stretch; ako želiš da se rasteže do visine page-wrappera (koji sada ima min-height) */
+}
 .social-link {
     display: inline-block;
     width: 30px;
@@ -53,19 +64,19 @@ body {
 }
 
 .sidebar.card {
+    /* ... (postojeći stilovi za sidebar, uključujući max-height i align-self) ... */
     width: 300px;
     display: flex;
     flex-direction: column;
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    overflow: hidden; /* Skriva višak sadržaja unutar .sidebar.card pre nego što se preda #sidebar za skrolovanje */
+    overflow: hidden;
     
-    /* Ključne izmene: */
-    max-height: calc(100vh - 20px); /* Ograničava visinu na viewport minus padding page-wrappera */
-    align-self: flex-start; /* Sprečava 'align-items: stretch' na page-wrapperu da rasteže sidebar */
-    position: sticky; /* Omogućava lepljenje sidebara pri skrolovanju */
-    top: 10px; /* Rastojanje od vrha prozora kada se zalepi */
+    max-height: calc(100vh - 20px); 
+    align-self: flex-start; /* Sprečava 'align-items: stretch' iz page-wrappera da rasteže sidebar */
+    position: sticky; 
+    top: 10px; 
 }
 
 #sidebar {
