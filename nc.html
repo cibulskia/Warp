@@ -61,7 +61,8 @@
 
             // Obrnuti redosled: od poslednjeg ka prvom
             lines.reverse().forEach(line => {
-                const videoId = line.trim();
+                const columns = line.split(',');   // Parsiramo CSV kolone
+                const videoId = columns[0].trim(); // Uzimamo samo kolonu A
                 if (!videoId) return;
 
                 const videoItem = document.createElement('div');
@@ -72,11 +73,12 @@
                 thumbnail.alt = 'Video thumbnail';
 
                 const title = document.createElement('span');
-                title.textContent = videoId; // za sada ID kao naslov
+                title.textContent = videoId; // Samo ID videa iz kolone A
 
                 videoItem.appendChild(thumbnail);
                 videoItem.appendChild(title);
 
+                // Klikom ubacujemo iframe u centralnu sekciju
                 videoItem.addEventListener('click', () => {
                     const mainSection = document.getElementById('main-section');
                     mainSection.innerHTML = `
