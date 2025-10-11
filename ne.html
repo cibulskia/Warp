@@ -10,17 +10,14 @@
         font-family: Arial, sans-serif;
         display: flex;
         height: 100vh;
-        overflow: hidden;
     }
 
-    /* Sidebar */
     #sidebar {
         width: 300px;
         overflow-y: auto;
         border-right: 1px solid #ccc;
         padding: 10px;
         box-sizing: border-box;
-        background-color: #f9f9f9;
     }
 
     #sidebar .video-item {
@@ -28,11 +25,6 @@
         flex-direction: column;
         margin-bottom: 15px;
         cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    #sidebar .video-item:hover {
-        transform: scale(1.03);
     }
 
     #sidebar img {
@@ -44,25 +36,24 @@
     #sidebar .title {
         font-size: 14px;
         margin-top: 5px;
-        color: #333;
     }
 
-    /* Main section */
     #main {
         flex-grow: 1;
         display: flex;
         justify-content: center;
         align-items: center;
-        overflow: hidden;
-        padding: 10px;
-        box-sizing: border-box;
+        position: relative;
+        background-color: #000;
     }
 
     #main iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
-        border: none;
-        border-radius: 5px;
+        border: 0;
     }
 </style>
 </head>
@@ -97,8 +88,10 @@ Papa.parse(sheetUrl, {
         if(placeholderIdMatch) {
             const placeholderVideoId = placeholderIdMatch[1];
             main.innerHTML = `
-                <iframe src="https://www.youtube.com/embed/${placeholderVideoId}?autoplay=1&controls=1" 
-                title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                <iframe 
+                src="https://www.youtube.com/embed/${placeholderVideoId}?autoplay=1&controls=1" 
+                title="YouTube video player" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                 allowfullscreen></iframe>
             `;
         }
@@ -127,8 +120,10 @@ Papa.parse(sheetUrl, {
 
             videoItem.addEventListener("click", () => {
                 main.innerHTML = `
-                    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
-                    title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    <iframe 
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
+                    title="YouTube video player" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                     allowfullscreen></iframe>
                 `;
             });
