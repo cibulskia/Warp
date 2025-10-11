@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Lista iz Google Spreadsheet</title>
+<style>
+    /* --- OSNOVNI STIL --- */
+    body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+        background-color: #f7f7f9;
+        color: #333;
+    }
+
+    /* --- SIDEBAR --- */
+    #sidebar {
+        width: 320px;
+        overflow-y: auto;
+        border-right: 1px solid #ddd;
+        padding: 15px;
+        box-sizing: border-box;
+        background-color: #fff;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+
+    #sidebar h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 15px 0;
+        text-align: center;
+        color: #555;
+    }
+
+    .video-item {
+        display: flex;
+        flex-direction: column;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        background-color: #fafafa;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        cursor: pointer;
+    }
+
+    .video-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .video-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .video-item .title {
+        font-size: 14px;
+        padding: 10px;
+        color: #333;
+        text-align: center;
+        font-weight: 500;
+        background-color: #fff;
+    }
+
+    /* --- GLAVNI VIDEO --- */
+    #main {
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        background-color: #000;
+    }
+
+    #main iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+    /* --- SCROLLBAR --- */
+    #sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb:hover {
+        background: #aaa;
+    }
+
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>Lista videa</h2>
+</div>
+
+<div id="main">
+    <!-- Video iframe -->
+</div>
+
+<!-- PapaParse za CSV parsiranje -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
+
+Papa.parse(sheetUrl, {
+    download: true,
+    header: false,
+    complete: function(results) {
+        let data = results.data.filter(row => row[0]); // samo kolona A
+        if(data.length === 0) return;
+
+        const sidebar = document.getElementById("sidebar");
+        const main = document.getElementById("main");
+
+        // Placeholder video iz A1
+        const placeholderVideoUrl = data[0][0];
+        const placeholderIdMatch = placeholderVideoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+        if(placeholderIdMatch) {
+            const placeholderVideoId = placeholderIdMatch[1];
+            main.innerHTML = `
+                <iframe 
+                src="https://www.youtube.com/embed/${placeholderVideoId}?autoplay=1&controls=1" 
+                title="YouTube video player" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen></iframe>
+            `;
+        }
+
+        // Lista ostalih videa obrnuto, ali preskoči A1
+        const restData = data.slice(1).reverse();
+
+        restData.forEach((row, index) => {
+            const videoUrl = row[0];
+            const videoIdMatch = videoUrl.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (!videoIdMatch) return;
+            const videoId = videoIdMatch[1];
+
+            const videoItem = document.createElement("div");
+            videoItem.className = "video-item";
+
+            const thumbnail = document.createElement("img");
+            thumbnail.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+            const title = document.createElement("div");
+            title.className = "title";
+            title.textContent = `Video ${restData.length - index}`;
+
+            videoItem.appendChild(thumbnail);
+            videoItem.appendChild(title);
+
+            videoItem.addEventListener("click", () => {
+                main.innerHTML = `
+                    <iframe 
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
+                    title="YouTube video player" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen></iframe>
+                `;
+            });
+
+            sidebar.appendChild(videoItem);
+        });
+    }
+});
+</script>
+
+</body>
+</html>
