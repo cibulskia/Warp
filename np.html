@@ -9,7 +9,6 @@
         margin: 0;
         font-family: Arial, sans-serif;
         background: #f4f4f8;
-        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: stretch;
@@ -18,7 +17,6 @@
     .page-wrapper {
         width: 1500px;
         display: flex;
-        height: 100vh;
         gap: 10px;
         box-sizing: border-box;
         padding: 10px;
@@ -101,21 +99,22 @@
 
     #main {
         width: 100%;
-        height: 100%;
+    }
+
+    /* === Wrapper sa aspect ratio === */
+    .video-wrapper {
         position: relative;
+        width: 100%;
+        height: 0;
         overflow: hidden;
     }
 
-    /* === Video fullscreen responsive === */
-    #main iframe {
+    .video-wrapper iframe {
         position: absolute;
-        top: 50%;
-        left: 50%;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
-        transform: translate(-50%, -50%);
-        min-width: 100%;
-        min-height: 100%;
     }
 
     /* === LINKOVI I VIDEO LISTA === */
@@ -221,7 +220,6 @@
 
 </div>
 
-<!-- PapaParse za CSV parsiranje -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
@@ -296,7 +294,9 @@ function showVideosFromColumn(colIndex) {
     const firstMatch = videos[0].link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/);
     if (firstMatch) {
         const firstId = firstMatch[1];
-        main.innerHTML = `<iframe src="https://www.youtube.com/embed/${firstId}?autoplay=1&controls=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+        main.innerHTML = `<div class="video-wrapper" style="padding-bottom:56.25%">
+            <iframe src="https://www.youtube.com/embed/${firstId}?autoplay=1&controls=1" allowfullscreen></iframe>
+        </div>`;
     }
 
     videos.reverse().forEach(({ link, desc }) => {
@@ -322,7 +322,9 @@ function showVideosFromColumn(colIndex) {
         videoItem.appendChild(info);
 
         videoItem.addEventListener("click", () => {
-            main.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+            main.innerHTML = `<div class="video-wrapper" style="padding-bottom:56.25%">
+                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" allowfullscreen></iframe>
+            </div>`;
         });
 
         videoSection.appendChild(videoItem);
