@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lista objava iz Spreadsheet-a</title>
+  <!-- PapaParse za pouzdano parsiranje CSV-a -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <style>
+    /* Jednostavan, čist izgled */
+    :root{
+      --bg:#f7f7f8;
+      --card:#ffffff;
+      --muted:#6b6b6b;
+      --accent:#222;
+      --radius:12px;
+      --gap:18px;
+      --maxw:900px;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:var(--accent);
+      display:flex;
+      justify-content:center;
+      padding:28px 16px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+    }
+    header{
+      margin-bottom:14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    header h1{
+      font-size:20px;
+      margin:0;
+    }
+    #status{
+      margin-left:auto;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .feed{
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+    .post{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:0 4px 18px rgba(20,20,30,0.06);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .post .image{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .post img{
+      max-width:100%;
+      height:auto;
+      border-radius:8px;
+      display:block;
+    }
+    .post .text{
+      font-size:15px;
+      line-height:1.45;
+      color:var(--accent);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .error{
+      color:#b00020;
+      font-size:14px;
+    }
+
+    /* mobilno poboljšanje */
+    @media (min-width:720px){
+      header h1{font-size:22px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Objave (Spreadsheet)</h1>
+      <div id="status">Učitavanje...</div>
+    </header>
+
+    <main>
+      <div id="feed" class="feed" aria-live="polite"></div>
+      <div id="error" class="error" role="status" style="display:none;margin-top:12px"></div>
+    </main>
+  </div>
+
+  <script>
+    // Tvoj CSV (pub) link
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
+
+    const statusEl = document.getElementById('status');
+    const feedEl = document.getElementById('feed');
+    const errorEl = document.getElementById('error');
+
+    // Pomoćna: da li string sadrži kompletan <img ...> tag?
+    function containsImgTag(str){
+      return /<img\s[^>]*>/i.test(str);
+    }
+
+    // Pomoćna: izvadi URL iz tag-a ako je prosleđen kompletan <img ...>
+    function extractSrcFromImgTag(tag){
+      try {
+        // parsiramo bez dodavanja u DOM direktno (sigurnije)
+        const match = tag.match(/src=(["'])(.*?)\1/i);
+        return match ? match[2] : null;
+      } catch(e){
+        return null;
+      }
+    }
+
+    // Render jedne objave u feed
+    function renderPost(imageCell, textCell, index){
+      const post = document.createElement('article');
+      post.className = 'post';
+      post.setAttribute('data-row', index+1);
+
+      // Image container
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'image';
+
+      const raw = (imageCell || '').toString().trim();
+      if(!raw){
+        // nije bilo slike, stavi placeholder
+        const p = document.createElement('div');
+        p.style.color = '#888';
+        p.style.fontSize = '13px';
+        p.textContent = 'Nema slike u ovom redu.';
+        imgWrap.appendChild(p);
+      } else if(containsImgTag(raw)){
+        // ako je kompletan <img ...>, pokušamo da uzmemo src i prikažemo kao <img>
+        const src = extractSrcFromImgTag(raw);
+        if(src){
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          img.loading = 'lazy';
+          imgWrap.appendChild(img);
+        } else {
+          // nemamo src, ubaci raw innerHTML (koristimo oprezno)
+          // budući da korisnik sam unosi <img ...> ovaj pristup omogućava da se atribut alt zadrži
+          imgWrap.innerHTML = raw;
+        }
+      } else {
+        // verovatno je samo URL (ili tekst koji sadrži URL)
+        // pokušamo da ekstraktujemo URL (prvi koji liči na https?://)
+        const urlMatch = raw.match(/https?:\/\/[^\s"']+/i);
+        if(urlMatch){
+          const img = document.createElement('img');
+          img.src = urlMatch[0];
+          img.alt = '';
+          img.loading = 'lazy';
+          imgWrap.appendChild(img);
+        } else {
+          // nije URL ni tag, prikazemo kao tekst (možda neko je lepio tag-ove ali su escape-ovani)
+          const p = document.createElement('div');
+          p.style.color = '#888';
+          p.style.fontSize = '13px';
+          p.textContent = 'Nepravilan format slike u ćeliji: ' + raw;
+          imgWrap.appendChild(p);
+        }
+      }
+
+      // Text container (kolona B)
+      const textDiv = document.createElement('div');
+      textDiv.className = 'text';
+      // Postavljanje kao textContent da bi se izbegle XSS situacije — tekst iz kolone B tretiramo kao prost tekst
+      textDiv.textContent = (textCell || '').toString().trim();
+
+      post.appendChild(imgWrap);
+      post.appendChild(textDiv);
+      feedEl.appendChild(post);
+    }
+
+    // Učitavanje CSV-a i parsiranje sa PapaParse
+    (async function(){
+      try {
+        statusEl.textContent = 'Preuzimam CSV...';
+        const resp = await fetch(csvUrl, {cache: "no-store"});
+        if(!resp.ok) throw new Error('HTTP ' + resp.status + ' prilikom preuzimanja CSV-a');
+
+        const csvText = await resp.text();
+
+        statusEl.textContent = 'Parsiram CSV...';
+        // Parsiraj CSV bez headera — kolona A = index 0, kolona B = index 1
+        const parsed = Papa.parse(csvText, {
+          delimiter: "",    // auto
+          newline: "",      // auto
+          quoteChar: '"',
+          escapeChar: '"',
+          header: false,
+          skipEmptyLines: true,
+        });
+
+        if(parsed.errors && parsed.errors.length){
+          console.warn('PapaParse greske:', parsed.errors);
+        }
+
+        const rows = parsed.data || [];
+        if(rows.length === 0){
+          statusEl.textContent = 'Nema podataka u CSV-u';
+          errorEl.style.display = 'block';
+          errorEl.textContent = 'CSV je prazan ili ne sadrži čitljive redove.';
+          return;
+        }
+
+        statusEl.textContent = 'Prikazujem ' + rows.length + ' redova';
+        // Svaki red: prikazi sliku (kolona 0) i tekst (kolona 1)
+        rows.forEach((row, i) => {
+          // row može biti niz polja; osiguraj da imamo pristup elementima
+          const colA = Array.isArray(row) ? row[0] : '';
+          const colB = Array.isArray(row) ? row[1] : '';
+          renderPost(colA, colB, i);
+        });
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Greška';
+        errorEl.style.display = 'block';
+        errorEl.textContent = 'Došlo je do greške prilikom učitavanja ili parsiranja CSV-a: ' + (err.message || err);
+      }
+    })();
+  </script>
+</body>
+</html>
