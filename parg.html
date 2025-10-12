@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Channel</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Boje */
+:root {
+    --primary-bordeaux: #8B0000; /* Tamnija bordo */
+    --secondary-bordeaux: #A52A2A; /* Srednja bordo */
+    --accent-gold: #FFD700; /* Zlatna za akcente */
+    --background-light: #F8F8F8;
+    --background-dark: #2C3E50; /* Tamnija pozadina za kontrast */
+    --card-background: #FFFFFF;
+    --text-dark: #333333;
+    --text-light: #EEEEEE;
+    --border-light: #E0E0E0;
+    --shadow-light: rgba(0,0,0,0.08);
+    --shadow-dark: rgba(0,0,0,0.15);
+}
+
+body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    background: var(--background-light);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px 0;
+    box-sizing: border-box;
+}
+
+.social-link {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.social-link:hover {
+    transform: translateY(-3px) scale(1.1);
+    filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.page-wrapper {
+    width: 1600px;
+    max-width: 95%; /* Responsive width */
+    display: flex;
+    gap: 20px;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+/* === CARD STYLES === */
+.card {
+    background: var(--card-background);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px var(--shadow-dark);
+    padding: 20px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* === SIDEBAR === */
+.sidebar.card {
+    width: 350px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 40px); /* Adjust for body padding */
+    padding: 0; /* Remove padding to handle scrollbar better */
+}
+
+#sidebar {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px; /* Add padding back inside scrollable area */
+    background: var(--card-background); /* Ensure consistent background */
+    border-radius: 15px; /* Match card border-radius */
+}
+
+/* === RIGHT COLUMN === */
+.right-column {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+header.card {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, var(--primary-bordeaux) 0%, var(--secondary-bordeaux) 100%);
+    color: var(--text-light);
+    box-shadow: 0 8px 30px var(--shadow-dark);
+    position: relative;
+    z-index: 1;
+}
+
+header.card img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-gold);
+    margin-right: 20px;
+    box-shadow: 0 0 15px rgba(255,215,0,0.5);
+}
+
+.header-texts {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+.header-texts span.name {
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--text-light);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+.header-texts span.motto {
+    font-size: 16px;
+    color: var(--text-light);
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.main.card {
+    display: flex;
+    flex-direction: column;
+    background: var(--background-dark); /* Tamna pozadina za video */
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    padding: 0; /* No internal padding for main video */
+    box-shadow: 0 8px 30px var(--shadow-dark);
+    min-height: 400px; /* Minimalna visina za video plejer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-light);
+    font-size: 20px;
+}
+
+#main {
+    width: 100%;
+    height: 100%;
+}
+
+/* === VIDEO WRAPPER === */
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    background: #000;
+}
+
+.video-wrapper iframe, .video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* === LINKS AND VIDEO LIST === */
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--primary-bordeaux);
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    background: var(--card-background);
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.link-item, .video-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+    background: var(--card-background);
+    box-shadow: 0 2px 10px var(--shadow-light);
+    border: 1px solid var(--border-light);
+}
+
+.link-item:hover, .video-item:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 6px 20px var(--shadow-dark);
+    background: var(--background-light);
+    border-color: var(--secondary-bordeaux);
+}
+
+/* === ACTIVE ITEM === */
+.link-item.active {
+    background: linear-gradient(90deg, var(--primary-bordeaux) 0%, var(--secondary-bordeaux) 100%);
+    color: var(--text-light);
+    box-shadow: 0 0 15px rgba(139,0,0,0.6);
+    transform: scale(1.02);
+    border-color: var(--accent-gold);
+}
+.link-item.active .link-text {
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.link-text {
+    font-size: 15px;
+    color: var(--text-dark);
+    line-height: 1.4;
+    word-break: break-word;
+    flex-grow: 1;
+    text-decoration: none;
+}
+
+.video-item img {
+    width: 140px;
+    height: 80px; /* Standardize height for thumbnails */
+    border-radius: 8px;
+    flex-shrink: 0;
+    object-fit: cover;
+    margin-right: 15px;
+    border: 1px solid var(--border-light);
+}
+
+.video-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.video-desc {
+    font-size: 14px;
+    color: var(--text-dark);
+    line-height: 1.3;
+    word-break: break-word;
+    position: relative;
+    max-height: 40px; /* Limit description height */
+    overflow: hidden;
+}
+
+/* === TOOLTIP === */
+.video-desc[data-full]:hover::after {
+    content: attr(data-full);
+    position: absolute;
+    background: var(--background-dark);
+    color: var(--text-light);
+    padding: 8px 12px;
+    border-radius: 8px;
+    top: 0; /* Adjust position */
+    left: 0;
+    transform: translateY(-100%) translateY(-10px); /* Move above and add space */
+    white-space: normal;
+    max-width: 300px;
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid var(--accent-gold);
+}
+
+/* Scrollbar */
+#sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+#sidebar::-webkit-scrollbar-track {
+    background: var(--background-light);
+    border-radius: 10px;
+}
+#sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--secondary-bordeaux);
+    border-radius: 4px;
+    border: 2px solid var(--card-background);
+}
+#sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-bordeaux);
+}
+
+
+/* === FOOTER === */
+footer.card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    min-height: 80px;
+    background: linear-gradient(45deg, var(--secondary-bordeaux) 0%, var(--primary-bordeaux) 100%);
+    color: var(--text-light);
+    box-shadow: 0 -8px 30px var(--shadow-dark);
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 15px; /* Spacing between sections */
+}
+
+.footer-left {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.footer-left button {
+    background: var(--accent-gold);
+    color: var(--primary-bordeaux);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.footer-left button:hover {
+    background: #FFC107; /* Malo svetlija zlatna */
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+
+.footer-center {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 15px;
+    color: var(--text-light);
+    flex-basis: 100%; /* Take full width on smaller screens */
+    order: 3; /* Move to bottom on smaller screens */
+}
+
+.footer-right {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+footer .social-link svg {
+    fill: var(--text-light); /* Social icons in footer */
+}
+
+footer .social-link #youtube-link svg { fill: #FF0000; }
+footer .social-link #twitter-link svg { fill: #1DA1F2; }
+footer .social-link #rumble-link svg { fill: #00C6FF; }
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+    .page-wrapper {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    .sidebar.card {
+        width: 95%;
+        max-height: 600px; /* Limit sidebar height on smaller screens */
+    }
+    .right-column {
+        width: 95%;
+    }
+    header.card, footer.card {
+        padding: 15px 20px;
+    }
+    .footer-center {
+        order: initial; /* Reset order */
+        flex-basis: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px 0;
+    }
+    .card {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    header.card {
+        flex-direction: column;
+        text-align: center;
+        min-height: auto;
+        padding: 20px 15px;
+    }
+    header.card img {
+        margin-right: 0;
+        margin-bottom: 15px;
+        width: 80px;
+        height: 80px;
+    }
+    .header-texts span.name {
+        font-size: 20px;
+    }
+    .header-texts span.motto {
+        font-size: 14px;
+    }
+    .section-title {
+        font-size: 16px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+    .link-item, .video-item {
+        padding: 10px 12px;
+        margin-bottom: 8px;
+    }
+    .link-text {
+        font-size: 14px;
+    }
+    .video-item img {
+        width: 100px;
+        height: 60px;
+        margin-right: 10px;
+    }
+    .video-desc {
+        font-size: 12px;
+    }
+    footer.card {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 10px;
+        min-height: auto;
+    }
+    .footer-left, .footer-right {
+        justify-content: center;
+        width: 100%;
+    }
+    .footer-center {
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+    <!-- Leva sekcija (Sidebar) -->
+    <aside class="sidebar card">
+        <div id="sidebar">
+            <div class="section-title" id="content-title"></div>
+            <div id="link-section"></div>
+            <div class="section-title" id="video-title"></div>
+            <div id="video-section"></div>
+        </div>
+    </aside>
+
+    <!-- Desna kolona -->
+    <div class="right-column">
+        <header class="card">
+            <img id="profile-img">
+            <div class="header-texts">
+                <span class="name" id="profile-name"></span>
+                <span class="motto" id="profile-motto"></span>
+            </div>
+        </header>
+
+        <main class="main card">
+            <div id="main">
+                <p>Odaberite stavku iz menija da biste gledali video.</p>
+            </div>
+        </main>
+
+        <footer class="card">
+            <div class="footer-left">
+                <button id="footer-btn1">Blogger</button>
+                <button id="footer-btn2">My Channel</button>
+            </div>
+            <div class="footer-center" id="footer-text"></div>
+            <div class="footer-right">
+                <a href="https://www.youtube.com/" id="youtube-link" target="_blank" class="social-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a2.988 2.988 0 0 0-2.107-2.11C19.508 3.5 12 3.5 12 3.5s-7.508 0-9.391.576a2.988 2.988 0 0 0-2.107 2.11C0 8.067 0 12 0 12s0 3.933.502 5.814a2.988 2.988 0 0 0 2.107 2.11c1.883.576 9.391.576 9.391.576s7.508 0 9.391-.576a2.988 2.988 0 0 0 2.107-2.11C24 15.933 24 12 24 12s0-3.933-.502-5.814zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/>
+                    </svg>
+                </a>
+                <a href="https://twitter.com/" id="twitter-link" target="_blank" class="social-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                        <path d="M24 4.557a9.835 9.835 0 0 1-2.828.775 4.932 4.932 0 0 0 2.165-2.724 9.868 9.868 0 0 1-3.127 1.195 4.916 4.916 0 0 0-8.38 4.482A13.944 13.944 0 0 1 1.671 3.149 4.915 4.915 0 0 0 3.195 9.72a4.902 4.902 0 0 1-2.229-.616v.062a4.917 4.917 0 0 0 3.946 4.827 4.902 4.902 0 0 1-2.224.085 4.918 4.918 0 0 0 4.588 3.417A9.867 9.867 0 0 1 0 19.54 13.933 13.933 0 0 0 7.548 21c9.142 0 14.307-7.721 13.995-14.646A9.936 9.936 0 0 0 24 4.557z"/>
+                    </svg>
+                </a>
+                <a href="https://rumble.com/" id="rumble-link" target="_blank" class="social-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                        <path d="M2 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12zm6.5-2v4l4-2-4-2z"/>
+                    </svg>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vToqj0JglDOwG_PdfpqiBTA76JnJO9AY38FNnpudB_YevYjhriY6oZbthJeUfqbkPbOdDxf8Aa4R9__/pub?gid=1440834607&single=true&output=csv";
+
+let allData = [];
+let autoplayEnabled = false;
+
+Papa.parse(sheetUrl, {
+    download: true,
+    header: false,
+    complete: function(results) {
+        allData = results.data.filter(row => row[0]);
+        if (allData.length === 0) {
+            document.getElementById("main").innerHTML = "<p>Nema dostupnih podataka.</p>";
+            return;
+        }
+
+        // Popunjava headere i footere
+        document.getElementById("profile-img").src = allData[0][4];
+        document.getElementById("profile-name").textContent = allData[1][4];
+        document.getElementById("profile-motto").textContent = allData[2][4];
+        document.getElementById("footer-text").textContent = allData[3][4];
+        document.getElementById("content-title").textContent = allData[4][4];
+        document.getElementById("video-title").textContent = allData[5][4];
+
+        // Postavlja linkove za dugmad i socijalne mreže
+        if (allData[9] && allData[9][4]) document.getElementById("footer-btn1").onclick = () => window.open(allData[9][4], '_blank');
+        if (allData[10] && allData[10][4]) document.getElementById("footer-btn2").onclick = () => window.open(allData[10][4], '_blank');
+
+        if (allData[6] && allData[6][4]) document.getElementById("youtube-link").href = allData[6][4];
+        if (allData[7] && allData[7][4]) document.getElementById("twitter-link").href = allData[7][4];
+        if (allData[8] && allData[8][4]) document.getElementById("rumble-link").href = allData[8][4];
+
+        const linkSection = document.getElementById("link-section");
+        let firstLinkElement = null;
+
+        allData.forEach((row, rowIndex) => {
+            // Preskačemo redove koji su iskorišteni za headere/footere ili su prazni
+            if (rowIndex < 11) return;
+
+            const linkText = row[2];
+            const targetColumnLetter = row[3];
+            if (linkText && targetColumnLetter) {
+                const linkItem = document.createElement("div");
+                linkItem.className = "link-item";
+                const linkDiv = document.createElement("div");
+                linkDiv.className = "link-text";
+                linkDiv.textContent = linkText;
+                linkItem.appendChild(linkDiv);
+
+                linkItem.addEventListener("click", () => {
+                    autoplayEnabled = true; // Omogući autoplay nakon prvog klika
+                    document.querySelectorAll(".link-item").forEach(i => i.classList.remove("active"));
+                    linkItem.classList.add("active");
+
+                    const colIndex = letterToIndex(targetColumnLetter.trim().toUpperCase());
+                    if (colIndex === null) {
+                        alert("Nepoznata kolona: " + targetColumnLetter);
+                        return;
+                    }
+                    showVideosFromColumn(colIndex);
+                });
+                linkSection.appendChild(linkItem);
+                if (!firstLinkElement) {
+                    firstLinkElement = linkItem;
+                }
+            }
+        });
+
+        // Automatski označi prvu sekciju kao aktivnu i prikaži njene videe
+        if (firstLinkElement) {
+            firstLinkElement.classList.add("active");
+            const firstTargetColumnLetter = allData.find((row, rowIndex) => rowIndex >= 11 && row[2] && row[3])?.[3];
+            if (firstTargetColumnLetter) {
+                const firstColIndex = letterToIndex(firstTargetColumnLetter.trim().toUpperCase());
+                if (firstColIndex !== null) {
+                    showVideosFromColumn(firstColIndex);
+                }
+            }
+        }
+    }
+});
+
+function letterToIndex(letter) {
+    if (!/^[A-Z]+$/.test(letter)) return null;
+    let index = 0;
+    for (let i = 0; i < letter.length; i++) {
+        index = index * 26 + (letter.charCodeAt(i) - 64);
+    }
+    return index - 1;
+}
+
+function showVideosFromColumn(colIndex) {
+    const videoSection = document.getElementById("video-section");
+    const main = document.getElementById("main");
+    videoSection.innerHTML = "";
+    
+    // Dohvatamo videe iz odabrane kolone
+    const videos = [];
+    for (let i = 0; i < allData.length; i++) {
+        if (i < 11) continue; // Preskačemo prvih 11 redova rezervisanih za globalne postavke
+        const cell = allData[i][colIndex];
+        if (cell && cell.trim()) {
+            const [link, thumb] = cell.split("|").map(s => s.trim());
+            const desc = allData[i][colIndex + 1] || "";
+            videos.push({ link, thumb: thumb || "", desc });
+        }
+    }
+
+    if (videos.length === 0) {
+        videoSection.innerHTML = "<div style='text-align:center; color:#666; padding: 20px;'>Nema videa u ovoj sekciji.</div>";
+        main.innerHTML = "<p>Nema dostupnih videa za ovu sekciju.</p>";
+        return;
+    }
+
+    // Prikaz prvog videa u glavnom plejeru
+    const firstVideo = videos[0];
+    embedVideo(firstVideo.link, main, autoplayEnabled, firstVideo.thumb);
+
+    // Prikaz svih videa u sidebar listi (obrnut redosled kao u originalu)
+    videos.reverse().forEach(({ link, thumb, desc }) => {
+        const isYouTube = /(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/.test(link);
+        const isRumble = link.includes("rumble.com");
+        const isCustom = !isYouTube && !isRumble;
+
+        const videoItem = document.createElement("div");
+        videoItem.className = "video-item";
+
+        const thumbnail = document.createElement("img");
+        if (isYouTube) {
+            const videoId = link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+            thumbnail.src = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : "https://via.placeholder.com/140x80?text=YouTube";
+        } else if (isRumble) {
+            thumbnail.src = thumb || "https://via.placeholder.com/140x80?text=Rumble";
+        } else if (isCustom) {
+            thumbnail.src = thumb || "https://via.placeholder.com/140x80?text=Video";
+        }
+
+        const info = document.createElement("div");
+        info.className = "video-info";
+        const description = document.createElement("div");
+        description.className = "video-desc";
+
+        const fullText = desc.trim();
+        const shortText = fullText.length > 50 ? fullText.slice(0, 50) + "…" : fullText;
+        description.textContent = shortText;
+        if (fullText.length > 50) { // Samo dodaj tooltip ako je tekst duži
+            description.setAttribute("data-full", fullText);
+        }
+        
+
+        info.appendChild(description);
+
+        videoItem.appendChild(thumbnail);
+        videoItem.appendChild(info);
+
+        videoItem.addEventListener("click", () => {
+            embedVideo(link, main, true, thumb); // Autoplay true za kliknuti video
+        });
+        videoSection.appendChild(videoItem);
+    });
+}
+
+function embedVideo(link, container, autoplay, thumb) {
+    const isYouTube = /(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/.test(link);
+    const isRumble = link.includes("rumble.com");
+    const isCustom = !isYouTube && !isRumble;
+
+    if (isYouTube) {
+        const videoId = link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+        if (!videoId) {
+            container.innerHTML = "<p>Greška: Neispravan YouTube link.</p>";
+            return;
+        }
+        const autoplayParam = autoplay ? 1 : 0;
+        container.innerHTML = `<div class="video-wrapper">
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=${autoplayParam}&controls=1" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen>
+            </iframe>
+        </div>`;
+    } else if (isRumble) {
+        // Normalizujemo Rumble URL-ove na embed format
+        let embedLink = link.replace('watch?v=', 'embed/').replace('video/', 'embed/');
+        // Ako već nije embed link, dodajemo 'embed/'
+        if (!embedLink.includes('/embed/')) {
+            const videoIdMatch = embedLink.match(/rumble\.com\/([a-zA-Z0-9_-]+)/);
+            if (videoIdMatch && videoIdMatch[1]) {
+                embedLink = `https://rumble.com/embed/${videoIdMatch[1]}/`;
+            } else {
+                container.innerHTML = "<p>Greška: Neispravan Rumble link.</p>";
+                return;
+            }
+        }
+        container.innerHTML = `<div class="video-wrapper">
+            <iframe 
+                src="${embedLink}" 
+                allow="autoplay; fullscreen; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>`;
+    } else if (isCustom) {
+        container.innerHTML = `<div class="video-wrapper">
+            <video src="${link}" poster="${thumb}" controls ${autoplay ? "autoplay" : ""}></video>
+        </div>`;
+    } else {
+        container.innerHTML = "<p>Nepoznat format videa.</p>";
+    }
+}
+</script>
+
+</body>
+</html>
