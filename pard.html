@@ -383,12 +383,12 @@ function showVideosFromColumn(colIndex) {
     }
 
     const firstVideo = videos[0];
-    embedVideo(firstVideo.link, main, autoplayEnabled);
+    embedVideo(firstVideo.link, main, autoplayEnabled, firstVideo.thumb);
 
     videos.reverse().forEach(({ link, thumb, desc }) => {
         const isYouTube = /(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/.test(link);
         const isRumble = link.includes("rumble.com");
-        const isMP4 = link.endsWith(".mp4");
+        const isCustom = !isYouTube && !isRumble;
 
         const videoItem = document.createElement("div");
         videoItem.className = "video-item";
@@ -399,10 +399,8 @@ function showVideosFromColumn(colIndex) {
             thumbnail.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
         } else if (isRumble) {
             thumbnail.src = thumb || "https://via.placeholder.com/120x90?text=Rumble";
-        } else if (isMP4) {
+        } else if (isCustom) {
             thumbnail.src = thumb || "https://via.placeholder.com/120x90?text=Video";
-        } else {
-            thumbnail.src = "https://via.placeholder.com/120x90?text=Video";
         }
 
         const info = document.createElement("div");
@@ -416,16 +414,16 @@ function showVideosFromColumn(colIndex) {
         videoItem.appendChild(info);
 
         videoItem.addEventListener("click", () => {
-            embedVideo(link, main, true);
+            embedVideo(link, main, true, thumb);
         });
         videoSection.appendChild(videoItem);
     });
 }
 
-function embedVideo(link, container, autoplay) {
+function embedVideo(link, container, autoplay, thumb) {
     const isYouTube = /(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/.test(link);
     const isRumble = link.includes("rumble.com");
-    const isMP4 = link.endsWith(".mp4");
+    const isCustom = !isYouTube && !isRumble;
 
     if (isYouTube) {
         const videoId = link.match(/(?:\/embed\/|watch\?v=|\.be\/)([a-zA-Z0-9_-]{11})/)[1];
@@ -445,12 +443,10 @@ function embedVideo(link, container, autoplay) {
                 allowfullscreen>
             </iframe>
         </div>`;
-    } else if (isMP4) {
+    } else if (isCustom) {
         container.innerHTML = `<div class="video-wrapper" style="padding-bottom:56.25%">
-            <video src="${link}" controls autoplay style="width:100%; height:100%;"></video>
+            <video src="${link}" poster="${thumb}" controls ${autoplay ? "autoplay" : ""}></video>
         </div>`;
-    } else {
-        container.innerHTML = "<div style='text-align:center; color:#fff; padding:20px;'>Nepoznat tip videa</div>";
     }
 }
 </script>
